@@ -16,11 +16,11 @@ sealed class SoonumNav(
     @DrawableRes val icon: Int,
     val screenRoute: String,
 ) {
-    object Home : SoonumNav(R.string.main_home, R.drawable.ic_home, NavigationRouteName.MAIN_HOME)
-    object AddPost :
+    data object Home : SoonumNav(R.string.main_home, R.drawable.ic_home, NavigationRouteName.MAIN_HOME)
+    data object AddPost :
         SoonumNav(R.string.add_post, R.drawable.ic_add_post, NavigationRouteName.ADD_POST)
 
-    object Tag : SoonumNav(R.string.tag, R.drawable.ic_tag, NavigationRouteName.TAG)
-    object Profile :
+    data object Tag : SoonumNav(R.string.tag, R.drawable.ic_tag, NavigationRouteName.TAG)
+    data object Profile :
         SoonumNav(R.string.profile, R.drawable.ic_profile, NavigationRouteName.PROFILE)
 }
