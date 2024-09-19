@@ -21,6 +21,7 @@ import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
 import com.sooum.android.ui.theme.SoonumTheme
 
+//GitTest
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
