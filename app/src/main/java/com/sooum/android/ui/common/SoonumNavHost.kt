@@ -1,5 +1,6 @@
 package com.sooum.android.ui.common
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -15,15 +16,16 @@ fun SoonumNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     startDestination: String,
+    isVisible: Boolean,
+    scrollState: LazyListState
 ) {
     NavHost(
         modifier = modifier,
         navController = navController,
         startDestination = startDestination
     ) {
-
         composable(route = SoonumNav.Home.screenRoute) {
-            HomeScreen()
+            HomeScreen(isVisible, scrollState)
         }
 
         composable(route = SoonumNav.AddPost.screenRoute) {
