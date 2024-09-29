@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
                         previousIndex = currentIndex
                     }
             }
+
             SoonumTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(

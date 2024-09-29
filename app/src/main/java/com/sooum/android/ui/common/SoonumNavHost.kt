@@ -24,7 +24,6 @@ fun SoonumNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-
         composable(route = SoonumNav.Home.screenRoute) {
             HomeScreen(isVisible, scrollState)
         }
