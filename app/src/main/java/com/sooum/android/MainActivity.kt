@@ -93,67 +93,105 @@ class MainActivity : ComponentActivity() {
                         },
 
                         topBar = {
-                            TopAppBar(
-                                title = {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_logo),
-                                        contentDescription = "앱 로고",
-                                        modifier = Modifier
-                                            .width(93.dp)
-                                            .height(18.dp)
-                                    )
-                                },
-                                actions = {
-                                    IconButton(onClick = {
-                                        /* 버튼 클릭 이벤트 */
-                                    }) {
+                            if (SoonumNav.isMainRoute(currentRoute)) {
+                                TopAppBar(
+                                    title = {
                                         Image(
-                                            painter = painterResource(id = R.drawable.ic_alarm),
-                                            contentDescription = "Alarm",
-                                            colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
+                                            painter = painterResource(id = R.drawable.ic_logo),
+                                            contentDescription = "앱 로고",
+                                            modifier = Modifier
+                                                .width(93.dp)
+                                                .height(18.dp)
                                         )
-                                    }
-                                },
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
+                                    },
+                                    actions = {
+                                        IconButton(onClick = {
+                                            /* 버튼 클릭 이벤트 */
+                                        }) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.ic_alarm),
+                                                contentDescription = "Alarm",
+                                                colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            } else {
+                                TopAppBar(
+                                    title = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.ic_profile_logo),
+                                                contentDescription = "앱 로고",
+                                                modifier = Modifier
+                                                    .width(32.dp)
+                                                    .height(32.dp)
+                                                    .padding(end = 8.dp)
+                                            )
+                                            Text(
+                                                text = "한숨이",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 16.sp
+                                            )
+                                        }
+
+                                    },
+                                    actions = {
+                                        IconButton(onClick = {
+                                            /* 버튼 클릭 이벤트 */
+                                        }) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.ic_home),
+                                                contentDescription = "home",
+                                                colorFilter = ColorFilter.tint(colorResource(R.color.black))
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+
+                            }
+
                         },
                         floatingActionButton = {
-                            
-                            if (showFab.value) {
-                                ExtendedFloatingActionButton(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            scrollState.animateScrollToItem(0)
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .border(
-                                            width = 1.dp,
-                                            color = colorResource(R.color.gray02),
-                                            shape = RoundedCornerShape(100.dp)
-                                        ),
-                                    shape = RoundedCornerShape(100.dp),
-                                    content = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                        ) {
-                                            Text(
-                                                text = "맨위로 이동",
-                                                color = colorResource(R.color.gray01),
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp
-                                            )
-                                            Icon(
-                                                painter = painterResource(R.drawable.ic_arrow_top),
-                                                contentDescription = "맨위로 이동 버튼",
-                                                tint = colorResource(R.color.gray01)
-                                            )
-                                        }
-                                    },
-                                    containerColor = Color.White,
-                                    elevation = FloatingActionButtonDefaults.elevation(10.dp)
-                                )
+                            if (SoonumNav.isMainRoute(currentRoute)) {
+                                if (showFab.value) {
+                                    ExtendedFloatingActionButton(
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                scrollState.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .border(
+                                                width = 1.dp,
+                                                color = colorResource(R.color.gray02),
+                                                shape = RoundedCornerShape(100.dp)
+                                            ),
+                                        shape = RoundedCornerShape(100.dp),
+                                        content = {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                Text(
+                                                    text = "맨위로 이동",
+                                                    color = colorResource(R.color.gray01),
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp
+                                                )
+                                                Icon(
+                                                    painter = painterResource(R.drawable.ic_arrow_top),
+                                                    contentDescription = "맨위로 이동 버튼",
+                                                    tint = colorResource(R.color.gray01)
+                                                )
+                                            }
+                                        },
+                                        containerColor = Color.White,
+                                        elevation = FloatingActionButtonDefaults.elevation(10.dp)
+                                    )
+                                }
                             }
                         },
                         floatingActionButtonPosition = FabPosition.Center
@@ -166,8 +204,6 @@ class MainActivity : ComponentActivity() {
                             isVisible = isVisible,
                             scrollState = scrollState,
                         )
-
-
                     }
                 }
             }
