@@ -1,8 +1,10 @@
 package com.sooum.android.ui.common
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,14 +16,13 @@ import com.sooum.android.ui.DetailScreen
 
 @Composable
 fun SoonumNavHost(
-    modifier: Modifier = Modifier,
     navController: NavHostController,
     startDestination: String,
     isVisible: Boolean,
     scrollState: LazyListState,
 ) {
     NavHost(
-        modifier = modifier,
+        modifier = Modifier.padding(top = 64.dp),//topbar만큼 위로 뛰우김
         navController = navController,
         startDestination = startDestination
     ) {

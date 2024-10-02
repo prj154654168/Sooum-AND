@@ -2,7 +2,6 @@ package com.sooum.android.ui.common
 
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -41,7 +40,6 @@ fun SoonumBottomNavigation(navController: NavHostController) {
     NavigationBar(
         modifier = Modifier
             .padding(20.dp)
-            .navigationBarsPadding()
             .graphicsLayer {
                 shape = RoundedCornerShape(
                     100.dp

@@ -91,6 +91,7 @@ class MainActivity : ComponentActivity() {
                                 SoonumBottomNavigation(navController)
                             }
                         },
+
                         topBar = {
                             TopAppBar(
                                 title = {
@@ -117,6 +118,7 @@ class MainActivity : ComponentActivity() {
                             )
                         },
                         floatingActionButton = {
+                            
                             if (showFab.value) {
                                 ExtendedFloatingActionButton(
                                     onClick = {
@@ -156,13 +158,16 @@ class MainActivity : ComponentActivity() {
                         },
                         floatingActionButtonPosition = FabPosition.Center
                     ) { innerPadding ->
+                        Box(modifier = Modifier.padding(innerPadding))
+
                         SoonumNavHost(
                             navController = navController,
                             startDestination = SoonumNav.Home.screenRoute,
-                            modifier = Modifier.padding(innerPadding),
                             isVisible = isVisible,
-                            scrollState = scrollState
+                            scrollState = scrollState,
                         )
+
+
                     }
                 }
             }
