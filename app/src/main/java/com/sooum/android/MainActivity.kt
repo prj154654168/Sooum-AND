@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -42,6 +43,7 @@ import com.sooum.android.enums.HomeSelectEnum
 import com.sooum.android.model.SortedByDistanceDataModel
 import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.model.SortedByPopularityDataModel
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SoonumBottomNavigation
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
@@ -80,9 +82,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Scaffold(bottomBar = {
-                        SoonumBottomNavigation(navController)
-                    },
+                    Scaffold(
+                        bottomBar = {
+                            SoonumBottomNavigation(navController)
+                        },
                         topBar = {
                             TopAppBar(
                                 title = {
@@ -164,7 +167,7 @@ class MainActivity : ComponentActivity() {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(isVisible: Boolean, scrollState: LazyListState) {
+fun HomeScreen(isVisible: Boolean, scrollState: LazyListState, navController: NavHostController) {
     var selected by remember { mutableStateOf(HomeSelectEnum.LATEST) }
     var distance by remember { mutableStateOf(DistanceEnum.UNDER_1) }
 
@@ -182,7 +185,7 @@ fun HomeScreen(isVisible: Boolean, scrollState: LazyListState) {
                 exit = slideOutVertically(targetOffsetY = { -it })
             ) {
                 Column {
-                    HomeSelect(selected, onSelectedChange = {newSelection ->
+                    HomeSelect(selected, onSelectedChange = { newSelection ->
                         selected = newSelection
                     })
                     Divider(
@@ -195,14 +198,14 @@ fun HomeScreen(isVisible: Boolean, scrollState: LazyListState) {
                     }
 
                     if (selected == HomeSelectEnum.DISTANCE) {
-                        LocationFilter(distance, onDistanceChange = {newDistance ->
+                        LocationFilter(distance, onDistanceChange = { newDistance ->
                             distance = newDistance
                         })
                     }
                 }
             }
 
-            ItemList(scrollState, selected)
+            ItemList(scrollState, selected, navController)
         }
     }
 }
@@ -274,23 +277,43 @@ fun ProfileScreen() {
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun ItemList(scrollState: LazyListState, selected: HomeSelectEnum) {
+fun ItemList(
+    scrollState: LazyListState,
+    selected: HomeSelectEnum,
+    navController: NavHostController,
+) {
     val coroutineScope = rememberCoroutineScope()
     val retrofitInstance = RetrofitInterface.getInstance().create(CardApi::class.java)
-    var latestCardList by remember { mutableStateOf<List<SortedByLatestDataModel.Embedded.LatestFeedCardDto>>(emptyList()) }
-    var popularityCardList by remember { mutableStateOf<List<SortedByPopularityDataModel.Embedded.PopularCard>>(emptyList()) }
-    var distanceCardList by remember { mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceCardDto>>(emptyList()) }
+    var latestCardList by remember {
+        mutableStateOf<List<SortedByLatestDataModel.Embedded.LatestFeedCardDto>>(
+            emptyList()
+        )
+    }
+    var popularityCardList by remember {
+        mutableStateOf<List<SortedByPopularityDataModel.Embedded.PopularCard>>(
+            emptyList()
+        )
+    }
+    var distanceCardList by remember {
+        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceCardDto>>(
+            emptyList()
+        )
+    }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             try {
                 //최근순
-                val latestResponse = retrofitInstance.getLatestCardList(ACCESS_TOKEN, 37.5170112, 126.9019532)
+                val latestResponse =
+                    retrofitInstance.getLatestCardList(ACCESS_TOKEN, 37.5170112, 126.9019532)
                 if (latestResponse.isSuccessful) {
                     val dataModel = latestResponse.body()
                     if (dataModel != null) {
                         latestCardList = dataModel._embedded.latestFeedCardDtoList
-                        Log.d("MainActivity", "latestSuccess, ${latestCardList.first().backgroundImgUrl.href}")
+                        Log.d(
+                            "MainActivity",
+                            "latestSuccess, ${latestCardList.first().backgroundImgUrl.href}"
+                        )
                         for (i in latestCardList) {
                             Log.d("Latest", "${i.backgroundImgUrl.href}")
                         }
@@ -300,28 +323,45 @@ fun ItemList(scrollState: LazyListState, selected: HomeSelectEnum) {
                     Log.d("MainActivity", "cardList null")
                 }
                 //인기순
-                val popularityResponse = retrofitInstance.getPopularityCardList(ACCESS_TOKEN, 37.5170112, 126.9019532)
+                val popularityResponse =
+                    retrofitInstance.getPopularityCardList(ACCESS_TOKEN, 37.5170112, 126.9019532)
                 if (popularityResponse.isSuccessful) {
                     val dataModel = popularityResponse.body()
                     if (dataModel != null) {
                         popularityCardList = dataModel._embedded.popularCardRetrieveList
-                        Log.d("MainActivity", "popularitySuccess, ${popularityCardList.first().backgroundImgUrl.href}")
+                        Log.d(
+                            "MainActivity",
+                            "popularitySuccess, ${popularityCardList.first().backgroundImgUrl.href}"
+                        )
                     }
                 } else {
                     Log.d("MainActivity", "cardList null")
                 }
                 //거리순
-                val distanceResponse = retrofitInstance.getDistanceCardList(ACCESS_TOKEN, 37.5170112, 126.9019532, DistanceEnum.UNDER_20)
+                val distanceResponse = retrofitInstance.getDistanceCardList(
+                    ACCESS_TOKEN,
+                    37.5170112,
+                    126.9019532,
+                    DistanceEnum.UNDER_20
+                )
 
                 if (distanceResponse.isSuccessful) {
                     val dataModel = distanceResponse.body()
                     Log.d("MainActivity", "${dataModel?.status}")
                     if (dataModel != null) {
                         distanceCardList = dataModel._embedded.distanceCardDtoList
-                        Log.d("MainActivity", "popularitySuccess, ${distanceCardList.first().backgroundImgUrl.href}")
+                        Log.d(
+                            "MainActivity",
+                            "popularitySuccess, ${distanceCardList.first().backgroundImgUrl.href}"
+                        )
                     }
                 } else {
-                    Log.d("MainActivity", "status code : ${distanceResponse.code()}, error message : ${distanceResponse.errorBody()?.string()}")
+                    Log.d(
+                        "MainActivity",
+                        "status code : ${distanceResponse.code()}, error message : ${
+                            distanceResponse.errorBody()?.string()
+                        }"
+                    )
                     Log.d("MainActivity", "cardList null")
                 }
             } catch (e: Exception) {
@@ -332,32 +372,35 @@ fun ItemList(scrollState: LazyListState, selected: HomeSelectEnum) {
 
     LazyColumn(state = scrollState) {
         if (selected == HomeSelectEnum.LATEST) {
-            items(latestCardList) {item ->
-                LatestContentCard(item)
+            items(latestCardList) { item ->
+                LatestContentCard(item, navController)
             }
-        }
-        else if (selected == HomeSelectEnum.POPULARITY) {
-            items(popularityCardList) {item ->
+        } else if (selected == HomeSelectEnum.POPULARITY) {
+            items(popularityCardList) { item ->
                 PopularityContentCard(item)
             }
-        }
-        else {
-            items(distanceCardList) {item ->
+        } else {
+            items(distanceCardList) { item ->
                 DistanceContentCard(item)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LatestContentCard(item: SortedByLatestDataModel.Embedded.LatestFeedCardDto) {
+fun LatestContentCard(
+    item: SortedByLatestDataModel.Embedded.LatestFeedCardDto,
+    navController: NavHostController,
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1 / 0.9f)
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-        shape = RoundedCornerShape(40.dp)
+        shape = RoundedCornerShape(40.dp),
+        onClick = { navController.navigate(PostNav.Detail.screenRoute) }
     ) {
         Box(
             modifier = Modifier
@@ -370,8 +413,9 @@ fun LatestContentCard(item: SortedByLatestDataModel.Embedded.LatestFeedCardDto) 
                     .align(Alignment.TopCenter)
                     .zIndex(1f)
             ) {
-                Box(modifier = Modifier
-                    .align(Alignment.Center)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
                 ) {
                     if (item.isStory) {
                         PungTime("14 : 00 : 00")
@@ -434,8 +478,9 @@ fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularCard
                     .align(Alignment.TopCenter)
                     .zIndex(1f)
             ) {
-                Box(modifier = Modifier
-                    .align(Alignment.Center)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
                 ) {
                     if (item.isStory) {
                         PungTime("14 : 00 : 00")
@@ -498,8 +543,9 @@ fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceCardDto
                     .align(Alignment.TopCenter)
                     .zIndex(1f)
             ) {
-                Box(modifier = Modifier
-                    .align(Alignment.Center)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
                 ) {
                     if (item.isStory) {
                         PungTime("14 : 00 : 00")
@@ -555,7 +601,7 @@ fun ImageLoader(url: String) {
 }
 
 @Composable
-fun PungTime(time : String) {
+fun PungTime(time: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = colorResource(R.color.primary_color)
@@ -578,39 +624,43 @@ fun LatestCardInfo(item: SortedByLatestDataModel.Embedded.LatestFeedCardDto) {
             .shadow(elevation = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        InfoElement(painter = painterResource(R.drawable.ic_clock),
+        InfoElement(
+            painter = painterResource(R.drawable.ic_clock),
             description = "시간",
             count = formatTimeDifference(item.createdAt),
             isTrue = false
         )
-        InfoElement(painter = painterResource(R.drawable.ic_location),
+        InfoElement(
+            painter = painterResource(R.drawable.ic_location),
             description = "위치",
             count = formatDistanceInKm(item.distance),
             isTrue = false
         )
         if (item.isLiked) {
-            InfoElement(painter = painterResource(R.drawable.ic_heart_filled),
+            InfoElement(
+                painter = painterResource(R.drawable.ic_heart_filled),
                 description = "좋아요",
                 count = "${item.likeCnt}",
                 isTrue = true
             )
-        }
-        else {
-            InfoElement(painter = painterResource(R.drawable.ic_heart),
+        } else {
+            InfoElement(
+                painter = painterResource(R.drawable.ic_heart),
                 description = "좋아요",
                 count = "${item.likeCnt}",
                 isTrue = false
             )
         }
         if (item.isCommentWritten) {
-            InfoElement(painter = painterResource(R.drawable.ic_comment_filled),
+            InfoElement(
+                painter = painterResource(R.drawable.ic_comment_filled),
                 description = "댓글",
                 count = "${item.commentCnt}",
                 isTrue = true
             )
-        }
-        else {
-            InfoElement(painter = painterResource(R.drawable.ic_comment),
+        } else {
+            InfoElement(
+                painter = painterResource(R.drawable.ic_comment),
                 description = "댓글",
                 count = "${item.commentCnt}",
                 isTrue = false
@@ -628,39 +678,42 @@ fun PopularityCardInfo(item: SortedByPopularityDataModel.Embedded.PopularCard) {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (item.isLiked) {
-            InfoElement(painter = painterResource(R.drawable.ic_heart_filled),
+            InfoElement(
+                painter = painterResource(R.drawable.ic_heart_filled),
                 description = "좋아요",
-                count = "${item.likeCnt}"
-                ,isTrue = true
+                count = "${item.likeCnt}", isTrue = true
             )
-        }
-        else {
-            InfoElement(painter = painterResource(R.drawable.ic_heart),
+        } else {
+            InfoElement(
+                painter = painterResource(R.drawable.ic_heart),
                 description = "좋아요",
                 count = "${item.likeCnt}",
                 isTrue = false
             )
         }
         if (item.isCommentWritten) {
-            InfoElement(painter = painterResource(R.drawable.ic_comment_filled),
+            InfoElement(
+                painter = painterResource(R.drawable.ic_comment_filled),
                 description = "댓글",
                 count = "${item.commentCnt}",
                 isTrue = true
             )
-        }
-        else {
-            InfoElement(painter = painterResource(R.drawable.ic_comment),
+        } else {
+            InfoElement(
+                painter = painterResource(R.drawable.ic_comment),
                 description = "댓글",
                 count = "${item.commentCnt}",
                 isTrue = false
             )
         }
-        InfoElement(painter = painterResource(R.drawable.ic_clock),
+        InfoElement(
+            painter = painterResource(R.drawable.ic_clock),
             description = "시간",
             count = formatTimeDifference(item.createdAt),
             isTrue = false
         )
-        InfoElement(painter = painterResource(R.drawable.ic_location),
+        InfoElement(
+            painter = painterResource(R.drawable.ic_location),
             description = "위치",
             count = formatDistanceInKm(item.distance),
             isTrue = false
@@ -676,39 +729,43 @@ fun DistanceCardInfo(item: SortedByDistanceDataModel.Embedded.DistanceCardDto) {
             .shadow(elevation = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        InfoElement(painter = painterResource(R.drawable.ic_location),
+        InfoElement(
+            painter = painterResource(R.drawable.ic_location),
             description = "위치",
             count = formatDistanceInKm(item.distance),
             isTrue = false
         )
-        InfoElement(painter = painterResource(R.drawable.ic_clock),
+        InfoElement(
+            painter = painterResource(R.drawable.ic_clock),
             description = "시간",
             count = formatTimeDifference(item.createdAt),
             isTrue = false
         )
         if (item.isLiked) {
-            InfoElement(painter = painterResource(R.drawable.ic_heart_filled),
+            InfoElement(
+                painter = painterResource(R.drawable.ic_heart_filled),
                 description = "좋아요",
                 count = "${item.likeCnt}",
                 isTrue = true
             )
-        }
-        else {
-            InfoElement(painter = painterResource(R.drawable.ic_heart),
+        } else {
+            InfoElement(
+                painter = painterResource(R.drawable.ic_heart),
                 description = "좋아요",
                 count = "${item.likeCnt}",
                 isTrue = false
             )
         }
         if (item.isCommentWritten) {
-            InfoElement(painter = painterResource(R.drawable.ic_comment_filled),
+            InfoElement(
+                painter = painterResource(R.drawable.ic_comment_filled),
                 description = "댓글",
                 count = "${item.commentCnt}",
                 isTrue = true
             )
-        }
-        else {
-            InfoElement(painter = painterResource(R.drawable.ic_comment),
+        } else {
+            InfoElement(
+                painter = painterResource(R.drawable.ic_comment),
                 description = "댓글",
                 count = "${item.commentCnt}",
                 isTrue = false
@@ -736,6 +793,7 @@ private fun formatTimeDifference(timeString: String): String {
             val roundedMinutes = (minutesDifference / 10) * 10
             "${roundedMinutes}분 전"
         }
+
         hoursDifference < 24 -> "${hoursDifference}시간 전"
         daysDifference < 10 -> "${daysDifference}일 전"
         daysDifference < 100 -> "${(daysDifference / 10) * 10}일 전"
@@ -754,21 +812,24 @@ fun formatDistanceInKm(distance: Double): String {
 }
 
 @Composable
-fun InfoElement(painter: Painter, description: String, count: String, isTrue : Boolean) {
+fun InfoElement(painter: Painter, description: String, count: String, isTrue: Boolean) {
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (isTrue) {
             Icon(
-                modifier = Modifier.width(12.dp).height(12.dp),
+                modifier = Modifier
+                    .width(12.dp)
+                    .height(12.dp),
                 painter = painter,
                 contentDescription = description,
                 tint = colorResource(R.color.primary_color)
             )
-        }
-        else {
+        } else {
             Icon(
-                modifier = Modifier.width(12.dp).height(12.dp),
+                modifier = Modifier
+                    .width(12.dp)
+                    .height(12.dp),
                 painter = painter,
                 contentDescription = description,
                 tint = Color.White
@@ -787,7 +848,7 @@ fun InfoElement(painter: Painter, description: String, count: String, isTrue : B
 
 //목록 선택
 @Composable
-fun HomeSelect(selected : HomeSelectEnum, onSelectedChange: (HomeSelectEnum) -> Unit) {
+fun HomeSelect(selected: HomeSelectEnum, onSelectedChange: (HomeSelectEnum) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -863,7 +924,7 @@ fun HomeSelect(selected : HomeSelectEnum, onSelectedChange: (HomeSelectEnum) -> 
 
 //거리 설정 필터
 @Composable
-fun LocationFilter(distance: DistanceEnum, onDistanceChange : (DistanceEnum) -> Unit) {
+fun LocationFilter(distance: DistanceEnum, onDistanceChange: (DistanceEnum) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -880,11 +941,13 @@ fun LocationFilter(distance: DistanceEnum, onDistanceChange : (DistanceEnum) -> 
                 indication = null
             ),
             shape = RoundedCornerShape(100.dp),
-            border = BorderStroke(width = 1.dp, color = if (distance == DistanceEnum.UNDER_1) {
-                colorResource(R.color.primary_color)
-            } else {
-                colorResource(R.color.gray03)
-            }),
+            border = BorderStroke(
+                width = 1.dp, color = if (distance == DistanceEnum.UNDER_1) {
+                    colorResource(R.color.primary_color)
+                } else {
+                    colorResource(R.color.gray03)
+                }
+            ),
 
             ) {
             Text(
@@ -907,11 +970,13 @@ fun LocationFilter(distance: DistanceEnum, onDistanceChange : (DistanceEnum) -> 
                 indication = null
             ),
             shape = RoundedCornerShape(100.dp),
-            border = BorderStroke(width = 1.dp, color = if (distance == DistanceEnum.UNDER_5) {
-                colorResource(R.color.primary_color)
-            } else {
-                colorResource(R.color.gray03)
-            })
+            border = BorderStroke(
+                width = 1.dp, color = if (distance == DistanceEnum.UNDER_5) {
+                    colorResource(R.color.primary_color)
+                } else {
+                    colorResource(R.color.gray03)
+                }
+            )
         ) {
             Text(
                 text = "1km ~ 5km",
@@ -933,11 +998,13 @@ fun LocationFilter(distance: DistanceEnum, onDistanceChange : (DistanceEnum) -> 
                 indication = null
             ),
             shape = RoundedCornerShape(100.dp),
-            border = BorderStroke(width = 1.dp, color = if (distance == DistanceEnum.UNDER_10) {
-                colorResource(R.color.primary_color)
-            } else {
-                colorResource(R.color.gray03)
-            })
+            border = BorderStroke(
+                width = 1.dp, color = if (distance == DistanceEnum.UNDER_10) {
+                    colorResource(R.color.primary_color)
+                } else {
+                    colorResource(R.color.gray03)
+                }
+            )
         ) {
             Text(
                 text = "5km ~ 10km",
@@ -959,11 +1026,13 @@ fun LocationFilter(distance: DistanceEnum, onDistanceChange : (DistanceEnum) -> 
                 indication = null
             ),
             shape = RoundedCornerShape(100.dp),
-            border = BorderStroke(width = 1.dp, color = if (distance == DistanceEnum.UNDER_20) {
-                colorResource(R.color.primary_color)
-            } else {
-                colorResource(R.color.gray03)
-            })
+            border = BorderStroke(
+                width = 1.dp, color = if (distance == DistanceEnum.UNDER_20) {
+                    colorResource(R.color.primary_color)
+                } else {
+                    colorResource(R.color.gray03)
+                }
+            )
         ) {
             Text(
                 text = "10km ~ 20km",
@@ -985,11 +1054,13 @@ fun LocationFilter(distance: DistanceEnum, onDistanceChange : (DistanceEnum) -> 
                 indication = null
             ),
             shape = RoundedCornerShape(100.dp),
-            border = BorderStroke(width = 1.dp, color = if (distance == DistanceEnum.UNDER_50) {
-                colorResource(R.color.primary_color)
-            } else {
-                colorResource(R.color.gray03)
-            })
+            border = BorderStroke(
+                width = 1.dp, color = if (distance == DistanceEnum.UNDER_50) {
+                    colorResource(R.color.primary_color)
+                } else {
+                    colorResource(R.color.gray03)
+                }
+            )
         ) {
             Text(
                 text = "20km ~ 50km",

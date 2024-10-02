@@ -9,6 +9,7 @@ object NavigationRouteName {
     const val ADD_POST = "글추가"
     const val TAG = "태그"
     const val PROFILE = "프로필"
+    const val DETAIL = "상세화면"
 }
 
 sealed class SoonumNav(
@@ -23,4 +24,9 @@ sealed class SoonumNav(
     data object Tag : SoonumNav(R.string.tag, R.drawable.ic_tag, NavigationRouteName.TAG)
     data object Profile :
         SoonumNav(R.string.profile, R.drawable.ic_profile, NavigationRouteName.PROFILE)
+}
+sealed class PostNav(
+    val screenRoute: String,
+) {
+    data object Detail : PostNav(NavigationRouteName.DETAIL)
 }

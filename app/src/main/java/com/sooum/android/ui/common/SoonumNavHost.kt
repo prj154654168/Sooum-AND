@@ -10,6 +10,7 @@ import com.sooum.android.AddPostScreen
 import com.sooum.android.HomeScreen
 import com.sooum.android.ProfileScreen
 import com.sooum.android.TagScreen
+import com.sooum.android.ui.DetailScreen
 
 @Composable
 fun SoonumNavHost(
@@ -17,7 +18,7 @@ fun SoonumNavHost(
     navController: NavHostController,
     startDestination: String,
     isVisible: Boolean,
-    scrollState: LazyListState
+    scrollState: LazyListState,
 ) {
     NavHost(
         modifier = modifier,
@@ -25,7 +26,7 @@ fun SoonumNavHost(
         startDestination = startDestination
     ) {
         composable(route = SoonumNav.Home.screenRoute) {
-            HomeScreen(isVisible, scrollState)
+            HomeScreen(isVisible, scrollState, navController)
         }
 
         composable(route = SoonumNav.AddPost.screenRoute) {
@@ -37,6 +38,9 @@ fun SoonumNavHost(
         }
         composable(route = SoonumNav.Profile.screenRoute) {
             ProfileScreen()
+        }
+        composable(route = PostNav.Detail.screenRoute) {
+            DetailScreen()
         }
     }
 }
