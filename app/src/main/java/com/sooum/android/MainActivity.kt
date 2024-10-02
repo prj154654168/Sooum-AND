@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -67,6 +68,8 @@ class MainActivity : ComponentActivity() {
             val coroutineScope = rememberCoroutineScope()
 
             val navController = rememberNavController()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
 
             LaunchedEffect(scrollState) {
                 snapshotFlow { scrollState.firstVisibleItemIndex }
@@ -84,7 +87,9 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         bottomBar = {
-                            SoonumBottomNavigation(navController)
+                            if (SoonumNav.isMainRoute(currentRoute)) {
+                                SoonumBottomNavigation(navController)
+                            }
                         },
                         topBar = {
                             TopAppBar(
@@ -775,7 +780,7 @@ fun DistanceCardInfo(item: SortedByDistanceDataModel.Embedded.DistanceCardDto) {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-private fun formatTimeDifference(timeString: String): String {
+fun formatTimeDifference(timeString: String): String {
     // 문자열을 LocalDateTime으로 변환
     val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     val eventTime = LocalDateTime.parse(timeString, formatter)

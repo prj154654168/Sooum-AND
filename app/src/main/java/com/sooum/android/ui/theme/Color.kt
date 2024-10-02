@@ -14,5 +14,7 @@ val White100 = Color(0xFFFFFFFF)
 val White70 = Color(0xB3FFFFFF)
 
 val Gray = Color(0xFF7D7D7D)
+val Gray3 = Color(0xFFC7C7C7)
+
 
 val Primary = Color(0xFF0BC7F2)
