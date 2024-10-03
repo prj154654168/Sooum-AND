@@ -13,6 +13,7 @@ import com.sooum.android.HomeScreen
 import com.sooum.android.ProfileScreen
 import com.sooum.android.TagScreen
 import com.sooum.android.ui.DetailScreen
+import com.sooum.android.ui.ReportScreen
 
 @Composable
 fun SoonumNavHost(
@@ -41,7 +42,10 @@ fun SoonumNavHost(
             ProfileScreen()
         }
         composable(route = PostNav.Detail.screenRoute) {
-            DetailScreen()
+            DetailScreen(navController)
+        }
+        composable(route = PostNav.Report.screenRoute) {
+            ReportScreen(navController)
         }
     }
 }

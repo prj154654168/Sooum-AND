@@ -14,6 +14,7 @@ object NavigationRouteName {
     const val TAG = "태그"
     const val PROFILE = "프로필"
     const val DETAIL = "상세화면"
+    const val REPORT = "신고하기"
 }
 
 sealed class SoonumNav(
@@ -43,4 +44,5 @@ sealed class PostNav(
     val screenRoute: String,
 ) {
     data object Detail : PostNav(NavigationRouteName.DETAIL)
+    data object Report : PostNav(NavigationRouteName.REPORT)
 }
