@@ -49,7 +49,7 @@ import com.sooum.android.R
 import com.sooum.android.formatDistanceInKm
 import com.sooum.android.formatTimeDifference
 import com.sooum.android.ui.common.PostNav
-import com.sooum.android.ui.theme.Gray
+import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import kotlinx.coroutines.launch
 
@@ -72,7 +72,7 @@ fun DetailScreen(navController: NavHostController) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 66.dp)//홈,뒤로가기 바 패딩
+                    .padding(bottom = 66.dp)//네비게이션 크기만큼
             ) {
                 Box(
                     modifier = Modifier
@@ -111,18 +111,15 @@ fun DetailScreen(navController: NavHostController) {
                             navController.navigate(PostNav.Report.screenRoute)
                         }
                         .align(Alignment.CenterHorizontally)
-
-
                 ) {
                     Text(
                         text = "신고하기",
                         fontSize = 16.sp,
                         modifier = Modifier.align(Alignment.Center)
                     )
+
                 }
             }
-
-
         }
     }
     Column {
@@ -375,7 +372,7 @@ fun TagItem() {
         Text(
             text = "#태그2",
             fontSize = 14.sp,
-            color = Gray,
+            color = Gray1,
             modifier = Modifier
                 .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp)
         )
