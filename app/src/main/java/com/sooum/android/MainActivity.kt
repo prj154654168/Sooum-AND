@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -87,75 +89,102 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Scaffold(
                         bottomBar = {
-                            if (SoonumNav.isMainRoute(currentRoute)) {
+                            if (SoonumNav.isMainRoute(currentRoute) == 1) {
                                 SoonumBottomNavigation(navController)
                             }
                         },
 
-                        topBar = {
-                            if (SoonumNav.isMainRoute(currentRoute)) {
-                                TopAppBar(
-                                    title = {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_logo),
-                                            contentDescription = "앱 로고",
-                                            modifier = Modifier
-                                                .width(93.dp)
-                                                .height(18.dp)
-                                        )
-                                    },
-                                    actions = {
-                                        IconButton(onClick = {
-                                            /* 버튼 클릭 이벤트 */
-                                        }) {
+                        topBar = {//top bar 추후 수정 필요
+                            when {
+                                SoonumNav.isMainRoute(currentRoute) == 1 -> {
+                                    TopAppBar(
+                                        title = {
                                             Image(
-                                                painter = painterResource(id = R.drawable.ic_alarm),
-                                                contentDescription = "Alarm",
-                                                colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                                )
-                            } else {
-                                TopAppBar(
-                                    title = {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.ic_profile_logo),
+                                                painter = painterResource(id = R.drawable.ic_logo),
                                                 contentDescription = "앱 로고",
                                                 modifier = Modifier
-                                                    .width(32.dp)
-                                                    .height(32.dp)
-                                                    .padding(end = 8.dp)
+                                                    .width(93.dp)
+                                                    .height(18.dp)
                                             )
+                                        },
+                                        actions = {
+                                            IconButton(onClick = {
+                                                /* 버튼 클릭 이벤트 */
+                                            }) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.ic_alarm),
+                                                    contentDescription = "Alarm",
+                                                    colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.padding(
+                                            horizontal = 4.dp,
+                                            vertical = 2.dp
+                                        )
+                                    )
+                                }
+
+                                SoonumNav.isMainRoute(currentRoute) == 2 -> {
+                                    TopAppBar(
+                                        title = {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.ic_profile_logo),
+                                                    contentDescription = "앱 로고",
+                                                    modifier = Modifier
+                                                        .width(32.dp)
+                                                        .height(32.dp)
+                                                        .padding(end = 8.dp)
+                                                )
+                                                Text(
+                                                    text = "한숨이",
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 16.sp
+                                                )
+                                            }
+
+                                        },
+                                        actions = {
+                                            IconButton(onClick = {
+                                                /* 버튼 클릭 이벤트 */
+                                            }) {
+                                                Image(
+                                                    painter = painterResource(id = R.drawable.ic_home),
+                                                    contentDescription = "home",
+                                                    colorFilter = ColorFilter.tint(colorResource(R.color.black))
+                                                )
+                                            }
+                                        },
+                                        modifier = Modifier.padding(
+                                            horizontal = 4.dp,
+                                            vertical = 2.dp
+                                        )
+                                    )
+
+                                }
+
+                                else -> {
+                                    CenterAlignedTopAppBar(
+                                        title = {
                                             Text(
-                                                text = "한숨이",
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 16.sp
+                                                text = "신고하기",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Bold
                                             )
-                                        }
-
-                                    },
-                                    actions = {
-                                        IconButton(onClick = {
-                                            /* 버튼 클릭 이벤트 */
-                                        }) {
-                                            Image(
-                                                painter = painterResource(id = R.drawable.ic_home),
-                                                contentDescription = "home",
-                                                colorFilter = ColorFilter.tint(colorResource(R.color.black))
+                                        },
+                                        navigationIcon = {
+                                            Icon(
+                                                Icons.Default.ArrowForward,
+                                                contentDescription = "뒤로가기"
                                             )
-                                        }
-                                    },
-                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                                )
-
+                                        })
+                                }
                             }
 
                         },
                         floatingActionButton = {
-                            if (SoonumNav.isMainRoute(currentRoute)) {
+                            if (SoonumNav.isMainRoute(currentRoute) == 1) {
                                 if (showFab.value) {
                                     ExtendedFloatingActionButton(
                                         onClick = {

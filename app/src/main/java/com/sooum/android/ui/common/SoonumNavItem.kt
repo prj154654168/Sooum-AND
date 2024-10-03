@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sooum.android.R
 import com.sooum.android.ui.common.NavigationRouteName.ADD_POST
+import com.sooum.android.ui.common.NavigationRouteName.DETAIL
 import com.sooum.android.ui.common.NavigationRouteName.MAIN_HOME
 import com.sooum.android.ui.common.NavigationRouteName.PROFILE
 import com.sooum.android.ui.common.NavigationRouteName.TAG
@@ -31,11 +32,12 @@ sealed class SoonumNav(
         SoonumNav(R.string.profile, R.drawable.ic_profile, PROFILE)
 
     companion object {
-        fun isMainRoute(route: String?): Boolean {
+        fun isMainRoute(route: String?): Int {
             return when (route) {
-                MAIN_HOME, ADD_POST, TAG, PROFILE -> true
-                else -> false
-            }
+                MAIN_HOME, ADD_POST, TAG, PROFILE -> 1
+                DETAIL -> 2
+                else -> 3
+            }//top bar 추후 수정 필요
         }
     }
 }
