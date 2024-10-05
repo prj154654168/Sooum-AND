@@ -1,15 +1,20 @@
 package com.sooum.android.model
 
+import com.google.gson.annotations.SerializedName
+
 data class SortedByDistanceDataModel(
-    val _embedded: Embedded,
-    val _links: Links,
+    @SerializedName("_embedded")
+    val embedded: Embedded,
+    @SerializedName("_links")
+    val links: Links,
     val status: Status
 ) {
     data class Embedded(
-        val distanceCardDtoList: List<DistanceCardDto>
+        val distanceCardDtoList: List<DistanceFeedCard>
     ) {
-        data class DistanceCardDto(
-            val _links: Links,
+        data class DistanceFeedCard(
+            @SerializedName("_links")
+            val links: Links,
             val backgroundImgUrl: BackgroundImgUrl,
             val commentCnt: Int,
             val content: String,
@@ -22,7 +27,7 @@ data class SortedByDistanceDataModel(
             val isLiked: Boolean,
             val isStory: Boolean,
             val likeCnt: Int,
-            val storyExpirationTime: String
+            val storyExpirationTime: String?
         ) {
             data class Links(
                 val detail: Detail
@@ -31,7 +36,6 @@ data class SortedByDistanceDataModel(
                     val href: String
                 )
             }
-
             data class BackgroundImgUrl(
                 val href: String
             )
