@@ -1,24 +1,27 @@
 package com.sooum.android.model
 
+import com.google.gson.annotations.SerializedName
+
 data class SortedByPopularityDataModel(
-    val _embedded: Embedded,
+    @SerializedName("_embedded")
+    val embedded: Embedded,
     val status: Status
 ) {
     data class Embedded(
-        val popularCardRetrieveList: List<PopularCard>
+        val popularCardRetrieveList: List<PopularFeedCard>
     ) {
-        data class PopularCard(
+        data class PopularFeedCard(
             val id: Long,
             val content: String,
             val storyExpiredTime: String?,
             val backgroundImgUrl: BackgroundImgUrl,
             val font: String,
             val fontSize: String,
-            val distance: Double,
+            val distance: Double?,
             val createdAt: String,
             val likeCnt: Int,
             val commentCnt: Int,
-            val popularityType: String? = null, // Optional for some cards
+            @SerializedName("_links")
             val _links: Links,
             val isStory: Boolean,
             val isLiked: Boolean,

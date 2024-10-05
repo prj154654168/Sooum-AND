@@ -1,20 +1,25 @@
 package com.sooum.android.model
 
+import com.google.gson.annotations.SerializedName
+
 data class SortedByLatestDataModel(
-    val _embedded: Embedded,
-    val _links: Links,
+    @SerializedName("_embedded")
+    val embedded: Embedded,
+    @SerializedName("_links")
+    val links: Links,
     val status: Status
 ) {
     data class Embedded(
-        val latestFeedCardDtoList: List<LatestFeedCardDto>
+        val latestFeedCardDtoList: List<LatestFeedCard>
     ) {
-        data class LatestFeedCardDto(
-            val _links: Links,
+        data class LatestFeedCard(
+            @SerializedName("_links")
+            val links: Links,
             val backgroundImgUrl: BackgroundImgUrl,
             val commentCnt: Int,
             val content: String,
             val createdAt: String,
-            val distance: Double,
+            val distance: Double?,
             val font: String,
             val fontSize: String,
             val id: Long,
@@ -22,7 +27,7 @@ data class SortedByLatestDataModel(
             val isLiked: Boolean,
             val isStory: Boolean,
             val likeCnt: Int,
-            val storyExpirationTime: String
+            val storyExpirationTime: String?
         ) {
             data class Links(
                 val detail: Detail
