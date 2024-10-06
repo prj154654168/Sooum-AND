@@ -14,6 +14,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,7 +31,7 @@ import com.sooum.android.ui.theme.Gray4
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(navController: NavHostController) {
-
+    var selectedOption by remember { mutableStateOf<Int?>(null) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -40,17 +44,17 @@ fun ReportScreen(navController: NavHostController) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 28.dp)
             )
-            ReportButton("비방 및 욕설", "욕설을 사용하여 타인에게 모욕감을 주는 경우")
-            ReportButton("개인정보 침해", "법적으로 중요한 타인의 개인정보를 게제")
-            ReportButton("부적절한 홍보 및 바이럴", "부적절한 스팸 홍보 행위")
-            ReportButton("음란물", "음란한 행위와 관련된 부적절한 행동")
-            ReportButton("사칭 및 사기", "사칭으로 타인의 권리를 침해하는 경우")
-            ReportButton("기타", "해당하는 신고항목이 없는 경우")
+            ReportButton(onOptionSelected = { selectedOption = 0 },selectedOption, 0, "비방 및 욕설", "욕설을 사용하여 타인에게 모욕감을 주는 경우")
+            ReportButton(onOptionSelected = { selectedOption = 1 },selectedOption, 1, "개인정보 침해", "법적으로 중요한 타인의 개인정보를 게제")
+            ReportButton(onOptionSelected = { selectedOption = 2 },selectedOption, 2, "부적절한 홍보 및 바이럴", "부적절한 스팸 홍보 행위")
+            ReportButton(onOptionSelected = { selectedOption = 3 },selectedOption, 3, "음란물", "음란한 행위와 관련된 부적절한 행동")
+            ReportButton(onOptionSelected = { selectedOption = 4 },selectedOption, 4, "사칭 및 사기", "사칭으로 타인의 권리를 침해하는 경우")
+            ReportButton(onOptionSelected = { selectedOption = 5 },selectedOption, 5, "기타", "해당하는 신고항목이 없는 경우")
 
 
         }
         Button(
-            enabled = false,
+            enabled = selectedOption != null,
             onClick = { /*TODO*/ },
             modifier = Modifier
                 .fillMaxWidth()
@@ -63,7 +67,14 @@ fun ReportScreen(navController: NavHostController) {
 }
 
 @Composable
-fun ReportButton(title: String, content: String) {
+fun ReportButton(
+    onOptionSelected: () -> Unit,
+    selectedOption: Int?,
+    index: Int,
+    title: String,
+    content: String,
+
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -79,8 +90,8 @@ fun ReportButton(title: String, content: String) {
         Column() {
             Row() {
                 RadioButton(
-                    selected = false,
-                    onClick = { /*TODO*/ },
+                    selected = selectedOption == index,
+                    onClick = { onOptionSelected() },
                     modifier = Modifier
                 )
                 Text(
