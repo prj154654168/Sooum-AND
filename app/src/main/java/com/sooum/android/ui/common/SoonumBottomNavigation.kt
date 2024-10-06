@@ -2,7 +2,6 @@ package com.sooum.android.ui.common
 
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -23,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sooum.android.ui.theme.Gray
+import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.theme.White100
 import com.sooum.android.ui.theme.White70
@@ -41,7 +40,6 @@ fun SoonumBottomNavigation(navController: NavHostController) {
     NavigationBar(
         modifier = Modifier
             .padding(20.dp)
-            .navigationBarsPadding()
             .graphicsLayer {
                 shape = RoundedCornerShape(
                     100.dp
@@ -69,8 +67,8 @@ fun SoonumBottomNavigation(navController: NavHostController) {
                     indicatorColor = Primary,
                     selectedTextColor = White100,
                     selectedIconColor = White100,
-                    unselectedTextColor = Gray,
-                    unselectedIconColor = Gray,
+                    unselectedTextColor = Gray1,
+                    unselectedIconColor = Gray1,
                 ),
                 onClick = {
                     navController.navigate(screen.screenRoute) {
