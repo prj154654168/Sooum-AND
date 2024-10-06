@@ -823,7 +823,6 @@ fun ImageLoader(url: String) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(url)
-            .addHeader("Authorization", ACCESS_TOKEN)
             .build(),
         contentDescription = "카드 이미지",
         modifier = Modifier.fillMaxSize(),
