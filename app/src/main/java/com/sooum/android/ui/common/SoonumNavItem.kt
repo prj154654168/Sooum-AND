@@ -7,6 +7,7 @@ import com.sooum.android.ui.common.NavigationRouteName.ADD_POST
 import com.sooum.android.ui.common.NavigationRouteName.DETAIL
 import com.sooum.android.ui.common.NavigationRouteName.MAIN_HOME
 import com.sooum.android.ui.common.NavigationRouteName.PROFILE
+import com.sooum.android.ui.common.NavigationRouteName.REPORT
 import com.sooum.android.ui.common.NavigationRouteName.TAG
 
 object NavigationRouteName {
@@ -35,8 +36,8 @@ sealed class SoonumNav(
         fun isMainRoute(route: String?): Int {
             return when (route) {
                 MAIN_HOME, ADD_POST, TAG, PROFILE -> 1
-                DETAIL -> 2
-                else -> 3
+                REPORT -> 3
+                else -> 2
             }//top bar 추후 수정 필요
         }
     }

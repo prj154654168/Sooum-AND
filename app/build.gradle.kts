@@ -82,4 +82,8 @@ dependencies {
     //Pull to Refresh
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.36.0")
     implementation("androidx.compose.material:material:1.7.3")
+
+    //viewmodel livedata(추후에 변경할듯)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.compose.runtime:runtime-livedata:1.3.2")
 }

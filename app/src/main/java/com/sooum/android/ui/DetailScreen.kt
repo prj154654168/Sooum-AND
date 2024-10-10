@@ -17,8 +17,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +53,7 @@ import com.sooum.android.PungTime
 import com.sooum.android.R
 import com.sooum.android.formatDistanceInKm
 import com.sooum.android.formatTimeDifference
+import com.sooum.android.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
@@ -52,7 +63,13 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailScreen(navController: NavHostController, cardId: String?) {
+fun DetailScreen(
+    navController: NavHostController,
+    cardId: String?,
+    viewModel: DetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+) {
+    cardId?.let { viewModel.getFeedCard(it.toLong()) }
+    cardId?.let { viewModel.getDetailCardLikeCommentCount(it.toLong()) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -116,169 +133,176 @@ fun DetailScreen(navController: NavHostController, cardId: String?) {
                 }
             }
         }
-    }
-    Column {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1 / 0.9f)
-                .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-            shape = RoundedCornerShape(40.dp),
-            onClick = { }
-        ) {
-            Box(
+    } //bottom sheet
+    val data = viewModel.feedCardDataModel
+    val count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
+    if (data != null && count != null) {
+        Column {
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .aspectRatio(1 / 0.9f)
+                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+                shape = RoundedCornerShape(40.dp),
+                onClick = { }
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxHeight(0.25f)
-                        .align(Alignment.TopCenter)
-                        .zIndex(1f)
+                        .fillMaxSize()
                 ) {
                     Box(
                         modifier = Modifier
-                            .align(Alignment.Center)
+                            .fillMaxHeight(0.25f)
+                            .align(Alignment.TopCenter)
+                            .zIndex(1f)
                     ) {
-                        //if (item.isStory) {
-                        PungTime("14 : 00 : 00")
-                        //}
-                    }
-
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight(0.25f)
-                        .align(Alignment.TopEnd)
-                        .zIndex(1f)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                    ) {
-                        Icon(
+                        Box(
                             modifier = Modifier
-                                .padding(end = 16.dp)
-                                .clickable { showBottomSheet = true },
-                            painter = painterResource(R.drawable.ic_detail_kebab),
-                            contentDescription = "케밥 더보기 버튼",
-                        )
+                                .align(Alignment.Center)
+                        ) {
+                            if (data.isStory) {
+                                PungTime("14 : 00 : 00")
+                            }
+                        }
+
                     }
-                }
-
-
-
-                ImageLoader("https://postfiles.pstatic.net/MjAyMTAzMzFfMjgz/MDAxNjE3MTc1ODA0Mzkw.UmGHi_fsjNN1Cl0G59g0wnuU93JhTs4LZL2Z5uJVMJYg.2tT327KrHv1PRdm8wgKgHn0FaOeRGkmXzRh2wpWx_30g.JPEG.shop_marchen/white-rainforest-C04QjCIf2GQ-unsplash.jpg?type=w966")
-                Box(
-                    modifier = Modifier
-                        .background(
-                            Color.Black.copy(alpha = 0.7f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .fillMaxWidth(0.75f)
-                        .align(Alignment.Center)
-                        .padding(4.dp)
-                ) {
-                    Text(
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
-                        text = "item.content",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis,
-                        lineHeight = 28.8.sp,
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 26.dp, bottom = 24.dp)
-                ) {
-                    Row(
-
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            .fillMaxHeight(0.25f)
+                            .align(Alignment.TopEnd)
+                            .zIndex(1f)
                     ) {
-                        InfoElement(
-                            painter = painterResource(R.drawable.ic_location),
-                            description = "위치",
-                            count = formatDistanceInKm(21.899822120895017),
-                            isTrue = false
-                        )
-                        InfoElement(
-                            painter = painterResource(R.drawable.ic_clock),
-                            description = "시간",
-                            count = formatTimeDifference("2024-09-27T01:41:05.112716"),
-                            isTrue = false
-                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                        ) {
+                            if (data.isOwnCard) {
+                                //TODO 삭제 버튼
+                            } else {
+                                Icon(
+                                    modifier = Modifier
+                                        .padding(end = 16.dp)
+                                        .clickable { showBottomSheet = true },
+                                    painter = painterResource(R.drawable.ic_detail_kebab),
+                                    contentDescription = "케밥 더보기 버튼",
+                                )
+                            }
+                        }
                     }
 
+                    ImageLoader(data.backgroundImgUrl.href)
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Color.Black.copy(alpha = 0.7f),
+                                shape = RoundedCornerShape(24.dp)
+                            )
+                            .fillMaxWidth(0.75f)
+                            .align(Alignment.Center)
+                            .padding(4.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
+                            text = data.content,
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 4,
+                            overflow = TextOverflow.Ellipsis,
+                            lineHeight = 28.8.sp,
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 26.dp, bottom = 24.dp)
+                    ) {
+                        Row(
+
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            InfoElement(
+                                painter = painterResource(R.drawable.ic_location),
+                                description = "위치",
+                                count = formatDistanceInKm(data.distance),
+                                isTrue = false
+                            )
+                            InfoElement(
+                                painter = painterResource(R.drawable.ic_clock),
+                                description = "시간",
+                                count = formatTimeDifference(data.createdAt),
+                                isTrue = false
+                            )
+                        }
+
+                    }
                 }
             }
-        }
 
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, bottom = 10.dp),
-        ) {
-            items(20) { item ->
-                TagItem()
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, bottom = 10.dp),
+            ) {
+                items(data.tags) { item ->
+                    TagItem(item)
+                }
             }
-        }
-        Divider(
-            color = Gray3,
-            modifier = Modifier
-                .height(0.4.dp)
-                .fillMaxWidth()
-                .padding(10.dp)
-        )
-        Row(
-            modifier = Modifier
-                .padding(end = 20.dp)
-                .align(Alignment.End),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
+            Divider(
+                color = Gray3,
                 modifier = Modifier
-                    .width(24.dp)
-                    .height(24.dp),
-                painter = painterResource(R.drawable.ic_detail_heart),
-                contentDescription = "좋아요",
+                    .height(0.4.dp)
+                    .fillMaxWidth()
+                    .padding(10.dp)
             )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = "99+",
-                fontSize = 14.sp,
-                color = Color.Black
-            )
-            Icon(
+            Row(
                 modifier = Modifier
-                    .padding(start = 10.dp)
-                    .width(24.dp)
-                    .height(24.dp),
-                painter = painterResource(R.drawable.ic_detail_comment),
-                contentDescription = "댓글",
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = "99+",
-                fontSize = 14.sp,
-                color = Color.Black
-            )
-        }
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp)
-        ) {
-            items(3) {
-                DeatilCommentItem()
+                    .padding(end = 20.dp)
+                    .align(Alignment.End),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .width(24.dp)
+                        .height(24.dp),
+                    painter = painterResource(R.drawable.ic_detail_heart),
+                    contentDescription = "좋아요",
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = count.cardLikeCnt.toString(),
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .width(24.dp)
+                        .height(24.dp),
+                    painter = painterResource(R.drawable.ic_detail_comment),
+                    contentDescription = "댓글",
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = count.commentCnt.toString(),
+                    fontSize = 14.sp,
+                    color = Color.Black
+                )
+            }
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+            ) {
+                items(3) {
+                    DeatilCommentItem()
+                }
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -358,14 +382,14 @@ fun DeatilCommentItem() {
 }
 
 @Composable
-fun TagItem() {
+fun TagItem(item: Tag) {
     Surface(
         modifier = Modifier.padding(end = 10.dp),
         shape = RoundedCornerShape(4.dp),
         color = Gray3
     ) {
         Text(
-            text = "#태그2",
+            text = item.content,
             fontSize = 14.sp,
             color = Gray1,
             modifier = Modifier
@@ -383,7 +407,12 @@ fun DeleteDialog() {
             shape = RoundedCornerShape(20.dp)
         ) {
             Column(
-                modifier = Modifier.padding(top = 24.dp, bottom = 14.dp, start = 14.dp, end = 14.dp),
+                modifier = Modifier.padding(
+                    top = 24.dp,
+                    bottom = 14.dp,
+                    start = 14.dp,
+                    end = 14.dp
+                ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -406,7 +435,7 @@ fun DeleteDialog() {
                     Button(
                         onClick = {
 
-                    },
+                        },
                         modifier = Modifier
                             .width(130.dp)
                             .height(46.dp),
@@ -417,12 +446,13 @@ fun DeleteDialog() {
                             text = "취소",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black.copy(alpha = 0.5f))
+                            color = Color.Black.copy(alpha = 0.5f)
+                        )
                     }
                     Button(
                         onClick = {
 
-                    },
+                        },
                         modifier = Modifier
                             .width(130.dp)
                             .height(46.dp),
@@ -433,7 +463,8 @@ fun DeleteDialog() {
                             text = "삭제하기",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White)
+                            color = Color.White
+                        )
                     }
                 }
             }
