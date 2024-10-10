@@ -1,5 +1,6 @@
 package com.sooum.android
 
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -8,32 +9,20 @@ import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.pullrefresh.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
@@ -56,10 +45,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -67,6 +61,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -78,6 +73,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.sooum.android.Constants.ACCESS_TOKEN
 import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.enums.HomeSelectEnum
@@ -301,6 +297,36 @@ fun HomeScreen(mainNavController: NavHostController) {
         )
     }
 
+    var distance1CardList by remember {
+        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
+            emptyList()
+        )
+    }
+
+    var distance5CardList by remember {
+        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
+            emptyList()
+        )
+    }
+
+    var distance10CardList by remember {
+        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
+            emptyList()
+        )
+    }
+
+    var distance20CardList by remember {
+        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
+            emptyList()
+        )
+    }
+
+    var distance50CardList by remember {
+        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
+            emptyList()
+        )
+    }
+
     LaunchedEffect(latestScrollState) {
         snapshotFlow { latestScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
@@ -329,10 +355,11 @@ fun HomeScreen(mainNavController: NavHostController) {
                 //최근순
                 val latestResponse = retrofitInstance.getLatestCardList(ACCESS_TOKEN)
                 if (latestResponse.isSuccessful) {
+                    Log.d("MainActivity", "latestReqSuccess")
                     val latestBody = latestResponse.body()
                     if (latestBody != null) {
                         latestCardList = latestBody.embedded.latestFeedCardDtoList
-                        Log.e("MainActivity", latestCardList.toString())
+                        Log.e("MainActivity", latestCardList.size.toString())
                     } else {
                         Log.d("MainActivity", "latest body is null")
                     }
@@ -343,6 +370,7 @@ fun HomeScreen(mainNavController: NavHostController) {
                 val popularityResponse =
                     retrofitInstance.getPopularityCardList(ACCESS_TOKEN, 37.5170112, 126.9019532)
                 if (popularityResponse.isSuccessful) {
+                    Log.d("MainActivity", "popularityReqSuccess")
                     val popularityBody = popularityResponse.body()
                     if (popularityBody != null) {
                         popularityCardList = popularityBody.embedded.popularCardRetrieveList
@@ -353,18 +381,96 @@ fun HomeScreen(mainNavController: NavHostController) {
                     Log.d("MainActivity", "getPopularityCardList fail")
                 }
                 //거리순
-                val distanceResponse = retrofitInstance.getDistanceCardList(
+                val distance1Response = retrofitInstance.getDistanceCardList(
+                    ACCESS_TOKEN,
+                    37.5170112,
+                    126.9019532,
+                    DistanceEnum.UNDER_1
+                )
+                if (distance1Response.isSuccessful) {
+                    Log.d("MainActivity", "Distance1ReqSuccess")
+                    val distanceBody = distance1Response.body()
+
+                    if (distanceBody != null) {
+                        distance1CardList = distanceBody.embedded.distanceCardDtoList
+                        distanceCardList = distance1CardList
+                    } else {
+                        Log.d("MainActivity", "distance body is null")
+                    }
+                } else {
+                    Log.d("MainActivity", "getDistanceCardList fail")
+                }
+
+                val distance5Response = retrofitInstance.getDistanceCardList(
+                    ACCESS_TOKEN,
+                    37.5170112,
+                    126.9019532,
+                    DistanceEnum.UNDER_5
+                )
+                if (distance5Response.isSuccessful) {
+                    Log.d("MainActivity", "Distance5ReqSuccess")
+                    val distanceBody = distance5Response.body()
+
+                    if (distanceBody != null) {
+                        distance5CardList = distanceBody.embedded.distanceCardDtoList
+                    } else {
+                        Log.d("MainActivity", "distance body is null")
+                    }
+                } else {
+                    Log.d("MainActivity", "getDistanceCardList fail")
+                }
+
+                val distance10Response = retrofitInstance.getDistanceCardList(
+                    ACCESS_TOKEN,
+                    37.5170112,
+                    126.9019532,
+                    DistanceEnum.UNDER_10
+                )
+                if (distance10Response.isSuccessful) {
+                    Log.d("MainActivity", "Distance10ReqSuccess")
+                    val distanceBody = distance10Response.body()
+
+                    if (distanceBody != null) {
+                        distance10CardList = distanceBody.embedded.distanceCardDtoList
+                    } else {
+                        Log.d("MainActivity", "distance body is null")
+                    }
+                } else {
+                    Log.d("MainActivity", "getDistanceCardList fail")
+                }
+
+                val distance20Response = retrofitInstance.getDistanceCardList(
                     ACCESS_TOKEN,
                     37.5170112,
                     126.9019532,
                     DistanceEnum.UNDER_20
                 )
-
-                if (distanceResponse.isSuccessful) {
-                    val distanceBody = distanceResponse.body()
+                if (distance20Response.isSuccessful) {
+                    Log.d("MainActivity", "distance20ReqSuccess")
+                    val distanceBody = distance20Response.body()
 
                     if (distanceBody != null) {
-                        distanceCardList = distanceBody.embedded.distanceCardDtoList
+                        distance20CardList = distanceBody.embedded.distanceCardDtoList
+                    } else {
+                        Log.d("MainActivity", "distance body is null")
+                    }
+                } else {
+                    Log.d("MainActivity", "getDistanceCardList fail")
+                }
+
+                val distance50Response = retrofitInstance.getDistanceCardList(
+                    ACCESS_TOKEN,
+                    37.5170112,
+                    126.9019532,
+                    DistanceEnum.UNDER_50
+                )
+
+                if (distance50Response.isSuccessful) {
+                    Log.d("MainActivity", "distance50ReqSuccess")
+                    val distanceBody = distance50Response.body()
+
+                    if (distanceBody != null) {
+                        distance50CardList = distanceBody.embedded.distanceCardDtoList
                     } else {
                         Log.d("MainActivity", "distance body is null")
                     }
@@ -372,7 +478,7 @@ fun HomeScreen(mainNavController: NavHostController) {
                     Log.d("MainActivity", "getDistanceCardList fail")
                 }
             } catch (e: Exception) {
-                Log.e("MainActivity", "cardList error")
+                Log.e("MainActivity", e.toString())
             }
         }
     }
@@ -402,6 +508,23 @@ fun HomeScreen(mainNavController: NavHostController) {
                     if (selected == HomeSelectEnum.DISTANCE) {
                         LocationFilter(distance, onDistanceChange = { newDistance ->
                             distance = newDistance
+                            when (distance) {
+                                DistanceEnum.UNDER_1 -> {
+                                    distanceCardList = distance1CardList
+                                }
+                                DistanceEnum.UNDER_5 -> {
+                                    distanceCardList = distance5CardList
+                                }
+                                DistanceEnum.UNDER_10 -> {
+                                    distanceCardList = distance10CardList
+                                }
+                                DistanceEnum.UNDER_20 -> {
+                                    distanceCardList = distance20CardList
+                                }
+                                DistanceEnum.UNDER_50 -> {
+                                    distanceCardList = distance50CardList
+                                }
+                            }
                         })
                     }
                 }
@@ -435,6 +558,7 @@ fun HomeScreen(mainNavController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LatestFeedList(
@@ -447,6 +571,19 @@ fun LatestFeedList(
     }
     val coroutineScope = rememberCoroutineScope()
 
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            coroutineScope.launch {
+                delay(2000)
+                isRefreshing = false
+            }
+        }
+    )
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -454,7 +591,8 @@ fun LatestFeedList(
         if (latestCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(state = scrollState) {
+            LazyColumn(state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)) {
                 items(latestCardList) { item ->
                     LatestContentCard(item,navController)
                 }
@@ -462,7 +600,7 @@ fun LatestFeedList(
             if (showMoveToTopButton) {
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
@@ -471,10 +609,12 @@ fun LatestFeedList(
                     MoveToTop()
                 }
             }
+            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PopularityFeedList(
@@ -486,6 +626,19 @@ fun PopularityFeedList(
     }
     val coroutineScope = rememberCoroutineScope()
 
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            coroutineScope.launch {
+                delay(2000)
+                isRefreshing = false
+            }
+        }
+    )
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -493,7 +646,9 @@ fun PopularityFeedList(
         if (popularityCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(state = scrollState) {
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)) {
                 items(popularityCardList) { item ->
                     PopularityContentCard(item)
                 }
@@ -501,7 +656,7 @@ fun PopularityFeedList(
             if (showMoveToTopButton) {
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
@@ -510,11 +665,13 @@ fun PopularityFeedList(
                     MoveToTop()
                 }
             }
+            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
 
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DistanceFeedList(
@@ -526,6 +683,19 @@ fun DistanceFeedList(
     }
     val coroutineScope = rememberCoroutineScope()
 
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            coroutineScope.launch {
+                delay(2000)
+                isRefreshing = false
+            }
+        }
+    )
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -533,7 +703,9 @@ fun DistanceFeedList(
         if (distanceCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(state = scrollState) {
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)) {
                 items(distanceCardList) { item ->
                     DistanceContentCard(item)
                 }
@@ -541,7 +713,7 @@ fun DistanceFeedList(
             if (showMoveToTopButton) {
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
+                    .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
@@ -550,6 +722,37 @@ fun DistanceFeedList(
                     MoveToTop()
                 }
             }
+            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun RefreshIndicator(
+    modifier: Modifier = Modifier,
+    state: PullRefreshState,
+    refreshing: Boolean
+) {
+    Surface(
+        modifier = modifier
+            .size(40.dp)
+            .pullRefreshIndicatorTransform(state, true),
+        shape = CircleShape,
+    ) {
+        if (refreshing) {
+            val transition = rememberInfiniteTransition()
+            val degree by transition.animateFloat(
+                initialValue = 0f, targetValue = 360f, animationSpec = infiniteRepeatable(
+                    animation = tween(
+                        durationMillis = 1000,
+                        easing = LinearEasing
+                    )
+                ), label = ""
+            )
+            Image(modifier = Modifier.rotate(-degree).size(40.dp), painter = painterResource(R.drawable.ic_refresh_circle), contentDescription = "indicator")
+        } else {
+            Image(modifier = Modifier.rotate(-state.progress * 180).size(40.dp), painter = painterResource(R.drawable.ic_refresh_circle), contentDescription = "indicator")
         }
     }
 }
@@ -604,7 +807,6 @@ fun AddPostScreen() {
         Text(text = "AddPost")
         Text(text = "AddPost")
         Text(text = "AddPost")
-
     }
 }
 
@@ -850,8 +1052,6 @@ fun PungTime(time: String) {
 @Composable
 fun LatestCardInfo(item: SortedByLatestDataModel.Embedded.LatestFeedCard) {
     Row(
-        modifier = Modifier
-            .shadow(elevation = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         InfoElement(
@@ -903,8 +1103,6 @@ fun LatestCardInfo(item: SortedByLatestDataModel.Embedded.LatestFeedCard) {
 @Composable
 fun PopularityCardInfo(item: SortedByPopularityDataModel.Embedded.PopularFeedCard) {
     Row(
-        modifier = Modifier
-            .shadow(elevation = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (item.isLiked) {
@@ -955,8 +1153,6 @@ fun PopularityCardInfo(item: SortedByPopularityDataModel.Embedded.PopularFeedCar
 @Composable
 fun DistanceCardInfo(item: SortedByDistanceDataModel.Embedded.DistanceFeedCard) {
     Row(
-        modifier = Modifier
-            .shadow(elevation = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         InfoElement(
@@ -1041,7 +1237,7 @@ fun formatDistanceInKm(distance: Double?): String {
             else -> "${(distance / 100).toInt() * 100}km" // 100km 이상
         }
     } else {
-        return ""
+        return "없음"
     }
 }
 
@@ -1349,18 +1545,22 @@ fun ReplaceHomeList() {
     Box(
         contentAlignment = Alignment.Center
     ) {
-        Column {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
                 text = "아직 등록된 카드가 없어요",
                 fontSize = 16.sp,
-                color = colorResource(R.color.black)
+                color = colorResource(R.color.black),
+                fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(14.dp))
             Text(
                 textAlign = TextAlign.Center,
                 text = "사소하지만 말 못 한 이야기를\n카드로 만들어 볼까요?",
                 fontSize = 14.sp,
-                color = colorResource(R.color.gray03)
+                color = colorResource(R.color.gray03),
+                fontWeight = FontWeight.SemiBold
             )
         }
     }
