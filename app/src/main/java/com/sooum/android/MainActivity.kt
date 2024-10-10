@@ -231,16 +231,21 @@ fun Main() {
                             CenterAlignedTopAppBar(
                                 title = {
                                     Text(
+                                        modifier = Modifier.padding(start = 20.dp),
                                         text = "신고하기",
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 },
                                 navigationIcon = {
-                                    Icon(
-                                        Icons.Default.ArrowForward,
-                                        contentDescription = "뒤로가기"
-                                    )
+                                    IconButton(
+                                        onClick = { navController.popBackStack() }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.ArrowForward,
+                                            contentDescription = "뒤로가기",
+                                        )
+                                    }
                                 })
                         }
                     }
@@ -512,15 +517,19 @@ fun HomeScreen(mainNavController: NavHostController) {
                                 DistanceEnum.UNDER_1 -> {
                                     distanceCardList = distance1CardList
                                 }
+
                                 DistanceEnum.UNDER_5 -> {
                                     distanceCardList = distance5CardList
                                 }
+
                                 DistanceEnum.UNDER_10 -> {
                                     distanceCardList = distance10CardList
                                 }
+
                                 DistanceEnum.UNDER_20 -> {
                                     distanceCardList = distance20CardList
                                 }
+
                                 DistanceEnum.UNDER_50 -> {
                                     distanceCardList = distance50CardList
                                 }
@@ -591,10 +600,12 @@ fun LatestFeedList(
         if (latestCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)) {
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)
+            ) {
                 items(latestCardList) { item ->
-                    LatestContentCard(item,navController)
+                    LatestContentCard(item, navController)
                 }
             }
             if (showMoveToTopButton) {
@@ -648,7 +659,8 @@ fun PopularityFeedList(
         } else {
             LazyColumn(
                 state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)) {
+                modifier = Modifier.pullRefresh(pullRefreshState)
+            ) {
                 items(popularityCardList) { item ->
                     PopularityContentCard(item)
                 }
@@ -705,7 +717,8 @@ fun DistanceFeedList(
         } else {
             LazyColumn(
                 state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)) {
+                modifier = Modifier.pullRefresh(pullRefreshState)
+            ) {
                 items(distanceCardList) { item ->
                     DistanceContentCard(item)
                 }
@@ -732,7 +745,7 @@ fun DistanceFeedList(
 private fun RefreshIndicator(
     modifier: Modifier = Modifier,
     state: PullRefreshState,
-    refreshing: Boolean
+    refreshing: Boolean,
 ) {
     Surface(
         modifier = modifier
@@ -750,9 +763,21 @@ private fun RefreshIndicator(
                     )
                 ), label = ""
             )
-            Image(modifier = Modifier.rotate(-degree).size(40.dp), painter = painterResource(R.drawable.ic_refresh_circle), contentDescription = "indicator")
+            Image(
+                modifier = Modifier
+                    .rotate(-degree)
+                    .size(40.dp),
+                painter = painterResource(R.drawable.ic_refresh_circle),
+                contentDescription = "indicator"
+            )
         } else {
-            Image(modifier = Modifier.rotate(-state.progress * 180).size(40.dp), painter = painterResource(R.drawable.ic_refresh_circle), contentDescription = "indicator")
+            Image(
+                modifier = Modifier
+                    .rotate(-state.progress * 180)
+                    .size(40.dp),
+                painter = painterResource(R.drawable.ic_refresh_circle),
+                contentDescription = "indicator"
+            )
         }
     }
 }
@@ -825,7 +850,7 @@ fun ProfileScreen() {
 @Composable
 fun LatestContentCard(
     item: SortedByLatestDataModel.Embedded.LatestFeedCard,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     Card(
         modifier = Modifier

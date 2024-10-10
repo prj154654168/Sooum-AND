@@ -38,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -60,6 +61,7 @@ import com.sooum.android.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
+import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 import kotlinx.coroutines.launch
 
@@ -78,6 +80,10 @@ fun DetailScreen(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    if (showDialog) {
+        DeleteDialog { showDialog = false }
+    }
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -149,7 +155,7 @@ fun DetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1 / 0.9f)
-                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp,top=10.dp),
                 shape = RoundedCornerShape(40.dp),
                 onClick = { }
             ) {
@@ -184,7 +190,13 @@ fun DetailScreen(
                                 .align(Alignment.Center)
                         ) {
                             if (data.isOwnCard) {
-                                //TODO 삭제 버튼
+                                Icon(
+                                    modifier = Modifier
+                                        .padding(end = 16.dp)
+                                        .clickable { showDialog = true },
+                                    painter = painterResource(R.drawable.ic_detail_delete),
+                                    contentDescription = "케밥 더보기 버튼",
+                                )
                             } else {
                                 Icon(
                                     modifier = Modifier
@@ -247,25 +259,35 @@ fun DetailScreen(
                     }
                 }
             }
-
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, bottom = 10.dp),
-            ) {
-
-                items(data.tags) { item ->
-                    TagItem(item)
+            if (data.tags.isEmpty()) {
+                // 태그가 없을 때 기본 패딩 추가
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, bottom = 10.dp)
+                        .height(30.dp) // 원하는 패딩 크기 설정
+                )
+            } else {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, bottom = 10.dp),
+                ) {
+                    items(data.tags) { item ->
+                        TagItem(item)
+                    }
                 }
-
             }
-            Divider(
-                color = Gray3,
-                modifier = Modifier
-                    .height(0.4.dp)
-                    .fillMaxWidth()
-                    .padding(10.dp)
-            )
+
+//            Box(
+//                //color = Color.Black,
+//                modifier = Modifier
+//                    .height(50.dp)
+//                    .fillMaxWidth()
+//                    .padding(10.dp)
+//            ){
+//                Row(modifier = Modifier.background(Color.Black)){}
+//            }
             Row(
                 modifier = Modifier
                     .padding(end = 20.dp)
@@ -437,7 +459,7 @@ fun TagItem(item: Tag) {
 }
 
 @Composable
-fun DeleteDialog() {
+fun DeleteDialog(showDialog: () -> Unit) {
     Dialog(onDismissRequest = {
 
     }) {
@@ -472,7 +494,7 @@ fun DeleteDialog() {
                 ) {
                     Button(
                         onClick = {
-
+                            showDialog()
                         },
                         modifier = Modifier
                             .width(130.dp)
