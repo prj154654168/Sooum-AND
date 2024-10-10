@@ -833,7 +833,7 @@ fun LatestContentCard(
             .aspectRatio(1 / 0.9f)
             .padding(start = 20.dp, end = 20.dp, top = 10.dp),
         shape = RoundedCornerShape(40.dp),
-        onClick = { navController.navigate(PostNav.Detail.screenRoute) }
+        onClick = { navController.navigate("${PostNav.Detail.screenRoute}/${item.id}") }
     ) {
         Box(
             modifier = Modifier
