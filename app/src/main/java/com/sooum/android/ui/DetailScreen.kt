@@ -1,6 +1,7 @@
 package com.sooum.android.ui
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,11 +54,13 @@ import com.sooum.android.PungTime
 import com.sooum.android.R
 import com.sooum.android.formatDistanceInKm
 import com.sooum.android.formatTimeDifference
+import com.sooum.android.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.model.DetailCommentCardDataModel
 import com.sooum.android.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
+import com.sooum.android.ui.theme.Primary
 import kotlinx.coroutines.launch
 
 
@@ -138,8 +141,9 @@ fun DetailScreen(
     } //bottom sheet
     val data = viewModel.feedCardDataModel
     val comment = viewModel.detailCommentCardDataModel
-    val count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
+    var count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
     if (data != null && count != null && comment != null) {
+
         Column {
             Card(
                 modifier = Modifier
@@ -268,19 +272,7 @@ fun DetailScreen(
                     .align(Alignment.End),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    modifier = Modifier
-                        .width(24.dp)
-                        .height(24.dp),
-                    painter = painterResource(R.drawable.ic_detail_heart),
-                    contentDescription = "좋아요",
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = count.cardLikeCnt.toString(),
-                    fontSize = 14.sp,
-                    color = Color.Black
-                )
+                DetailLike(count, viewModel, cardId)
                 Icon(
                     modifier = Modifier
                         .padding(start = 10.dp)
@@ -309,6 +301,47 @@ fun DetailScreen(
     }
 
 }
+
+@Composable
+fun DetailLike(
+    count: DetailCardLikeCommentCountDataModel,
+    viewModel: DetailViewModel,
+    cardId: String?,
+) {
+    var likeState by remember { mutableStateOf(count.isLiked) }
+
+    Row(modifier = Modifier.clickable {
+        Log.e(
+            "cardId",
+            cardId.toString()
+        )
+        if (likeState) {
+            cardId?.let { viewModel.likeOff(it.toLong()) }
+        } else {
+            cardId?.let { viewModel.likeOn(it.toLong()) }
+        }
+        likeState = !likeState
+
+    }) {
+        Icon(
+            modifier = Modifier
+                .width(24.dp)
+                .height(24.dp),
+            painter = if (likeState) painterResource(R.drawable.ic_heart_filled) else painterResource(
+                R.drawable.ic_detail_heart
+            ),
+            contentDescription = "좋아요",
+            tint = if (likeState) Primary else Color.Black
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = count.cardLikeCnt.toString(),
+            fontSize = 14.sp,
+            color = if (likeState) Primary else Color.Black
+        )
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)

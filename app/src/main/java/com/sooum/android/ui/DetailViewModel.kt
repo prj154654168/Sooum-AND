@@ -28,6 +28,7 @@ class DetailViewModel : ViewModel() {
     fun getFeedCard(cardId: Long) {
         viewModelScope.launch {
             feedCardDataModel = retrofitInstance.getFeedCard(Constants.ACCESS_TOKEN, cardId).body()
+
         }
     }
 
@@ -35,12 +36,39 @@ class DetailViewModel : ViewModel() {
         viewModelScope.launch {
             detailCardLikeCommentCountDataModel =
                 retrofitInstance.getCardLikeCommentCount(Constants.ACCESS_TOKEN, cardId).body()
+            Log.e(
+                "detailCardLikeCommentCountDataModel",
+                detailCardLikeCommentCountDataModel.toString()
+            )
         }
     }
+
     fun getDetailCommentCard(cardId: Long) {
         viewModelScope.launch {
             detailCommentCardDataModel =
                 retrofitInstance.getDeatilCommentCard(Constants.ACCESS_TOKEN, cardId).body()
+        }
+    }
+
+    fun likeOn(cardId: Long) {
+        viewModelScope.launch {
+           val temp =  retrofitInstance.likeOn(Constants.ACCESS_TOKEN, cardId).body()
+            Log.e(
+                "likeOn",
+                temp.toString()
+            )
+            getDetailCardLikeCommentCount(cardId)
+        }
+    }
+
+    fun likeOff(cardId: Long) {
+        viewModelScope.launch {
+            val temp =   retrofitInstance.likeOff(Constants.ACCESS_TOKEN, cardId).body()
+            Log.e(
+                "likeOff",
+                temp.toString()
+            )
+            getDetailCardLikeCommentCount(cardId)
         }
     }
 }

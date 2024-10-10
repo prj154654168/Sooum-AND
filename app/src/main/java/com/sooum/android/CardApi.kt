@@ -7,9 +7,12 @@ import com.sooum.android.model.FeedCardDataModel
 import com.sooum.android.model.SortedByDistanceDataModel
 import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.model.SortedByPopularityDataModel
+import com.sooum.android.model.Status
 import retrofit2.Response
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -54,4 +57,15 @@ interface CardApi {
         @Path("currentCardId") cardId: Long,
     ): Response<DetailCommentCardDataModel>
 
+    @POST("/cards/{cardId}/like")
+    suspend fun likeOn(
+        @Header("Authorization") accessToken: String,
+        @Path("cardId") cardId: Long,
+    ): Response<Status>
+
+    @DELETE("/cards/{cardId}/like")
+    suspend fun likeOff(
+        @Header("Authorization") accessToken: String,
+        @Path("cardId") cardId: Long,
+    ): Response<Status>
 }
