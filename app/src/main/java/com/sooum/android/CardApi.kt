@@ -2,6 +2,7 @@ package com.sooum.android
 
 import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.model.DetailCardLikeCommentCountDataModel
+import com.sooum.android.model.DetailCommentCardDataModel
 import com.sooum.android.model.FeedCardDataModel
 import com.sooum.android.model.SortedByDistanceDataModel
 import com.sooum.android.model.SortedByLatestDataModel
@@ -46,5 +47,11 @@ interface CardApi {
         @Header("Authorization") accessToken: String,
         @Path("currentCardId") cardId: Long,
     ): Response<DetailCardLikeCommentCountDataModel>
+
+    @GET("/comments/current/{currentCardId}")
+    suspend fun getDeatilCommentCard(
+        @Header("Authorization") accessToken: String,
+        @Path("currentCardId") cardId: Long,
+    ): Response<DetailCommentCardDataModel>
 
 }

@@ -53,6 +53,7 @@ import com.sooum.android.PungTime
 import com.sooum.android.R
 import com.sooum.android.formatDistanceInKm
 import com.sooum.android.formatTimeDifference
+import com.sooum.android.model.DetailCommentCardDataModel
 import com.sooum.android.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Gray1
@@ -70,6 +71,7 @@ fun DetailScreen(
 ) {
     cardId?.let { viewModel.getFeedCard(it.toLong()) }
     cardId?.let { viewModel.getDetailCardLikeCommentCount(it.toLong()) }
+    cardId?.let { viewModel.getDetailCommentCard(it.toLong()) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -135,8 +137,9 @@ fun DetailScreen(
         }
     } //bottom sheet
     val data = viewModel.feedCardDataModel
+    val comment = viewModel.detailCommentCardDataModel
     val count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
-    if (data != null && count != null) {
+    if (data != null && count != null && comment != null) {
         Column {
             Card(
                 modifier = Modifier
@@ -246,9 +249,11 @@ fun DetailScreen(
                     .fillMaxWidth()
                     .padding(start = 20.dp, bottom = 10.dp),
             ) {
+
                 items(data.tags) { item ->
                     TagItem(item)
                 }
+
             }
             Divider(
                 color = Gray3,
@@ -296,8 +301,8 @@ fun DetailScreen(
                     .fillMaxWidth()
                     .padding(top = 10.dp)
             ) {
-                items(3) {
-                    DeatilCommentItem()
+                items(comment.embedded.commentCardsInfoList) { item ->
+                    DeatilCommentItem(item)
                 }
             }
         }
@@ -308,7 +313,7 @@ fun DetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DeatilCommentItem() {
+fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
     Card(
         modifier = Modifier
             .aspectRatio(1 / 0.9f)
@@ -319,7 +324,7 @@ fun DeatilCommentItem() {
         Box(
             modifier = Modifier
         ) {
-            ImageLoader("https://postfiles.pstatic.net/MjAyMTAzMzFfMjgz/MDAxNjE3MTc1ODA0Mzkw.UmGHi_fsjNN1Cl0G59g0wnuU93JhTs4LZL2Z5uJVMJYg.2tT327KrHv1PRdm8wgKgHn0FaOeRGkmXzRh2wpWx_30g.JPEG.shop_marchen/white-rainforest-C04QjCIf2GQ-unsplash.jpg?type=w966")
+            ImageLoader(item.backgroundImgUrl.href)
             Box(
                 modifier = Modifier
                     .background(
@@ -333,7 +338,7 @@ fun DeatilCommentItem() {
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
-                    text = "item.content",
+                    text = item.content,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -354,25 +359,25 @@ fun DeatilCommentItem() {
                     InfoElement(
                         painter = painterResource(R.drawable.ic_clock),
                         description = "시간",
-                        count = formatTimeDifference("2024-09-27T01:41:05.112716"),
+                        count = formatTimeDifference(item.createdAt),
                         isTrue = false
                     )
                     InfoElement(
                         painter = painterResource(R.drawable.ic_location),
                         description = "위치",
-                        count = formatDistanceInKm(21.899822120895017),
+                        count = formatDistanceInKm(item.distance),
                         isTrue = false
                     )
                     InfoElement(
                         painter = painterResource(R.drawable.ic_heart),
                         description = "좋아요",
-                        count = "24",
+                        count = item.likeCnt.toString(),
                         isTrue = false
                     )
                     InfoElement(
                         painter = painterResource(R.drawable.ic_comment),
                         description = "댓글",
-                        count = "66",
+                        count = item.commentCnt.toString(),
                         isTrue = false
                     )
                 }
