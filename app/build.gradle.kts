@@ -86,4 +86,7 @@ dependencies {
     //viewmodel livedata(추후에 변경할듯)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.compose.runtime:runtime-livedata:1.3.2")
+
+    //GPS
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
