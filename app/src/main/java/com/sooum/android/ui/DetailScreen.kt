@@ -49,12 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
-import com.sooum.android.ImageLoader
-import com.sooum.android.InfoElement
-import com.sooum.android.PungTime
 import com.sooum.android.R
-import com.sooum.android.formatDistanceInKm
-import com.sooum.android.formatTimeDifference
 import com.sooum.android.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.model.DetailCommentCardDataModel
 import com.sooum.android.model.Tag
@@ -417,12 +412,14 @@ fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
                         count = formatTimeDifference(item.createdAt),
                         isTrue = false
                     )
-                    InfoElement(
-                        painter = painterResource(R.drawable.ic_location),
-                        description = "위치",
-                        count = formatDistanceInKm(item.distance),
-                        isTrue = false
-                    )
+                    if (item.distance != null) {
+                        InfoElement(
+                            painter = painterResource(R.drawable.ic_location),
+                            description = "위치",
+                            count = formatDistanceInKm(item.distance),
+                            isTrue = false
+                        )
+                    }
                     InfoElement(
                         painter = painterResource(R.drawable.ic_heart),
                         description = "좋아요",
