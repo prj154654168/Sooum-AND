@@ -28,6 +28,7 @@ class DetailViewModel : ViewModel() {
     fun getFeedCard(cardId: Long) {
         viewModelScope.launch {
             feedCardDataModel = retrofitInstance.getFeedCard(Constants.ACCESS_TOKEN, cardId).body()
+            Log.e("feedCardDataModel", feedCardDataModel.toString())
 
         }
     }

@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sooum.android.R
 import com.sooum.android.ui.common.NavigationRouteName.ADD_POST
-import com.sooum.android.ui.common.NavigationRouteName.DETAIL
 import com.sooum.android.ui.common.NavigationRouteName.MAIN_HOME
 import com.sooum.android.ui.common.NavigationRouteName.PROFILE
 import com.sooum.android.ui.common.NavigationRouteName.REPORT
@@ -28,7 +27,7 @@ sealed class SoonumNav(
     data object AddPost :
         SoonumNav(R.string.add_post, R.drawable.ic_add_post, ADD_POST)
 
-    data object Tag : SoonumNav(R.string.tag, R.drawable.ic_tag, TAG)
+    data object Tag : SoonumNav(R.string.tag, R.drawable.ic_nav_tag, TAG)
     data object Profile :
         SoonumNav(R.string.profile, R.drawable.ic_profile, PROFILE)
 

@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -38,7 +37,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -56,7 +54,6 @@ import com.sooum.android.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
-import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 import kotlinx.coroutines.launch
 
@@ -150,7 +147,7 @@ fun DetailScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1 / 0.9f)
-                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp,top=10.dp),
+                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 10.dp),
                 shape = RoundedCornerShape(40.dp),
                 onClick = { }
             ) {
@@ -234,15 +231,17 @@ fun DetailScreen(
                             .padding(end = 26.dp, bottom = 24.dp)
                     ) {
                         Row(
-
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            InfoElement(
-                                painter = painterResource(R.drawable.ic_location),
-                                description = "위치",
-                                count = formatDistanceInKm(data.distance),
-                                isTrue = false
-                            )
+                            if (data.distance != 0.0) {
+                                InfoElement(
+                                    painter = painterResource(R.drawable.ic_location),
+                                    description = "위치",
+                                    count = formatDistanceInKm(data.distance),
+                                    isTrue = false
+                                )
+                            }
+
                             InfoElement(
                                 painter = painterResource(R.drawable.ic_clock),
                                 description = "시간",
