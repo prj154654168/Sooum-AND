@@ -275,58 +275,6 @@ fun Main() {
     }
 }
 
-@Composable
-fun AddPostScreen() {
-    Column {
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-        Text(text = "AddPost")
-    }
-}
 
 @Composable
 fun TagScreen() {
