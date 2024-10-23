@@ -1,6 +1,7 @@
 package com.sooum.android
 
 import com.sooum.android.enums.DistanceEnum
+import com.sooum.android.model.DefaultImageDataModel
 import com.sooum.android.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.model.DetailCommentCardDataModel
 import com.sooum.android.model.FeedCardDataModel
@@ -68,4 +69,10 @@ interface CardApi {
         @Header("Authorization") accessToken: String,
         @Path("cardId") cardId: Long,
     ): Response<Status>
+
+    @GET("/imgs/default")
+    suspend fun getDefaultImage(
+        @Header("Authorization") accessToken: String,
+        @Query("previousImgsName") previousImgsName: String? = null
+    ): Response<DefaultImageDataModel>
 }

@@ -2,6 +2,7 @@ package com.sooum.android.ui
 
 import android.app.Activity
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -63,6 +64,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -78,9 +80,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
+import com.sooum.android.model.DefaultImageDataModel
+import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,11 +116,21 @@ fun AddPostScreen() {
 
     val tagList = remember { mutableStateListOf("디자인", "개발", "ㅁㄴㅇㅁㄴㅇㅁㄴ") }
 
-    var relatedTagList by remember { mutableStateOf(listOf("프론트", "백엔드", "데이터", "안드로이드")) }
+    val addPostViewModel: AddPostViewModel = viewModel()
 
-    var isKeyboardVisible by remember { mutableStateOf(false) }
+    var defaultImageList by remember {
+        mutableStateOf<List<DefaultImageDataModel.Embedded.ImgUrlInfo>>(
+            emptyList()
+        )
+    }
 
-    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        addPostViewModel.getDefaultImageList()
+    }
+    defaultImageList = addPostViewModel.defaultImageList
+
+    Log.d("AddPostScreen", defaultImageList.size.toString())
+
 
     var tagHintList = remember { mutableStateListOf(
         "UX기획" to 6,
@@ -181,7 +196,14 @@ fun AddPostScreen() {
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     if (imageRoute) {
-                        Box {
+                        Box(
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                addPostViewModel.refreshDefaultImageList()
+                            }
+                        ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(2.dp)
@@ -226,7 +248,7 @@ fun AddPostScreen() {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(4),
                             content = {
-                                items(8) { imageIndex ->
+                                items(defaultImageList.size) { imageIndex ->
                                     Surface(
                                         border = if (selectedImage == imageIndex) {
                                             BorderStroke(
@@ -242,12 +264,10 @@ fun AddPostScreen() {
                                         }
                                     ) {
                                         AsyncImage(
-                                            model = "https://cdn.dailyvet.co.kr/wp-content/uploads/2024/05/15231647/20240515ceva_experts4.jpg", // 이미지 URL
+                                            model = defaultImageList[imageIndex].url.href, // 이미지 URL
                                             contentDescription = "Sample Image", // 접근성 설명
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .aspectRatio(1f),
-                                            contentScale = ContentScale.Crop// 원하는 Modifier 추가
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop // 원하는 Modifier 추가
                                         )
                                     }
                                 }
