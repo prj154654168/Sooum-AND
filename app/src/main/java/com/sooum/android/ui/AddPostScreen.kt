@@ -85,6 +85,7 @@ import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
 import com.sooum.android.model.DefaultImageDataModel
+import com.sooum.android.model.RelatedTagDataModel
 import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.ui.theme.Primary
 
@@ -132,13 +133,12 @@ fun AddPostScreen() {
     Log.d("AddPostScreen", defaultImageList.size.toString())
 
 
-    var tagHintList = remember { mutableStateListOf(
-        "UX기획" to 6,
-        "UX리서처" to 4,
-        "UIUX를 공부하는 효율적인 방법" to 3,
-        "UI디자인이에요" to 2,
-        "UI가독성" to 1)
+    var tagHintList by remember {
+        mutableStateOf<List<RelatedTagDataModel.Embedded.RelatedTag>>(
+            emptyList()
+        )
     }
+    tagHintList = addPostViewModel.relatedTagList
 
 
     // 이미지 선택 후 반환된 결과를 처리하는 런처
@@ -584,6 +584,10 @@ fun AddPostScreen() {
                         value = tagTextField,
                         onValueChange = {
                             tagTextField = it
+                            if (isCompleteHangul(tagTextField)) {
+                                addPostViewModel.getRelatedTag(tagTextField, 5) //int값에 뭐가 들어가야되는지 모르겠음
+                                Log.d("tag", "api호출")
+                            }
                         },
                         placeholder = {
                             Text(
@@ -645,10 +649,10 @@ fun AddPostScreen() {
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 tagHintList.forEach { tagHint ->
-                                    TagHintChip(tagHint = tagHint.first, tagHint.second) { tag ->
+                                    TagHintChip(tagHint = tagHint.content, tagHint.count) { tag ->
                                         tagList.add(0, tag)
                                         tagTextField = ""
-                                        tagHintList.clear()
+                                        tagHintList = emptyList()
                                     }
                                 }
                             }
@@ -866,53 +870,101 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick : (String) -> Unit) {
 @Composable
 fun ContentCard(
 ) {
-    val gradientBrush = Brush.verticalGradient(
-        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
-        startY = 0f,
-        endY = 60f // 그라데이션의 높이를 60dp로 설정
-    )
-
-    var text by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
-    var textCount by remember { mutableStateOf(0) }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1 / 0.9f),
+            .aspectRatio(1 / 0.9f)
+            .padding(bottom = 10.dp),
         shape = RoundedCornerShape(40.dp),
-        onClick = { }
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            ImageLoader("")
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth(0.75f)
-                    .fillMaxHeight(0.72f)
-            ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(scrollState)) {
-                        TextField(
-                            value = text,
-                            onValueChange = { newText -> text = newText },
-                            label = { androidx.compose.material3.Text("Enter text") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+            ImageLoader("https://search.pstatic.net/sunny/?src=https%3A%2F%2Fus.123rf.com%2F450wm%2Fvantuz%2Fvantuz1506%2Fvantuz150600251%2F41134623-%25EB%2593%25B1%25EB%25B6%2588%25EC%259D%2580-%25EC%2596%25B4%25EB%2591%2590%25EC%259A%25B4-%25EB%25B0%25B0%25EA%25B2%25BD%25EC%259D%2584-%25EC%25A1%25B0%25EB%25AA%2585%25ED%2595%259C%25EB%258B%25A4-%25EB%25B2%25A1%25ED%2584%25B0-%25EC%259D%25B4%25EB%25AF%25B8%25EC%25A7%2580%25EC%259E%2585%25EB%258B%2588%25EB%258B%25A4-.jpg%3Fver%3D6&type=sc960_832")
+            BasicTextField(
+                value = content,
+                onValueChange = {
+                    if (it.length <= 1000) {
+                        content = it
                     }
+                },
+                modifier = Modifier
+                    .padding(40.dp)
+                    .align(Alignment.Center)
+                    .verticalScroll(scrollState),
+                textStyle = TextStyle(color = Color.White),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+            ) {
+                // 기본 텍스트가 없으면 빈칸으로 표시
+                if (content.isEmpty()) {
+                    Text(
+                        text = "입력하세요...",
+                        color = Color.White,
+                        style = TextStyle(color = Color.White)
+                    )
+                } else {
+                    it()
                 }
             }
-            androidx.compose.material3.Text(
-                text = "${textCount}/1000자",
-                fontWeight = FontWeight.SemiBold,
+            Text(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp),
+                text = "${content.length} / 1000",
+                color = Color.White,
                 fontSize = 14.sp
             )
         }
+//    val gradientBrush = Brush.verticalGradient(
+//        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
+//        startY = 0f,
+//        endY = 60f // 그라데이션의 높이를 60dp로 설정
+//    )
+//
+//    var text by remember { mutableStateOf("") }
+//    val scrollState = rememberScrollState()
+//    var textCount by remember { mutableStateOf(0) }
+//
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .aspectRatio(1 / 0.9f),
+//        shape = RoundedCornerShape(40.dp),
+//        onClick = { }
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            ImageLoader("")
+//            Box(
+//                contentAlignment = Alignment.Center,
+//                modifier = Modifier
+//                    .fillMaxWidth(0.75f)
+//                    .fillMaxHeight(0.72f)
+//            ) {
+//                Row(modifier = Modifier.fillMaxSize()) {
+//                    Box(modifier = Modifier
+//                        .weight(1f)
+//                        .verticalScroll(scrollState)) {
+//                        TextField(
+//                            value = text,
+//                            onValueChange = { newText -> text = newText },
+//                            label = { androidx.compose.material3.Text("Enter text") },
+//                            modifier = Modifier.fillMaxWidth()
+//                        )
+//                    }
+//                }
+//            }
+//            androidx.compose.material3.Text(
+//                text = "${textCount}/1000자",
+//                fontWeight = FontWeight.SemiBold,
+//                fontSize = 14.sp
+//            )
+//        }
 
 //            Box(
 //                modifier = Modifier
@@ -953,4 +1005,26 @@ fun ContentCard(
 //            }
 //        }
     }
+}
+
+// 완전한 한글 or 영어 음절 여부 확인 함수
+private fun isCompleteHangul(text: String): Boolean {
+    var isSyllable = false
+
+    if (text.isEmpty()) isSyllable = false
+    else {
+        for (char in text) {
+            if (char in '\uAC00'..'\uD7A3' || (char in 'A'..'Z') || (char in 'a'..'z')) {
+                isSyllable = true
+            }
+            else {
+                isSyllable = false
+                break
+            }
+        }
+    }
+
+
+    Log.d("tag", isSyllable.toString())
+    return isSyllable
 }
