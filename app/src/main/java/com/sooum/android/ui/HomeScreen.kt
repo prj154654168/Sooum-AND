@@ -175,16 +175,18 @@ fun HomeScreen(mainNavController: NavHostController) {
             }
     }
 
-    homeViewModel.apply {
-        fetchLatestCardList(latitude, longitude)
-        fetchPopularityCardList(latitude, longitude)
+    LaunchedEffect(Unit) {
+        homeViewModel.apply {
+            fetchLatestCardList(latitude, longitude)
+            fetchPopularityCardList(latitude, longitude)
 
-        if (latitude != null && longitude != null) {
-            fetchDistance1CardList(latitude!!, longitude!!)
-            fetchDistance5CardList(latitude!!, longitude!!)
-            fetchDistance10CardList(latitude!!, longitude!!)
-            fetchDistance20CardList(latitude!!, longitude!!)
-            fetchDistance50CardList(latitude!!, longitude!!)
+            if (latitude != null && longitude != null) {
+                fetchDistance1CardList(latitude!!, longitude!!)
+                fetchDistance5CardList(latitude!!, longitude!!)
+                fetchDistance10CardList(latitude!!, longitude!!)
+                fetchDistance20CardList(latitude!!, longitude!!)
+                fetchDistance50CardList(latitude!!, longitude!!)
+            }
         }
     }
 
