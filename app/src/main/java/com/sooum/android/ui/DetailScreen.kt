@@ -74,7 +74,7 @@ fun DetailScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     if (showDialog) {
-        DeleteDialog { showDialog = false }
+        cardId?.let { DeleteDialog(navController, it.toLong(), viewModel) { showDialog = false } }
     }
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -101,9 +101,8 @@ fun DetailScreen(
                                         showBottomSheet = false
                                     }
                                 }
+                            viewModel.userBlocks()
                         }
-
-
                 ) {
                     Text(
                         text = "차단하기",
@@ -123,7 +122,7 @@ fun DetailScreen(
                                         showBottomSheet = false
                                     }
                                 }
-                            navController.navigate(PostNav.Report.screenRoute)
+                            navController.navigate("${PostNav.Report.screenRoute}/${cardId}")
                         }
                         .align(Alignment.CenterHorizontally)
                 ) {
@@ -140,8 +139,8 @@ fun DetailScreen(
     val data = viewModel.feedCardDataModel
     val comment = viewModel.detailCommentCardDataModel
     var count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
-    if (data != null && count != null && comment != null) {
 
+    if (data != null && count != null && comment != null) {
         Column {
             Card(
                 modifier = Modifier
@@ -366,7 +365,7 @@ fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
     Card(
         modifier = Modifier
             .aspectRatio(1 / 0.9f)
-            .padding(end = 10.dp, bottom = 10.dp),
+            .padding(start = 10.dp, bottom = 10.dp),
         shape = RoundedCornerShape(40.dp),
         onClick = { }
     ) {
@@ -455,7 +454,7 @@ fun TagItem(item: Tag) {
 }
 
 @Composable
-fun DeleteDialog(showDialog: () -> Unit) {
+fun DeleteDialog(navController: NavHostController, cardId: Long, viewModel: DetailViewModel, showDialog: () -> Unit) {
     Dialog(onDismissRequest = {
 
     }) {
@@ -507,7 +506,8 @@ fun DeleteDialog(showDialog: () -> Unit) {
                     }
                     Button(
                         onClick = {
-
+                            viewModel.deleteCard(cardId)
+                            navController.popBackStack()//TODO 추후 삭제화면 보이게 해야함.
                         },
                         modifier = Modifier
                             .width(130.dp)

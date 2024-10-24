@@ -28,8 +28,6 @@ class DetailViewModel : ViewModel() {
     fun getFeedCard(cardId: Long) {
         viewModelScope.launch {
             feedCardDataModel = retrofitInstance.getFeedCard(Constants.ACCESS_TOKEN, cardId).body()
-            Log.e("feedCardDataModel", feedCardDataModel.toString())
-
         }
     }
 
@@ -37,10 +35,7 @@ class DetailViewModel : ViewModel() {
         viewModelScope.launch {
             detailCardLikeCommentCountDataModel =
                 retrofitInstance.getCardLikeCommentCount(Constants.ACCESS_TOKEN, cardId).body()
-            Log.e(
-                "detailCardLikeCommentCountDataModel",
-                detailCardLikeCommentCountDataModel.toString()
-            )
+
         }
     }
 
@@ -53,23 +48,34 @@ class DetailViewModel : ViewModel() {
 
     fun likeOn(cardId: Long) {
         viewModelScope.launch {
-           val temp =  retrofitInstance.likeOn(Constants.ACCESS_TOKEN, cardId).body()
-            Log.e(
-                "likeOn",
-                temp.toString()
-            )
+            retrofitInstance.likeOn(Constants.ACCESS_TOKEN, cardId).body()
             getDetailCardLikeCommentCount(cardId)
         }
     }
 
     fun likeOff(cardId: Long) {
         viewModelScope.launch {
-            val temp =   retrofitInstance.likeOff(Constants.ACCESS_TOKEN, cardId).body()
-            Log.e(
-                "likeOff",
-                temp.toString()
-            )
+            retrofitInstance.likeOff(Constants.ACCESS_TOKEN, cardId).body()
             getDetailCardLikeCommentCount(cardId)
         }
     }
+
+    fun userBlocks() {
+        viewModelScope.launch {
+            val temp = feedCardDataModel?.member?.id?.let {
+                retrofitInstance.userBlocks(
+                    Constants.ACCESS_TOKEN,
+                    it.toLong()
+                ).body()
+            }
+            Log.e("temp", feedCardDataModel?.member?.id.toString())
+        }
+    }
+
+    fun deleteCard(cardId: Long) {
+        viewModelScope.launch {
+            retrofitInstance.deleteCard(Constants.ACCESS_TOKEN, cardId)
+        }
+    }
+
 }

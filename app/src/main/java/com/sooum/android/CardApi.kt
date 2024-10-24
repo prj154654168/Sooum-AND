@@ -1,6 +1,7 @@
 package com.sooum.android
 
 import com.sooum.android.enums.DistanceEnum
+import com.sooum.android.enums.ReportType
 import com.sooum.android.model.DefaultImageDataModel
 import com.sooum.android.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.model.DetailCommentCardDataModel
@@ -10,6 +11,7 @@ import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.model.SortedByPopularityDataModel
 import com.sooum.android.model.Status
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -73,6 +75,24 @@ interface CardApi {
     @GET("/imgs/default")
     suspend fun getDefaultImage(
         @Header("Authorization") accessToken: String,
-        @Query("previousImgsName") previousImgsName: String? = null
+        @Query("previousImgsName") previousImgsName: String? = null,
     ): Response<DefaultImageDataModel>
+
+    @POST("/blocks")
+    suspend fun userBlocks(
+        @Header("Authorization") accessToken: String,
+        @Body toMemberId: Long,
+    ): Response<Status>
+
+    @POST("/report/cards/{cardPk}")
+    suspend fun cardReport(
+        @Header("Authorization") accessToken: String,
+        @Path("cardPk") cardPk: Long,
+        @Query("reportType") reportType : ReportType
+    )
+    @DELETE("/cards/{cardId}")
+    suspend fun deleteCard(
+        @Header("Authorization") accessToken: String,
+        @Path("cardId") cardId: Long,
+    ): Response<Status>
 }

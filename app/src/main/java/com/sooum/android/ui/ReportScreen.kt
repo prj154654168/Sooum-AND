@@ -26,15 +26,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.sooum.android.enums.ReportType
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportScreen(navController: NavHostController) {
+fun ReportScreen(
+    navController: NavHostController,
+    cardId: String,
+    reportViewModel: ReportViewModel = viewModel(),
+) {
     var selectedOption by remember { mutableStateOf<Int?>(null) }
+    var reportType: ReportType = ReportType.OTHER
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -48,42 +55,60 @@ fun ReportScreen(navController: NavHostController) {
                 modifier = Modifier.padding(top = 8.dp, bottom = 28.dp)
             )
             ReportButton(
-                onOptionSelected = { selectedOption = 0 },
+                onOptionSelected = {
+                    selectedOption = 0
+                    reportType = ReportType.DEFAMATION_AND_ABUSE
+                },
                 selectedOption,
                 0,
                 "비방 및 욕설",
                 "욕설을 사용하여 타인에게 모욕감을 주는 경우"
             )
             ReportButton(
-                onOptionSelected = { selectedOption = 1 },
+                onOptionSelected = {
+                    selectedOption = 1
+                    reportType = ReportType.PRIVACY_VIOLATION
+                },
                 selectedOption,
                 1,
                 "개인정보 침해",
                 "법적으로 중요한 타인의 개인정보를 게제"
             )
             ReportButton(
-                onOptionSelected = { selectedOption = 2 },
+                onOptionSelected = {
+                    selectedOption = 2
+                    reportType = ReportType.INAPPROPRIATE_ADVERTISING
+                },
                 selectedOption,
                 2,
                 "부적절한 홍보 및 바이럴",
                 "부적절한 스팸 홍보 행위"
             )
             ReportButton(
-                onOptionSelected = { selectedOption = 3 },
+                onOptionSelected = {
+                    selectedOption = 3
+                    reportType = ReportType.PORNOGRAPHY
+                },
                 selectedOption,
                 3,
                 "음란물",
                 "음란한 행위와 관련된 부적절한 행동"
             )
             ReportButton(
-                onOptionSelected = { selectedOption = 4 },
+                onOptionSelected = {
+                    selectedOption = 4
+                    reportType = ReportType.IMPERSONATION_AND_FRAUD
+                },
                 selectedOption,
                 4,
                 "사칭 및 사기",
                 "사칭으로 타인의 권리를 침해하는 경우"
             )
             ReportButton(
-                onOptionSelected = { selectedOption = 5 },
+                onOptionSelected = {
+                    selectedOption = 5
+                    reportType = ReportType.OTHER
+                },
                 selectedOption,
                 5,
                 "기타",
@@ -94,7 +119,10 @@ fun ReportScreen(navController: NavHostController) {
         }
         Button(
             enabled = selectedOption != null,
-            onClick = { /*TODO*/ },
+            onClick = {
+                reportViewModel.cardReport(reportType, cardId.toLong())
+                navController.popBackStack()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
