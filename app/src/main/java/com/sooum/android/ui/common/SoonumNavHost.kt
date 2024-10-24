@@ -43,8 +43,9 @@ fun SoonumNavHost(
             val cardId = backStackEntry.arguments?.getString("cardId")
             DetailScreen(navController, cardId)
         }
-        composable(route = PostNav.Report.screenRoute) {
-            ReportScreen(navController)
+        composable(route = "${PostNav.Report.screenRoute}/{cardId}") { backStackEntry ->
+            val cardId = backStackEntry.arguments?.getString("cardId").toString()
+            ReportScreen(navController, cardId)
         }
     }
 }
