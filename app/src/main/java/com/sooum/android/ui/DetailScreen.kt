@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -76,6 +77,13 @@ fun DetailScreen(
     if (showDialog) {
         cardId?.let { DeleteDialog(navController, it.toLong(), viewModel) { showDialog = false } }
     }
+
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
+        startY = 0f,
+        endY = 60f // 그라데이션의 높이를 60dp로 설정
+    )
+
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
@@ -211,6 +219,7 @@ fun DetailScreen(
                             .align(Alignment.Center)
                             .padding(4.dp)
                     ) {
+
                         Text(
                             modifier = Modifier
                                 .align(Alignment.Center)
@@ -223,7 +232,15 @@ fun DetailScreen(
                             overflow = TextOverflow.Ellipsis,
                             lineHeight = 28.8.sp,
                         )
+
                     }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .background(gradientBrush)
+                            .align(Alignment.BottomCenter)
+                    )
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
@@ -362,6 +379,11 @@ fun DetailLike(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
+    val gradientBrush = Brush.verticalGradient(
+        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
+        startY = 0f,
+        endY = 60f // 그라데이션의 높이를 60dp로 설정
+    )
     Card(
         modifier = Modifier
             .aspectRatio(1 / 0.9f)
@@ -382,6 +404,7 @@ fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
                     .align(Alignment.Center)
                     .padding(4.dp)
             ) {
+
                 Text(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -395,6 +418,13 @@ fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
                     lineHeight = 28.8.sp,
                 )
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .background(gradientBrush)
+                    .align(Alignment.BottomCenter)
+            )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -454,7 +484,12 @@ fun TagItem(item: Tag) {
 }
 
 @Composable
-fun DeleteDialog(navController: NavHostController, cardId: Long, viewModel: DetailViewModel, showDialog: () -> Unit) {
+fun DeleteDialog(
+    navController: NavHostController,
+    cardId: Long,
+    viewModel: DetailViewModel,
+    showDialog: () -> Unit,
+) {
     Dialog(onDismissRequest = {
 
     }) {
