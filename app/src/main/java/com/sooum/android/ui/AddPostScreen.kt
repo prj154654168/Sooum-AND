@@ -2,6 +2,7 @@ package com.sooum.android.ui
 
 import android.app.Activity
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -63,6 +64,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -78,9 +80,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
+import com.sooum.android.model.DefaultImageDataModel
+import com.sooum.android.model.RelatedTagDataModel
+import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,19 +117,28 @@ fun AddPostScreen() {
 
     val tagList = remember { mutableStateListOf("디자인", "개발", "ㅁㄴㅇㅁㄴㅇㅁㄴ") }
 
-    var relatedTagList by remember { mutableStateOf(listOf("프론트", "백엔드", "데이터", "안드로이드")) }
+    val addPostViewModel: AddPostViewModel = viewModel()
 
-    var isKeyboardVisible by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-
-    var tagHintList = remember { mutableStateListOf(
-        "UX기획" to 6,
-        "UX리서처" to 4,
-        "UIUX를 공부하는 효율적인 방법" to 3,
-        "UI디자인이에요" to 2,
-        "UI가독성" to 1)
+    var defaultImageList by remember {
+        mutableStateOf<List<DefaultImageDataModel.Embedded.ImgUrlInfo>>(
+            emptyList()
+        )
     }
+
+    LaunchedEffect(Unit) {
+        addPostViewModel.getDefaultImageList()
+    }
+    defaultImageList = addPostViewModel.defaultImageList
+
+    Log.d("AddPostScreen", defaultImageList.size.toString())
+
+
+    var tagHintList by remember {
+        mutableStateOf<List<RelatedTagDataModel.Embedded.RelatedTag>>(
+            emptyList()
+        )
+    }
+    tagHintList = addPostViewModel.relatedTagList
 
 
     // 이미지 선택 후 반환된 결과를 처리하는 런처
@@ -181,7 +196,14 @@ fun AddPostScreen() {
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     if (imageRoute) {
-                        Box {
+                        Box(
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                addPostViewModel.refreshDefaultImageList()
+                            }
+                        ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(2.dp)
@@ -226,7 +248,7 @@ fun AddPostScreen() {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(4),
                             content = {
-                                items(8) { imageIndex ->
+                                items(defaultImageList.size) { imageIndex ->
                                     Surface(
                                         border = if (selectedImage == imageIndex) {
                                             BorderStroke(
@@ -242,12 +264,10 @@ fun AddPostScreen() {
                                         }
                                     ) {
                                         AsyncImage(
-                                            model = "https://cdn.dailyvet.co.kr/wp-content/uploads/2024/05/15231647/20240515ceva_experts4.jpg", // 이미지 URL
+                                            model = defaultImageList[imageIndex].url.href, // 이미지 URL
                                             contentDescription = "Sample Image", // 접근성 설명
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .aspectRatio(1f),
-                                            contentScale = ContentScale.Crop// 원하는 Modifier 추가
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop // 원하는 Modifier 추가
                                         )
                                     }
                                 }
@@ -564,6 +584,10 @@ fun AddPostScreen() {
                         value = tagTextField,
                         onValueChange = {
                             tagTextField = it
+                            if (isCompleteHangul(tagTextField)) {
+                                addPostViewModel.getRelatedTag(tagTextField, 5) //int값에 뭐가 들어가야되는지 모르겠음
+                                Log.d("tag", "api호출")
+                            }
                         },
                         placeholder = {
                             Text(
@@ -625,10 +649,10 @@ fun AddPostScreen() {
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 tagHintList.forEach { tagHint ->
-                                    TagHintChip(tagHint = tagHint.first, tagHint.second) { tag ->
+                                    TagHintChip(tagHint = tagHint.content, tagHint.count) { tag ->
                                         tagList.add(0, tag)
                                         tagTextField = ""
-                                        tagHintList.clear()
+                                        tagHintList = emptyList()
                                     }
                                 }
                             }
@@ -846,53 +870,101 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick : (String) -> Unit) {
 @Composable
 fun ContentCard(
 ) {
-    val gradientBrush = Brush.verticalGradient(
-        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
-        startY = 0f,
-        endY = 60f // 그라데이션의 높이를 60dp로 설정
-    )
-
-    var text by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
-    var textCount by remember { mutableStateOf(0) }
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1 / 0.9f),
+            .aspectRatio(1 / 0.9f)
+            .padding(bottom = 10.dp),
         shape = RoundedCornerShape(40.dp),
-        onClick = { }
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            ImageLoader("")
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .fillMaxWidth(0.75f)
-                    .fillMaxHeight(0.72f)
-            ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .verticalScroll(scrollState)) {
-                        TextField(
-                            value = text,
-                            onValueChange = { newText -> text = newText },
-                            label = { androidx.compose.material3.Text("Enter text") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+            ImageLoader("https://search.pstatic.net/sunny/?src=https%3A%2F%2Fus.123rf.com%2F450wm%2Fvantuz%2Fvantuz1506%2Fvantuz150600251%2F41134623-%25EB%2593%25B1%25EB%25B6%2588%25EC%259D%2580-%25EC%2596%25B4%25EB%2591%2590%25EC%259A%25B4-%25EB%25B0%25B0%25EA%25B2%25BD%25EC%259D%2584-%25EC%25A1%25B0%25EB%25AA%2585%25ED%2595%259C%25EB%258B%25A4-%25EB%25B2%25A1%25ED%2584%25B0-%25EC%259D%25B4%25EB%25AF%25B8%25EC%25A7%2580%25EC%259E%2585%25EB%258B%2588%25EB%258B%25A4-.jpg%3Fver%3D6&type=sc960_832")
+            BasicTextField(
+                value = content,
+                onValueChange = {
+                    if (it.length <= 1000) {
+                        content = it
                     }
+                },
+                modifier = Modifier
+                    .padding(40.dp)
+                    .align(Alignment.Center)
+                    .verticalScroll(scrollState),
+                textStyle = TextStyle(color = Color.White),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+            ) {
+                // 기본 텍스트가 없으면 빈칸으로 표시
+                if (content.isEmpty()) {
+                    Text(
+                        text = "입력하세요...",
+                        color = Color.White,
+                        style = TextStyle(color = Color.White)
+                    )
+                } else {
+                    it()
                 }
             }
-            androidx.compose.material3.Text(
-                text = "${textCount}/1000자",
-                fontWeight = FontWeight.SemiBold,
+            Text(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp),
+                text = "${content.length} / 1000",
+                color = Color.White,
                 fontSize = 14.sp
             )
         }
+//    val gradientBrush = Brush.verticalGradient(
+//        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
+//        startY = 0f,
+//        endY = 60f // 그라데이션의 높이를 60dp로 설정
+//    )
+//
+//    var text by remember { mutableStateOf("") }
+//    val scrollState = rememberScrollState()
+//    var textCount by remember { mutableStateOf(0) }
+//
+//    Card(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .aspectRatio(1 / 0.9f),
+//        shape = RoundedCornerShape(40.dp),
+//        onClick = { }
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//        ) {
+//            ImageLoader("")
+//            Box(
+//                contentAlignment = Alignment.Center,
+//                modifier = Modifier
+//                    .fillMaxWidth(0.75f)
+//                    .fillMaxHeight(0.72f)
+//            ) {
+//                Row(modifier = Modifier.fillMaxSize()) {
+//                    Box(modifier = Modifier
+//                        .weight(1f)
+//                        .verticalScroll(scrollState)) {
+//                        TextField(
+//                            value = text,
+//                            onValueChange = { newText -> text = newText },
+//                            label = { androidx.compose.material3.Text("Enter text") },
+//                            modifier = Modifier.fillMaxWidth()
+//                        )
+//                    }
+//                }
+//            }
+//            androidx.compose.material3.Text(
+//                text = "${textCount}/1000자",
+//                fontWeight = FontWeight.SemiBold,
+//                fontSize = 14.sp
+//            )
+//        }
 
 //            Box(
 //                modifier = Modifier
@@ -933,4 +1005,26 @@ fun ContentCard(
 //            }
 //        }
     }
+}
+
+// 완전한 한글 or 영어 음절 여부 확인 함수
+private fun isCompleteHangul(text: String): Boolean {
+    var isSyllable = false
+
+    if (text.isEmpty()) isSyllable = false
+    else {
+        for (char in text) {
+            if (char in '\uAC00'..'\uD7A3' || (char in 'A'..'Z') || (char in 'a'..'z')) {
+                isSyllable = true
+            }
+            else {
+                isSyllable = false
+                break
+            }
+        }
+    }
+
+
+    Log.d("tag", isSyllable.toString())
+    return isSyllable
 }
