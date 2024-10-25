@@ -237,7 +237,27 @@ fun Main() {
                             )
 
                         }
-
+                        SoonumNav.isMainRoute(currentRoute) == 4->{
+                            CenterAlignedTopAppBar(
+                                title = {
+                                    Text(
+                                        modifier = Modifier.padding(start = 20.dp),
+                                        text = "작성하기",
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
+                                navigationIcon = {
+                                    IconButton(
+                                        onClick = { navController.popBackStack() }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.ArrowForward,
+                                            contentDescription = "뒤로가기",
+                                        )
+                                    }
+                                })
+                        }
                         else -> {
                             CenterAlignedTopAppBar(
                                 title = {

@@ -1,6 +1,8 @@
 package com.sooum.android.ui
 
-import android.app.Activity
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,9 +10,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -19,42 +21,32 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Chip
 import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.LocalTextStyle
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,10 +56,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -75,7 +65,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -86,8 +75,9 @@ import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
 import com.sooum.android.model.DefaultImageDataModel
 import com.sooum.android.model.RelatedTagDataModel
-import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.ui.theme.Primary
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,7 +129,7 @@ fun AddPostScreen() {
         )
     }
     tagHintList = addPostViewModel.relatedTagList
-
+    val context = LocalContext.current
 
     // 이미지 선택 후 반환된 결과를 처리하는 런처
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -149,8 +139,15 @@ fun AddPostScreen() {
             //이미 선택된 이미지가 있을 때, 다시 갤러리에 들어가서 사진을 선택 안하면 기존에 selectedImageUri가 null 되는 것을 방지
         } else {
             selectedImageUri = uri
+            val bitmap = selectedImageUri?.let { uriToBitmap(context, it) }
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+            val byteArray = byteArrayOutputStream.toByteArray()
+            addPostViewModel.getImageUrl(byteArray)
+
         }
     }
+    val scrollState2 = rememberScrollState()
 
     BottomSheetScaffold(
         sheetContainerColor = Color.White,
@@ -261,6 +258,7 @@ fun AddPostScreen() {
                                             interactionSource = remember { MutableInteractionSource() }
                                         ) {
                                             selectedImage = imageIndex
+                                            addPostViewModel.nowImage = defaultImageList[imageIndex].url.href
                                         }
                                     ) {
                                         AsyncImage(
@@ -496,7 +494,7 @@ fun AddPostScreen() {
                 }
             }
         },
-        sheetPeekHeight = 280.dp // 기본적으로 숨겨진 상태
+        sheetPeekHeight = 280.dp
     ) { innerPadding ->
         // Main Content
         Box(
@@ -505,13 +503,15 @@ fun AddPostScreen() {
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
+                    .verticalScroll(scrollState2)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+
                         .padding(start = 20.dp, end = 20.dp)
                 ) {
-                    ContentCard()
+                    ContentCard(addPostViewModel)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
@@ -585,7 +585,10 @@ fun AddPostScreen() {
                         onValueChange = {
                             tagTextField = it
                             if (isCompleteHangul(tagTextField)) {
-                                addPostViewModel.getRelatedTag(tagTextField, 5) //int값에 뭐가 들어가야되는지 모르겠음
+                                addPostViewModel.getRelatedTag(
+                                    tagTextField,
+                                    5
+                                ) //int값에 뭐가 들어가야되는지 모르겠음
                                 Log.d("tag", "api호출")
                             }
                         },
@@ -802,6 +805,7 @@ fun AddPostScreen() {
 //            }
 //        }
     }
+
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -829,9 +833,12 @@ fun TagChip(tag: String, onDelete: () -> Unit) {
     }
 
 }
-
+fun uriToBitmap(context: Context, uri: Uri): Bitmap {
+    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+    return BitmapFactory.decodeStream(inputStream) ?: throw IllegalArgumentException("Cannot decode URI: $uri")
+}
 @Composable
-fun TagHintChip(tagHint: String, count: Int, onTagClick : (String) -> Unit) {
+fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
     Row(
         modifier = Modifier.clickable(
             interactionSource = remember { MutableInteractionSource() },
@@ -868,8 +875,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick : (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentCard(
-) {
+fun ContentCard(addPostViewModel: AddPostViewModel) {
     var content by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     Card(
@@ -883,7 +889,7 @@ fun ContentCard(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            ImageLoader("https://search.pstatic.net/sunny/?src=https%3A%2F%2Fus.123rf.com%2F450wm%2Fvantuz%2Fvantuz1506%2Fvantuz150600251%2F41134623-%25EB%2593%25B1%25EB%25B6%2588%25EC%259D%2580-%25EC%2596%25B4%25EB%2591%2590%25EC%259A%25B4-%25EB%25B0%25B0%25EA%25B2%25BD%25EC%259D%2584-%25EC%25A1%25B0%25EB%25AA%2585%25ED%2595%259C%25EB%258B%25A4-%25EB%25B2%25A1%25ED%2584%25B0-%25EC%259D%25B4%25EB%25AF%25B8%25EC%25A7%2580%25EC%259E%2585%25EB%258B%2588%25EB%258B%25A4-.jpg%3Fver%3D6&type=sc960_832")
+            ImageLoader(addPostViewModel.nowImage)
             BasicTextField(
                 value = content,
                 onValueChange = {
@@ -1016,8 +1022,7 @@ private fun isCompleteHangul(text: String): Boolean {
         for (char in text) {
             if (char in '\uAC00'..'\uD7A3' || (char in 'A'..'Z') || (char in 'a'..'z')) {
                 isSyllable = true
-            }
-            else {
+            } else {
                 isSyllable = false
                 break
             }
