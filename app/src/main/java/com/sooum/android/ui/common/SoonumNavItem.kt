@@ -34,8 +34,9 @@ sealed class SoonumNav(
     companion object {
         fun isMainRoute(route: String?): Int {
             return when (route) {
-                MAIN_HOME, ADD_POST, TAG, PROFILE -> 1
+                MAIN_HOME, TAG, PROFILE -> 1
                 REPORT -> 3
+                ADD_POST -> 4
                 else -> 2
             }//top bar 추후 수정 필요
         }

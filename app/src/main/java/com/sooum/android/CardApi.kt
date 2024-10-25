@@ -6,6 +6,7 @@ import com.sooum.android.model.DefaultImageDataModel
 import com.sooum.android.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.model.DetailCommentCardDataModel
 import com.sooum.android.model.FeedCardDataModel
+import com.sooum.android.model.ImageUploadDataModel
 import com.sooum.android.model.SortedByDistanceDataModel
 import com.sooum.android.model.SortedByLatestDataModel
 import com.sooum.android.model.SortedByPopularityDataModel
@@ -95,4 +96,9 @@ interface CardApi {
         @Header("Authorization") accessToken: String,
         @Path("cardId") cardId: Long,
     ): Response<Status>
+
+    @GET("/imgs/cards/upload?extension=jpeg")
+    suspend fun getImageUrl(
+        @Header("Authorization") accessToken: String,
+    ): Response<ImageUploadDataModel>
 }
