@@ -1,4 +1,4 @@
-package com.sooum.android.model
+package com.sooum.android.domain.model
 
 import com.google.gson.annotations.SerializedName
 

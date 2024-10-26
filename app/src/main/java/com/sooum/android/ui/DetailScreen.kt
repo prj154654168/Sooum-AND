@@ -49,13 +49,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import com.sooum.android.R
-import com.sooum.android.model.DetailCardLikeCommentCountDataModel
-import com.sooum.android.model.DetailCommentCardDataModel
-import com.sooum.android.model.Tag
+import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
+import com.sooum.android.domain.model.DetailCommentCardDataModel
+import com.sooum.android.domain.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.launch
 
 

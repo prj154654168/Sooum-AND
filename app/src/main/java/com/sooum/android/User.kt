@@ -1,6 +1,6 @@
 package com.sooum.android
 
-import com.sooum.android.model.UserDataModel
+import com.sooum.android.domain.model.UserDataModel
 
 object User {
     val userInfo: UserDataModel = UserDataModel(

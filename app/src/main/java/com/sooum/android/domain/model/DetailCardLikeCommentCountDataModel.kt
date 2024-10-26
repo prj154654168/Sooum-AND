@@ -1,4 +1,4 @@
-package com.sooum.android.model
+package com.sooum.android.domain.model
 
 data class DetailCardLikeCommentCountDataModel(
     val cardLikeCnt: Int,

@@ -1,7 +1,6 @@
-package com.sooum.android
+package com.sooum.android.data.remote
 
-import com.sooum.android.model.RelatedTagDataModel
-import com.sooum.android.model.SortedByLatestDataModel
+import com.sooum.android.domain.model.RelatedTagDataModel
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header

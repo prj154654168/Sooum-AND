@@ -1,4 +1,4 @@
-package com.sooum.android.ui
+package com.sooum.android.ui.viewmodel
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -7,12 +7,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sooum.android.CardApi
+import com.sooum.android.data.remote.CardApi
 import com.sooum.android.Constants.ACCESS_TOKEN
-import com.sooum.android.RetrofitInterface
-import com.sooum.android.TagAPI
-import com.sooum.android.model.DefaultImageDataModel
-import com.sooum.android.model.RelatedTagDataModel
+import com.sooum.android.data.remote.RetrofitInterface
+import com.sooum.android.data.remote.TagAPI
+import com.sooum.android.domain.model.DefaultImageDataModel
+import com.sooum.android.domain.model.RelatedTagDataModel
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient

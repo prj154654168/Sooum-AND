@@ -1,16 +1,16 @@
-package com.sooum.android.ui
+package com.sooum.android.ui.viewmodel
 
 import android.util.Log
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sooum.android.CardApi
+import com.sooum.android.data.remote.CardApi
 import com.sooum.android.Constants.ACCESS_TOKEN
-import com.sooum.android.RetrofitInterface
+import com.sooum.android.data.remote.RetrofitInterface
 import com.sooum.android.enums.DistanceEnum
-import com.sooum.android.model.SortedByDistanceDataModel
-import com.sooum.android.model.SortedByLatestDataModel
-import com.sooum.android.model.SortedByPopularityDataModel
+import com.sooum.android.domain.model.SortedByDistanceDataModel
+import com.sooum.android.domain.model.SortedByLatestDataModel
+import com.sooum.android.domain.model.SortedByPopularityDataModel
 import kotlinx.coroutines.launch
 
 class HomeViewModel: ViewModel() {

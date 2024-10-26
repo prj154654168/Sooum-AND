@@ -1,4 +1,4 @@
-package com.sooum.android
+package com.sooum.android.data.remote
 
 import com.sooum.android.Constants.BASE_URL
 import retrofit2.Retrofit

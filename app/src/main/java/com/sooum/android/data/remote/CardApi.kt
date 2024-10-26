@@ -1,16 +1,16 @@
-package com.sooum.android
+package com.sooum.android.data.remote
 
 import com.sooum.android.enums.DistanceEnum
-import com.sooum.android.enums.ReportType
-import com.sooum.android.model.DefaultImageDataModel
-import com.sooum.android.model.DetailCardLikeCommentCountDataModel
-import com.sooum.android.model.DetailCommentCardDataModel
-import com.sooum.android.model.FeedCardDataModel
-import com.sooum.android.model.ImageUploadDataModel
-import com.sooum.android.model.SortedByDistanceDataModel
-import com.sooum.android.model.SortedByLatestDataModel
-import com.sooum.android.model.SortedByPopularityDataModel
-import com.sooum.android.model.Status
+import com.sooum.android.enums.ReportTypeEnum
+import com.sooum.android.domain.model.DefaultImageDataModel
+import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
+import com.sooum.android.domain.model.DetailCommentCardDataModel
+import com.sooum.android.domain.model.FeedCardDataModel
+import com.sooum.android.domain.model.ImageUploadDataModel
+import com.sooum.android.domain.model.SortedByDistanceDataModel
+import com.sooum.android.domain.model.SortedByLatestDataModel
+import com.sooum.android.domain.model.SortedByPopularityDataModel
+import com.sooum.android.domain.model.Status
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -89,7 +89,7 @@ interface CardApi {
     suspend fun cardReport(
         @Header("Authorization") accessToken: String,
         @Path("cardPk") cardPk: Long,
-        @Query("reportType") reportType : ReportType
+        @Query("reportType") reportTypeEnum : ReportTypeEnum
     )
     @DELETE("/cards/{cardId}")
     suspend fun deleteCard(

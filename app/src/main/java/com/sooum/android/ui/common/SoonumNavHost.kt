@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.sooum.android.ProfileScreen
-import com.sooum.android.TagScreen
+import com.sooum.android.ui.ProfileScreen
+import com.sooum.android.ui.TagScreen
 import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.DetailScreen
 import com.sooum.android.ui.HomeScreen

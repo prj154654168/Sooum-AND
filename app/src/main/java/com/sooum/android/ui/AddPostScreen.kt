@@ -12,7 +12,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -73,9 +72,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
-import com.sooum.android.model.DefaultImageDataModel
-import com.sooum.android.model.RelatedTagDataModel
+import com.sooum.android.domain.model.DefaultImageDataModel
+import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.viewmodel.AddPostViewModel
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
