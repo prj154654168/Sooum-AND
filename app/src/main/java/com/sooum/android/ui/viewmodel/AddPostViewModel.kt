@@ -10,9 +10,11 @@ import androidx.lifecycle.viewModelScope
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.Constants.ACCESS_TOKEN
 import com.sooum.android.data.remote.RetrofitInterface
-import com.sooum.android.data.remote.TagAPI
 import com.sooum.android.domain.model.DefaultImageDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
+import com.sooum.android.domain.usecase.postcard.DefaultImageUseCase
+import com.sooum.android.domain.usecase.postcard.RelatedTagUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -20,8 +22,13 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import java.io.IOException
+import javax.inject.Inject
 
-class AddPostViewModel : ViewModel() {
+@HiltViewModel
+class AddPostViewModel @Inject constructor(
+    private val getDefaultImageUseCase: DefaultImageUseCase,
+    private val getRelatedTagUseCase: RelatedTagUseCase
+) : ViewModel() {
     var defaultImageList = mutableStateListOf<DefaultImageDataModel.Embedded.ImgUrlInfo>()
         private set
 
@@ -33,66 +40,36 @@ class AddPostViewModel : ViewModel() {
         private set
 
     val cardAPIInstance = RetrofitInterface.getInstance().create(CardApi::class.java)
-    val tagAPIInstance = RetrofitInterface.getInstance().create(TagAPI::class.java)
 
     fun getDefaultImageList() {
-        try {
-            viewModelScope.launch {
-                val defaultImageResponse = cardAPIInstance.getDefaultImage(ACCESS_TOKEN)
-                if (defaultImageResponse.isSuccessful) {
-                    val defaultImageBody = defaultImageResponse.body()
-                    if (defaultImageBody != null) {
-                        defaultImageList.clear()
-                        defaultImageList.addAll(defaultImageBody.embedded.imgUrlInfoList)
-                        refreshImageQuery = getPreviousImages(defaultImageBody.links.next.href)
-                        nowImage = defaultImageList[0].url.href
-                        Log.d(
-                            "AddPostViewModel",
-                            "defaultImage load success ${defaultImageList[1]}"
-                        )
-                    } else {
-                        Log.d("AddPostViewModel", "defaultImage body is null")
-                    }
-                } else {
-                    Log.d("AddPostViewModel", "getDefaultImageList fail")
-                }
+        viewModelScope.launch {
+            try {
+                val responseBody = getDefaultImageUseCase(null)
+                val imageList = responseBody.embedded.imgUrlInfoList
+                defaultImageList.addAll(imageList)
+                refreshImageQuery = getPreviousImages(responseBody.links.next.href)
+                nowImage = defaultImageList[0].url.href
             }
-        } catch (e: Exception) {
-            Log.e("AddPostViewModel", e.printStackTrace().toString())
+            catch (e: Exception) {
+                Log.e("AddPostViewModel", e.printStackTrace().toString())
+            }
         }
     }
 
     fun refreshDefaultImageList() {
-        try {
-            viewModelScope.launch {
-                val defaultImageResponse =
-                    cardAPIInstance.getDefaultImage(ACCESS_TOKEN, refreshImageQuery)
-                if (defaultImageResponse.isSuccessful) {
-                    val defaultImageBody = defaultImageResponse.body()
-                    if (defaultImageBody != null) {
-                        defaultImageList.clear()
-                        defaultImageList.addAll(defaultImageBody.embedded.imgUrlInfoList)
-                        refreshImageQuery = getPreviousImages(defaultImageBody.links.next.href)
-                        nowImage = defaultImageList[0].url.href
-                        Log.d("nowImage", nowImage)
-                        Log.d(
-                            "AddPostViewModel",
-                            "defaultImage load success ${defaultImageList[1]}"
-                        )
-                    } else {
-                        Log.d("AddPostViewModel", "defaultImage body is null")
-                    }
-                } else {
-                    Log.d("AddPostViewModel", "getDefaultImageList fail")
-                }
+        viewModelScope.launch {
+            try {
+                val responseBody = getDefaultImageUseCase(refreshImageQuery)
+                val imageList = responseBody.embedded.imgUrlInfoList
+                defaultImageList.clear()
+                defaultImageList.addAll(imageList)
+                refreshImageQuery = getPreviousImages(responseBody.links.next.href)
+                nowImage = defaultImageList[0].url.href
             }
-        } catch (e: Exception) {
-            Log.e("AddPostViewModel", e.printStackTrace().toString())
+            catch (e: Exception) {
+                Log.e("AddPostViewModel", e.printStackTrace().toString())
+            }
         }
-    }
-
-    private fun getPreviousImages(url: String): String {
-        return url.split("?")[1].split("=")[1]
     }
 
     fun getImageUrl(byteArray: ByteArray) {
@@ -129,23 +106,18 @@ class AddPostViewModel : ViewModel() {
     }
 
     fun getRelatedTag(keyword: String, size: Int) {
-        try {
-            viewModelScope.launch {
-                val relatedTagResponse = tagAPIInstance.getRelatedTag(ACCESS_TOKEN, keyword, size)
-                if (relatedTagResponse.isSuccessful) {
-                    val relatedTagBody = relatedTagResponse.body()
-                    if (relatedTagBody != null) {
-//                        relatedTagList.clear()
-//                        relatedTagList.addAll(relatedTagBody.embedded.relatedTagList)
-                    } else {
-                        Log.d("AddPostViewModel", "defaultImage body is null")
-                    }
-                } else {
-                    Log.d("AddPostViewModel", "getDefaultImageList fail")
-                }
+        viewModelScope.launch {
+            try {
+                val tagList = getRelatedTagUseCase(keyword, size)
+                relatedTagList.addAll(tagList)
             }
-        } catch (e: Exception) {
-            Log.e("AddPostViewModel", e.printStackTrace().toString())
+            catch (e: Exception) {
+                Log.e("AddPostViewModel", e.printStackTrace().toString())
+            }
         }
+    }
+
+    private fun getPreviousImages(url: String): String {
+        return url.split("?")[1].split("=")[1]
     }
 }

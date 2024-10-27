@@ -68,6 +68,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
@@ -107,21 +108,11 @@ fun AddPostScreen() {
 
     val tagList = remember { mutableStateListOf("디자인", "개발", "ㅁㄴㅇㅁㄴㅇㅁㄴ") }
 
-    val addPostViewModel: AddPostViewModel = viewModel()
-
-    var defaultImageList by remember {
-        mutableStateOf<List<DefaultImageDataModel.Embedded.ImgUrlInfo>>(
-            emptyList()
-        )
-    }
+    val addPostViewModel: AddPostViewModel = hiltViewModel()
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
     }
-    defaultImageList = addPostViewModel.defaultImageList
-
-    Log.d("AddPostScreen", defaultImageList.size.toString())
-
 
     var tagHintList by remember {
         mutableStateOf<List<RelatedTagDataModel.Embedded.RelatedTag>>(
@@ -245,7 +236,7 @@ fun AddPostScreen() {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(4),
                             content = {
-                                items(defaultImageList.size) { imageIndex ->
+                                items(addPostViewModel.defaultImageList.size) { imageIndex ->
                                     Surface(
                                         border = if (selectedImage == imageIndex) {
                                             BorderStroke(
@@ -258,11 +249,11 @@ fun AddPostScreen() {
                                             interactionSource = remember { MutableInteractionSource() }
                                         ) {
                                             selectedImage = imageIndex
-                                            addPostViewModel.nowImage = defaultImageList[imageIndex].url.href
+                                            addPostViewModel.nowImage = addPostViewModel.defaultImageList[imageIndex].url.href
                                         }
                                     ) {
                                         AsyncImage(
-                                            model = defaultImageList[imageIndex].url.href, // 이미지 URL
+                                            model = addPostViewModel.defaultImageList[imageIndex].url.href, // 이미지 URL
                                             contentDescription = "Sample Image", // 접근성 설명
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop // 원하는 Modifier 추가
