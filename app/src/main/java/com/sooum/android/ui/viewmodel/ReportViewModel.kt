@@ -2,19 +2,17 @@ package com.sooum.android.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sooum.android.data.remote.CardApi
-import com.sooum.android.Constants
-import com.sooum.android.data.remote.RetrofitInterface
+import com.sooum.android.domain.usecase.detail.ReportUserUseCase
 import com.sooum.android.enums.ReportTypeEnum
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ReportViewModel: ViewModel()  {
-
-    val retrofitInstance: CardApi = RetrofitInterface.getInstance().create(CardApi::class.java)
-
-    fun cardReport(reportTypeEnum: ReportTypeEnum, cardId: Long) {
+@HiltViewModel
+class ReportViewModel @Inject constructor(private val postReportUserUseCase: ReportUserUseCase) : ViewModel()  {
+    fun reportUser(cardId: Long, reportTypeEnum: ReportTypeEnum) {
         viewModelScope.launch {
-            retrofitInstance.cardReport(Constants.ACCESS_TOKEN, cardId, reportTypeEnum)
+            postReportUserUseCase(cardId, reportTypeEnum)
         }
     }
 }

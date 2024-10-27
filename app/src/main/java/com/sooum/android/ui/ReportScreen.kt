@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.enums.ReportTypeEnum
@@ -34,12 +35,11 @@ import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.ReportViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
     navController: NavHostController,
     cardId: String,
-    reportViewModel: ReportViewModel = viewModel(),
+    reportViewModel: ReportViewModel = hiltViewModel()
 ) {
     var selectedOption by remember { mutableStateOf<Int?>(null) }
     var reportTypeEnum: ReportTypeEnum = ReportTypeEnum.OTHER
@@ -121,7 +121,7 @@ fun ReportScreen(
         Button(
             enabled = selectedOption != null,
             onClick = {
-                reportViewModel.cardReport(reportTypeEnum, cardId.toLong())
+                reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
                 navController.popBackStack()
             },
             modifier = Modifier
