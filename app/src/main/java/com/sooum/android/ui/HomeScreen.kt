@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -74,7 +75,7 @@ fun HomeScreen(mainNavController: NavHostController) {
 
     var isVisible by remember { mutableStateOf(true) }
 
-    val homeViewModel: HomeViewModel = viewModel()
+    val homeViewModel: HomeViewModel = hiltViewModel()
 
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude

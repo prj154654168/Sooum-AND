@@ -38,7 +38,9 @@ import com.sooum.android.ui.common.SoonumBottomNavigation
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
 import com.sooum.android.ui.theme.SoonumTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
