@@ -85,12 +85,6 @@ interface CardApi {
         @Body toMemberId: Long,
     ): Response<Status>
 
-    @POST("/report/cards/{cardPk}")
-    suspend fun cardReport(
-        @Header("Authorization") accessToken: String,
-        @Path("cardPk") cardPk: Long,
-        @Query("reportType") reportTypeEnum : ReportTypeEnum
-    )
     @DELETE("/cards/{cardId}")
     suspend fun deleteCard(
         @Header("Authorization") accessToken: String,
