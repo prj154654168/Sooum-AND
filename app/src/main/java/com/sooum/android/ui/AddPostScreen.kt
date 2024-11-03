@@ -282,14 +282,28 @@ fun AddPostScreen() {
                                 galleryLauncher.launch("image/*")
                             }
                         ) {
-                            if (selectedImageUri != null) {
-                                // 선택된 이미지가 있으면 이미지 표시
-                                AsyncImage(
-                                    model = selectedImageUri, // 이미지 URL
-                                    contentDescription = "Sample Image", // 접근성 설명
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop// 원하는 Modifier 추가
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (selectedImageUri != null) {
+                                    // 선택된 이미지가 있으면 이미지 표시
+                                    AsyncImage(
+                                        model = selectedImageUri, // 이미지 URL
+                                        contentDescription = "Sample Image", // 접근성 설명
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop// 원하는 Modifier 추가
+                                    )
+                                }
+                                else {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_add),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp).align(Alignment.Center),
+                                        tint = colorResource(R.color.gray500)
+                                    )
+                                }
                             }
                         }
                     }
