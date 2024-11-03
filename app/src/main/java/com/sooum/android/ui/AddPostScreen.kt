@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -58,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -880,7 +882,13 @@ fun ContentCard(addPostViewModel: AddPostViewModel) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            ImageLoader(addPostViewModel.nowImage)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.8f)),
+            ) {
+                ImageLoader(addPostViewModel.nowImage)
+            }
             BasicTextField(
                 value = content,
                 onValueChange = {
@@ -892,15 +900,21 @@ fun ContentCard(addPostViewModel: AddPostViewModel) {
                     .padding(40.dp)
                     .align(Alignment.Center)
                     .verticalScroll(scrollState),
-                textStyle = TextStyle(color = Color.White),
+                textStyle = TextStyle(color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    lineHeight = 24.sp,
+                    textDecoration = null),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
             ) {
                 // 기본 텍스트가 없으면 빈칸으로 표시
                 if (content.isEmpty()) {
                     Text(
-                        text = "입력하세요...",
+                        text = "입력하세요",
                         color = Color.White,
-                        style = TextStyle(color = Color.White)
+                        fontSize = 16.sp,
+                        lineHeight = 24.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                 } else {
                     it()
@@ -910,9 +924,10 @@ fun ContentCard(addPostViewModel: AddPostViewModel) {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 12.dp),
-                text = "${content.length} / 1000",
+                text = "${content.length}/1000자",
                 color = Color.White,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
 //    val gradientBrush = Brush.verticalGradient(

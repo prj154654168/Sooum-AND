@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -111,6 +112,7 @@ fun RequestLocationPermission(onGranted: () -> Unit, onDenied: () -> Unit) {
     }
 
     val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         if (ContextCompat.checkSelfPermission(
                 context, Manifest.permission.ACCESS_FINE_LOCATION
@@ -136,6 +138,7 @@ fun GetUserLocation(onLocationReceived: (Location?) -> Unit) {
             ) {
                 fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
                     onLocationReceived(location)
+                    Log.d("MainActivity", "location received ${location?.latitude}")
                 }
             } else {
                 // 권한이 없을 때 null로 전달
@@ -218,7 +221,6 @@ fun Main() {
                                             fontSize = 16.sp
                                         )
                                     }
-
                                 },
                                 actions = {
                                     IconButton(onClick = {
