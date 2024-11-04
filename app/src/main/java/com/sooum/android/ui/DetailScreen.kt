@@ -3,6 +3,7 @@ package com.sooum.android.ui
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,9 +26,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -148,146 +153,189 @@ fun DetailScreen(
     val comment = viewModel.detailCommentCardDataModel
     var count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
 
+
     if (data != null && count != null && comment != null) {
-        Column {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1 / 0.9f)
-                    .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 10.dp),
-                shape = RoundedCornerShape(40.dp),
-                onClick = { }
-            ) {
-                Box(
+        Scaffold(topBar = {
+            TopAppBar(
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_profile_logo),
+                            contentDescription = "앱 로고",
+                            modifier = Modifier
+                                .width(32.dp)
+                                .height(32.dp)
+                                .padding(end = 8.dp)
+                        )
+                        Text(
+                            text = data.member.nickname,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+
+                },
+                actions = {
+                    IconButton(onClick = {
+                        /* 버튼 클릭 이벤트 */
+                    }) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_home),
+                            contentDescription = "home",
+                            colorFilter = ColorFilter.tint(colorResource(R.color.black))
+                        )
+                    }
+                },
+                modifier = Modifier.padding(
+                    horizontal = 4.dp,
+                    vertical = 2.dp
+                )
+            )
+        }) {
+            Column(modifier = Modifier.padding(it)) {
+                Card(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .aspectRatio(1 / 0.9f)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 10.dp),
+                    shape = RoundedCornerShape(40.dp),
+                    onClick = { }
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxHeight(0.25f)
-                            .align(Alignment.TopCenter)
-                            .zIndex(1f)
+                            .fillMaxSize()
                     ) {
                         Box(
                             modifier = Modifier
-                                .align(Alignment.Center)
+                                .fillMaxHeight(0.25f)
+                                .align(Alignment.TopCenter)
+                                .zIndex(1f)
                         ) {
-                            if (data.isStory) {
-                                PungTime("14 : 00 : 00")
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                            ) {
+                                if (data.isStory) {
+                                    PungTime("14 : 00 : 00")
+                                }
                             }
-                        }
 
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight(0.25f)
-                            .align(Alignment.TopEnd)
-                            .zIndex(1f)
-                    ) {
+                        }
                         Box(
                             modifier = Modifier
-                                .align(Alignment.Center)
+                                .fillMaxHeight(0.25f)
+                                .align(Alignment.TopEnd)
+                                .zIndex(1f)
                         ) {
-                            if (data.isOwnCard) {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(end = 16.dp)
-                                        .clickable { showDialog = true },
-                                    painter = painterResource(R.drawable.ic_detail_delete),
-                                    contentDescription = "케밥 더보기 버튼",
-                                )
-                            } else {
-                                Icon(
-                                    modifier = Modifier
-                                        .padding(end = 16.dp)
-                                        .clickable { showBottomSheet = true },
-                                    painter = painterResource(R.drawable.ic_detail_kebab),
-                                    contentDescription = "케밥 더보기 버튼",
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                            ) {
+                                if (data.isOwnCard) {
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(end = 16.dp)
+                                            .clickable { showDialog = true },
+                                        painter = painterResource(R.drawable.ic_detail_delete),
+                                        contentDescription = "케밥 더보기 버튼",
+                                    )
+                                } else {
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(end = 16.dp)
+                                            .clickable { showBottomSheet = true },
+                                        painter = painterResource(R.drawable.ic_detail_kebab),
+                                        contentDescription = "케밥 더보기 버튼",
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    ImageLoader(data.backgroundImgUrl.href)
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                Color.Black.copy(alpha = 0.7f),
-                                shape = RoundedCornerShape(24.dp)
+                        ImageLoader(data.backgroundImgUrl.href)
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    Color.Black.copy(alpha = 0.7f),
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                                .fillMaxWidth(0.75f)
+                                .align(Alignment.Center)
+                                .padding(4.dp)
+                        ) {
+
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .padding(
+                                        start = 16.dp,
+                                        end = 16.dp,
+                                        top = 14.dp,
+                                        bottom = 14.dp
+                                    ),
+                                text = data.content,
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 4,
+                                overflow = TextOverflow.Ellipsis,
+                                lineHeight = 28.8.sp,
                             )
-                            .fillMaxWidth(0.75f)
-                            .align(Alignment.Center)
-                            .padding(4.dp)
-                    ) {
 
-                        Text(
+                        }
+                        Box(
                             modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
-                            text = data.content,
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 4,
-                            overflow = TextOverflow.Ellipsis,
-                            lineHeight = 28.8.sp,
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .background(gradientBrush)
+                                .align(Alignment.BottomCenter)
                         )
-
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp)
-                            .background(gradientBrush)
-                            .align(Alignment.BottomCenter)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 26.dp, bottom = 24.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(end = 26.dp, bottom = 24.dp)
                         ) {
-                            if (data.distance != 0.0) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                if (data.distance != 0.0) {
+                                    InfoElement(
+                                        painter = painterResource(R.drawable.ic_location),
+                                        description = "위치",
+                                        count = formatDistanceInKm(data.distance),
+                                        isTrue = false
+                                    )
+                                }
+
                                 InfoElement(
-                                    painter = painterResource(R.drawable.ic_location),
-                                    description = "위치",
-                                    count = formatDistanceInKm(data.distance),
+                                    painter = painterResource(R.drawable.ic_clock),
+                                    description = "시간",
+                                    count = formatTimeDifference(data.createdAt),
                                     isTrue = false
                                 )
                             }
 
-                            InfoElement(
-                                painter = painterResource(R.drawable.ic_clock),
-                                description = "시간",
-                                count = formatTimeDifference(data.createdAt),
-                                isTrue = false
-                            )
                         }
-
                     }
                 }
-            }
-            if (data.tags.isEmpty()) {
-                // 태그가 없을 때 기본 패딩 추가
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, bottom = 10.dp)
-                        .height(30.dp) // 원하는 패딩 크기 설정
-                )
-            } else {
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, bottom = 10.dp),
-                ) {
-                    items(data.tags) { item ->
-                        TagItem(item)
+                if (data.tags.isEmpty()) {
+                    // 태그가 없을 때 기본 패딩 추가
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, bottom = 10.dp)
+                            .height(30.dp) // 원하는 패딩 크기 설정
+                    )
+                } else {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, bottom = 10.dp),
+                    ) {
+                        items(data.tags) { item ->
+                            TagItem(item)
+                        }
                     }
                 }
-            }
 
 //            Box(
 //                //color = Color.Black,
@@ -298,38 +346,40 @@ fun DetailScreen(
 //            ){
 //                Row(modifier = Modifier.background(Color.Black)){}
 //            }
-            Row(
-                modifier = Modifier
-                    .padding(end = 20.dp)
-                    .align(Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                DetailLike(count, viewModel, cardId)
-                Icon(
+                Row(
                     modifier = Modifier
-                        .padding(start = 10.dp)
-                        .width(24.dp)
-                        .height(24.dp),
-                    painter = painterResource(R.drawable.ic_detail_comment),
-                    contentDescription = "댓글",
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = count.commentCnt.toString(),
-                    fontSize = 14.sp,
-                    color = Color.Black
-                )
-            }
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp)
-            ) {
-                items(comment.embedded.commentCardsInfoList) { item ->
-                    DeatilCommentItem(item)
+                        .padding(end = 20.dp)
+                        .align(Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    DetailLike(count, viewModel, cardId)
+                    Icon(
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .width(24.dp)
+                            .height(24.dp),
+                        painter = painterResource(R.drawable.ic_detail_comment),
+                        contentDescription = "댓글",
+                    )
+                    Spacer(modifier = Modifier.width(5.dp))
+                    Text(
+                        text = count.commentCnt.toString(),
+                        fontSize = 14.sp,
+                        color = Color.Black
+                    )
+                }
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                ) {
+                    items(comment.embedded.commentCardsInfoList) { item ->
+                        DeatilCommentItem(item)
+                    }
                 }
             }
         }
+
     }
 
 }

@@ -4,19 +4,28 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,9 +33,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -38,7 +45,6 @@ import com.sooum.android.ui.common.SoonumBottomNavigation
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
 import com.sooum.android.ui.theme.SoonumTheme
-import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -169,101 +175,37 @@ fun Main() {
                 },
 
                 topBar = {//top bar 추후 수정 필요
-                    when {
-                        SoonumNav.isMainRoute(currentRoute) == 1 -> {
-                            TopAppBar(
-                                title = {
+                    if (SoonumNav.isMainRoute(currentRoute) == 1) {
+                        TopAppBar(
+                            title = {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_logo),
+                                    contentDescription = "앱 로고",
+                                    modifier = Modifier
+                                        .width(93.dp)
+                                        .height(18.dp)
+                                )
+                            },
+                            actions = {
+                                IconButton(onClick = {
+                                    /* 버튼 클릭 이벤트 */
+                                }) {
                                     Image(
-                                        painter = painterResource(id = R.drawable.ic_logo),
-                                        contentDescription = "앱 로고",
-                                        modifier = Modifier
-                                            .width(93.dp)
-                                            .height(18.dp)
+                                        painter = painterResource(id = R.drawable.ic_alarm),
+                                        contentDescription = "Alarm",
+                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
                                     )
-                                },
-                                actions = {
-                                    IconButton(onClick = {
-                                        /* 버튼 클릭 이벤트 */
-                                    }) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_alarm),
-                                            contentDescription = "Alarm",
-                                            colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(
-                                    horizontal = 4.dp,
-                                    vertical = 2.dp
-                                )
+                                }
+                            },
+                            modifier = Modifier.padding(
+                                horizontal = 4.dp,
+                                vertical = 2.dp
                             )
-                        }
-
-                        SoonumNav.isMainRoute(currentRoute) == 2 -> {
-                            TopAppBar(
-                                title = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_profile_logo),
-                                            contentDescription = "앱 로고",
-                                            modifier = Modifier
-                                                .width(32.dp)
-                                                .height(32.dp)
-                                                .padding(end = 8.dp)
-                                        )
-                                        Text(
-                                            text = "한숨이",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp
-                                        )
-                                    }
-
-                                },
-                                actions = {
-                                    IconButton(onClick = {
-                                        /* 버튼 클릭 이벤트 */
-                                    }) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_home),
-                                            contentDescription = "home",
-                                            colorFilter = ColorFilter.tint(colorResource(R.color.black))
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(
-                                    horizontal = 4.dp,
-                                    vertical = 2.dp
-                                )
-                            )
-
-                        }
-
-                        else -> {
-                            CenterAlignedTopAppBar(
-                                title = {
-                                    Text(
-                                        modifier = Modifier.padding(start = 20.dp),
-                                        text = "신고하기",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                navigationIcon = {
-                                    IconButton(
-                                        onClick = { navController.popBackStack() }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.ArrowForward,
-                                            contentDescription = "뒤로가기",
-                                        )
-                                    }
-                                })
-                        }
+                        )
                     }
-
                 },
             ) { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding))
+                innerPadding
 
                 SoonumNavHost(
                     navController = navController,

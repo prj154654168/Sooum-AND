@@ -1,10 +1,8 @@
 package com.sooum.android.ui.common
 
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,7 +19,7 @@ fun SoonumNavHost(
     startDestination: String,
 ) {
     NavHost(
-        modifier = Modifier.padding(top = 64.dp),//topbar만큼 위로 뛰우김
+        modifier = Modifier,
         navController = navController,
         startDestination = startDestination
     ) {
@@ -30,7 +28,7 @@ fun SoonumNavHost(
         }
 
         composable(route = SoonumNav.AddPost.screenRoute) {
-            AddPostScreen()
+            AddPostScreen(navController)
         }
 
         composable(route = SoonumNav.Tag.screenRoute) {
