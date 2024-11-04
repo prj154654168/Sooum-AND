@@ -102,6 +102,8 @@ fun AddPostScreen() {
     var selectedImage by remember { mutableStateOf(0) }
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageUriForDefault by remember { mutableStateOf<Uri?>(null) }
+    var selectedImageUriForGallery by remember { mutableStateOf<Uri?>(null) }
 
     var content by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
@@ -199,7 +201,7 @@ fun AddPostScreen() {
                                 horizontalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
                                 androidx.compose.material3.Text(
-                                    text = "이미지 번경",
+                                    text = "이미지 변경",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = colorResource(R.color.gray03)
@@ -257,7 +259,7 @@ fun AddPostScreen() {
                                         AsyncImage(
                                             model = addPostViewModel.defaultImageList[imageIndex].url.href, // 이미지 URL
                                             contentDescription = "Sample Image", // 접근성 설명
-                                            modifier = Modifier.fillMaxSize(),
+                                            modifier = Modifier.aspectRatio(1f),
                                             contentScale = ContentScale.Crop // 원하는 Modifier 추가
                                         )
                                     }
@@ -309,7 +311,7 @@ fun AddPostScreen() {
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                androidx.compose.material3.Text(
+                Text(
                     text = "글씨체",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
