@@ -9,11 +9,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.enums.ReportTypeEnum
 import com.sooum.android.ui.theme.Gray1
@@ -35,106 +40,132 @@ import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.ReportViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
     navController: NavHostController,
     cardId: String,
-    reportViewModel: ReportViewModel = hiltViewModel()
+    reportViewModel: ReportViewModel = hiltViewModel(),
 ) {
     var selectedOption by remember { mutableStateOf<Int?>(null) }
     var reportTypeEnum: ReportTypeEnum = ReportTypeEnum.OTHER
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        Column() {
-            Text(
-                text = "신고 사유 선택",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp, bottom = 28.dp)
-            )
-            ReportButton(
-                onOptionSelected = {
-                    selectedOption = 0
-                    reportTypeEnum = ReportTypeEnum.DEFAMATION_AND_ABUSE
-                },
-                selectedOption,
-                0,
-                "비방 및 욕설",
-                "욕설을 사용하여 타인에게 모욕감을 주는 경우"
-            )
-            ReportButton(
-                onOptionSelected = {
-                    selectedOption = 1
-                    reportTypeEnum = ReportTypeEnum.PRIVACY_VIOLATION
-                },
-                selectedOption,
-                1,
-                "개인정보 침해",
-                "법적으로 중요한 타인의 개인정보를 게제"
-            )
-            ReportButton(
-                onOptionSelected = {
-                    selectedOption = 2
-                    reportTypeEnum = ReportTypeEnum.INAPPROPRIATE_ADVERTISING
-                },
-                selectedOption,
-                2,
-                "부적절한 홍보 및 바이럴",
-                "부적절한 스팸 홍보 행위"
-            )
-            ReportButton(
-                onOptionSelected = {
-                    selectedOption = 3
-                    reportTypeEnum = ReportTypeEnum.PORNOGRAPHY
-                },
-                selectedOption,
-                3,
-                "음란물",
-                "음란한 행위와 관련된 부적절한 행동"
-            )
-            ReportButton(
-                onOptionSelected = {
-                    selectedOption = 4
-                    reportTypeEnum = ReportTypeEnum.IMPERSONATION_AND_FRAUD
-                },
-                selectedOption,
-                4,
-                "사칭 및 사기",
-                "사칭으로 타인의 권리를 침해하는 경우"
-            )
-            ReportButton(
-                onOptionSelected = {
-                    selectedOption = 5
-                    reportTypeEnum = ReportTypeEnum.OTHER
-                },
-                selectedOption,
-                5,
-                "기타",
-                "해당하는 신고항목이 없는 경우"
-            )
 
-
-        }
-        Button(
-            enabled = selectedOption != null,
-            onClick = {
-                reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
-                navController.popBackStack()
+    Scaffold(topBar = {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    modifier = Modifier.padding(start = 20.dp),
+                    text = "신고하기",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             },
+            navigationIcon = {
+                IconButton(
+                    onClick = { navController.popBackStack() }
+                ) {
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "뒤로가기",
+                    )
+                }
+            })
+    }) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .align(Alignment.BottomCenter),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Primary
-            )
+                .fillMaxSize()
+                .padding(it)
+                .padding(20.dp)
         ) {
-            Text(text = "신고하기", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Column() {
+                Text(
+                    text = "신고 사유 선택",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 28.dp)
+                )
+                ReportButton(
+                    onOptionSelected = {
+                        selectedOption = 0
+                        reportTypeEnum = ReportTypeEnum.DEFAMATION_AND_ABUSE
+                    },
+                    selectedOption,
+                    0,
+                    "비방 및 욕설",
+                    "욕설을 사용하여 타인에게 모욕감을 주는 경우"
+                )
+                ReportButton(
+                    onOptionSelected = {
+                        selectedOption = 1
+                        reportTypeEnum = ReportTypeEnum.PRIVACY_VIOLATION
+                    },
+                    selectedOption,
+                    1,
+                    "개인정보 침해",
+                    "법적으로 중요한 타인의 개인정보를 게제"
+                )
+                ReportButton(
+                    onOptionSelected = {
+                        selectedOption = 2
+                        reportTypeEnum = ReportTypeEnum.INAPPROPRIATE_ADVERTISING
+                    },
+                    selectedOption,
+                    2,
+                    "부적절한 홍보 및 바이럴",
+                    "부적절한 스팸 홍보 행위"
+                )
+                ReportButton(
+                    onOptionSelected = {
+                        selectedOption = 3
+                        reportTypeEnum = ReportTypeEnum.PORNOGRAPHY
+                    },
+                    selectedOption,
+                    3,
+                    "음란물",
+                    "음란한 행위와 관련된 부적절한 행동"
+                )
+                ReportButton(
+                    onOptionSelected = {
+                        selectedOption = 4
+                        reportTypeEnum = ReportTypeEnum.IMPERSONATION_AND_FRAUD
+                    },
+                    selectedOption,
+                    4,
+                    "사칭 및 사기",
+                    "사칭으로 타인의 권리를 침해하는 경우"
+                )
+                ReportButton(
+                    onOptionSelected = {
+                        selectedOption = 5
+                        reportTypeEnum = ReportTypeEnum.OTHER
+                    },
+                    selectedOption,
+                    5,
+                    "기타",
+                    "해당하는 신고항목이 없는 경우"
+                )
+
+
+            }
+            Button(
+                enabled = selectedOption != null,
+                onClick = {
+                    reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
+                    navController.popBackStack()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .align(Alignment.BottomCenter),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Primary
+                )
+            ) {
+                Text(text = "신고하기", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
         }
     }
+
 }
 
 @Composable
