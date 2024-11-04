@@ -80,7 +80,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -88,15 +88,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.sooum.android.GetUserLocation
 import com.sooum.android.R
 import com.sooum.android.User
+import com.sooum.android.domain.model.SortedByDistanceDataModel
+import com.sooum.android.domain.model.SortedByLatestDataModel
+import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.enums.HomeSelectEnum
-import com.sooum.android.model.SortedByDistanceDataModel
-import com.sooum.android.model.SortedByLatestDataModel
-import com.sooum.android.model.SortedByPopularityDataModel
 import com.sooum.android.ui.common.PostNav
+import com.sooum.android.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -110,7 +110,7 @@ fun HomeScreen(mainNavController: NavHostController) {
 
     var isVisible by remember { mutableStateOf(true) }
 
-    val homeViewModel: HomeViewModel = viewModel()
+    val homeViewModel: HomeViewModel = hiltViewModel()
 
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude

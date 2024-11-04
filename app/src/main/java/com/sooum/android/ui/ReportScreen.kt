@@ -32,22 +32,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.sooum.android.enums.ReportType
+import com.sooum.android.enums.ReportTypeEnum
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.viewmodel.ReportViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportScreen(
     navController: NavHostController,
     cardId: String,
-    reportViewModel: ReportViewModel = viewModel(),
+    reportViewModel: ReportViewModel = hiltViewModel(),
 ) {
     var selectedOption by remember { mutableStateOf<Int?>(null) }
-    var reportType: ReportType = ReportType.OTHER
+    var reportTypeEnum: ReportTypeEnum = ReportTypeEnum.OTHER
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -86,7 +87,7 @@ fun ReportScreen(
                 ReportButton(
                     onOptionSelected = {
                         selectedOption = 0
-                        reportType = ReportType.DEFAMATION_AND_ABUSE
+                        reportTypeEnum = ReportTypeEnum.DEFAMATION_AND_ABUSE
                     },
                     selectedOption,
                     0,
@@ -96,7 +97,7 @@ fun ReportScreen(
                 ReportButton(
                     onOptionSelected = {
                         selectedOption = 1
-                        reportType = ReportType.PRIVACY_VIOLATION
+                        reportTypeEnum = ReportTypeEnum.PRIVACY_VIOLATION
                     },
                     selectedOption,
                     1,
@@ -106,7 +107,7 @@ fun ReportScreen(
                 ReportButton(
                     onOptionSelected = {
                         selectedOption = 2
-                        reportType = ReportType.INAPPROPRIATE_ADVERTISING
+                        reportTypeEnum = ReportTypeEnum.INAPPROPRIATE_ADVERTISING
                     },
                     selectedOption,
                     2,
@@ -116,7 +117,7 @@ fun ReportScreen(
                 ReportButton(
                     onOptionSelected = {
                         selectedOption = 3
-                        reportType = ReportType.PORNOGRAPHY
+                        reportTypeEnum = ReportTypeEnum.PORNOGRAPHY
                     },
                     selectedOption,
                     3,
@@ -126,7 +127,7 @@ fun ReportScreen(
                 ReportButton(
                     onOptionSelected = {
                         selectedOption = 4
-                        reportType = ReportType.IMPERSONATION_AND_FRAUD
+                        reportTypeEnum = ReportTypeEnum.IMPERSONATION_AND_FRAUD
                     },
                     selectedOption,
                     4,
@@ -136,7 +137,7 @@ fun ReportScreen(
                 ReportButton(
                     onOptionSelected = {
                         selectedOption = 5
-                        reportType = ReportType.OTHER
+                        reportTypeEnum = ReportTypeEnum.OTHER
                     },
                     selectedOption,
                     5,
@@ -149,7 +150,7 @@ fun ReportScreen(
             Button(
                 enabled = selectedOption != null,
                 onClick = {
-                    reportViewModel.cardReport(reportType, cardId.toLong())
+                    reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
                     navController.popBackStack()
                 },
                 modifier = Modifier
@@ -164,6 +165,7 @@ fun ReportScreen(
             }
         }
     }
+
 }
 
 @Composable

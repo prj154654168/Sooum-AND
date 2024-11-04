@@ -1,5 +1,8 @@
 package com.sooum.android.ui
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -60,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -68,14 +72,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
-import com.sooum.android.model.DefaultImageDataModel
-import com.sooum.android.model.RelatedTagDataModel
+import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.viewmodel.AddPostViewModel
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,21 +111,11 @@ fun AddPostScreen(navController: NavHostController) {
 
     val tagList = remember { mutableStateListOf("디자인", "개발", "ㅁㄴㅇㅁㄴㅇㅁㄴ") }
 
-    val addPostViewModel: AddPostViewModel = viewModel()
-
-    var defaultImageList by remember {
-        mutableStateOf<List<DefaultImageDataModel.Embedded.ImgUrlInfo>>(
-            emptyList()
-        )
-    }
+    val addPostViewModel: AddPostViewModel = hiltViewModel()
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
     }
-    defaultImageList = addPostViewModel.defaultImageList
-
-    Log.d("AddPostScreen", defaultImageList.size.toString())
-
 
     var tagHintList by remember {
         mutableStateOf<List<RelatedTagDataModel.Embedded.RelatedTag>>(
@@ -127,7 +123,7 @@ fun AddPostScreen(navController: NavHostController) {
         )
     }
     tagHintList = addPostViewModel.relatedTagList
-
+    val context = LocalContext.current
 
     // 이미지 선택 후 반환된 결과를 처리하는 런처
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -137,8 +133,15 @@ fun AddPostScreen(navController: NavHostController) {
             //이미 선택된 이미지가 있을 때, 다시 갤러리에 들어가서 사진을 선택 안하면 기존에 selectedImageUri가 null 되는 것을 방지
         } else {
             selectedImageUri = uri
+            val bitmap = selectedImageUri?.let { uriToBitmap(context, it) }
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+            val byteArray = byteArrayOutputStream.toByteArray()
+            addPostViewModel.getImageUrl(byteArray)
+
         }
     }
+    val scrollState2 = rememberScrollState()
 
     BottomSheetScaffold(
         topBar = {
@@ -257,7 +260,7 @@ fun AddPostScreen(navController: NavHostController) {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(4),
                             content = {
-                                items(defaultImageList.size) { imageIndex ->
+                                items(addPostViewModel.defaultImageList.size) { imageIndex ->
                                     Surface(
                                         border = if (selectedImage == imageIndex) {
                                             BorderStroke(
@@ -270,10 +273,11 @@ fun AddPostScreen(navController: NavHostController) {
                                             interactionSource = remember { MutableInteractionSource() }
                                         ) {
                                             selectedImage = imageIndex
+                                            addPostViewModel.nowImage = addPostViewModel.defaultImageList[imageIndex].url.href
                                         }
                                     ) {
                                         AsyncImage(
-                                            model = defaultImageList[imageIndex].url.href, // 이미지 URL
+                                            model = addPostViewModel.defaultImageList[imageIndex].url.href, // 이미지 URL
                                             contentDescription = "Sample Image", // 접근성 설명
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop // 원하는 Modifier 추가
@@ -505,7 +509,7 @@ fun AddPostScreen(navController: NavHostController) {
                 }
             }
         },
-        sheetPeekHeight = 280.dp // 기본적으로 숨겨진 상태
+        sheetPeekHeight = 280.dp
     ) { innerPadding ->
         // Main Content
         Box(
@@ -514,13 +518,15 @@ fun AddPostScreen(navController: NavHostController) {
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
+                    .verticalScroll(scrollState2)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+
                         .padding(start = 20.dp, end = 20.dp)
                 ) {
-                    ContentCard()
+                    ContentCard(addPostViewModel)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
@@ -814,6 +820,7 @@ fun AddPostScreen(navController: NavHostController) {
 //            }
 //        }
     }
+
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -841,7 +848,10 @@ fun TagChip(tag: String, onDelete: () -> Unit) {
     }
 
 }
-
+fun uriToBitmap(context: Context, uri: Uri): Bitmap {
+    val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+    return BitmapFactory.decodeStream(inputStream) ?: throw IllegalArgumentException("Cannot decode URI: $uri")
+}
 @Composable
 fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
     Row(
@@ -880,8 +890,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentCard(
-) {
+fun ContentCard(addPostViewModel: AddPostViewModel) {
     var content by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
     Card(
@@ -895,7 +904,7 @@ fun ContentCard(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            ImageLoader("https://search.pstatic.net/sunny/?src=https%3A%2F%2Fus.123rf.com%2F450wm%2Fvantuz%2Fvantuz1506%2Fvantuz150600251%2F41134623-%25EB%2593%25B1%25EB%25B6%2588%25EC%259D%2580-%25EC%2596%25B4%25EB%2591%2590%25EC%259A%25B4-%25EB%25B0%25B0%25EA%25B2%25BD%25EC%259D%2584-%25EC%25A1%25B0%25EB%25AA%2585%25ED%2595%259C%25EB%258B%25A4-%25EB%25B2%25A1%25ED%2584%25B0-%25EC%259D%25B4%25EB%25AF%25B8%25EC%25A7%2580%25EC%259E%2585%25EB%258B%2588%25EB%258B%25A4-.jpg%3Fver%3D6&type=sc960_832")
+            ImageLoader(addPostViewModel.nowImage)
             BasicTextField(
                 value = content,
                 onValueChange = {
