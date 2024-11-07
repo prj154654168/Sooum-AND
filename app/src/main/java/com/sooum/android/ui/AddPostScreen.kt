@@ -38,15 +38,19 @@ import androidx.compose.material.Chip
 import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,11 +75,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
-import com.sooum.android.domain.model.DefaultImageDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
@@ -84,7 +87,7 @@ import java.io.InputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPostScreen() {
+fun AddPostScreen(navController: NavHostController) {
     val scaffoldState = rememberBottomSheetScaffoldState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -145,6 +148,27 @@ fun AddPostScreen() {
     val scrollState2 = rememberScrollState()
 
     BottomSheetScaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        modifier = Modifier.padding(start = 20.dp),
+                        text = "작성하기",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { navController.popBackStack() }
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowForward,
+                            contentDescription = "뒤로가기",
+                        )
+                    }
+                })
+        },
         sheetContainerColor = Color.White,
         scaffoldState = scaffoldState,
         sheetContent = {

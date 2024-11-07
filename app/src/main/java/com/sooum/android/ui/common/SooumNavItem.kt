@@ -35,8 +35,7 @@ sealed class SoonumNav(
         fun isMainRoute(route: String?): Int {
             return when (route) {
                 MAIN_HOME, TAG, PROFILE -> 1
-                REPORT -> 3
-                ADD_POST -> 4
+                ADD_POST, REPORT -> 3
                 else -> 2
             }//top bar 추후 수정 필요
         }

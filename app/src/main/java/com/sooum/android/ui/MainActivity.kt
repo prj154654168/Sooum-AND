@@ -173,117 +173,34 @@ fun Main() {
                 },
 
                 topBar = {//top bar 추후 수정 필요
-                    when {
-                        SoonumNav.isMainRoute(currentRoute) == 1 -> {
-                            TopAppBar(
-                                title = {
+                    if (SoonumNav.isMainRoute(currentRoute) == 1) {
+                        TopAppBar(
+                            title = {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_logo),
+                                    contentDescription = "앱 로고",
+                                    modifier = Modifier
+                                        .width(93.dp)
+                                        .height(18.dp)
+                                )
+                            },
+                            actions = {
+                                IconButton(onClick = {
+                                    /* 버튼 클릭 이벤트 */
+                                }) {
                                     Image(
-                                        painter = painterResource(id = R.drawable.ic_logo),
-                                        contentDescription = "앱 로고",
-                                        modifier = Modifier
-                                            .width(93.dp)
-                                            .height(18.dp)
+                                        painter = painterResource(id = R.drawable.ic_alarm),
+                                        contentDescription = "Alarm",
+                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
                                     )
-                                },
-                                actions = {
-                                    IconButton(onClick = {
-                                        /* 버튼 클릭 이벤트 */
-                                    }) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_alarm),
-                                            contentDescription = "Alarm",
-                                            colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(
-                                    horizontal = 4.dp,
-                                    vertical = 2.dp
-                                )
+                                }
+                            },
+                            modifier = Modifier.padding(
+                                horizontal = 4.dp,
+                                vertical = 2.dp
                             )
-                        }
-
-                        SoonumNav.isMainRoute(currentRoute) == 2 -> {
-                            TopAppBar(
-                                title = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_profile_logo),
-                                            contentDescription = "앱 로고",
-                                            modifier = Modifier
-                                                .width(32.dp)
-                                                .height(32.dp)
-                                                .padding(end = 8.dp)
-                                        )
-                                        Text(
-                                            text = "한숨이",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 16.sp
-                                        )
-                                    }
-                                },
-                                actions = {
-                                    IconButton(onClick = {
-                                        /* 버튼 클릭 이벤트 */
-                                    }) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_home),
-                                            contentDescription = "home",
-                                            colorFilter = ColorFilter.tint(colorResource(R.color.black))
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(
-                                    horizontal = 4.dp,
-                                    vertical = 2.dp
-                                )
-                            )
-
-                        }
-                        SoonumNav.isMainRoute(currentRoute) == 4->{
-                            CenterAlignedTopAppBar(
-                                title = {
-                                    Text(
-                                        modifier = Modifier.padding(start = 20.dp),
-                                        text = "작성하기",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                navigationIcon = {
-                                    IconButton(
-                                        onClick = { navController.popBackStack() }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.ArrowForward,
-                                            contentDescription = "뒤로가기",
-                                        )
-                                    }
-                                })
-                        }
-                        else -> {
-                            CenterAlignedTopAppBar(
-                                title = {
-                                    Text(
-                                        modifier = Modifier.padding(start = 20.dp),
-                                        text = "신고하기",
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                navigationIcon = {
-                                    IconButton(
-                                        onClick = { navController.popBackStack() }
-                                    ) {
-                                        Icon(
-                                            Icons.Default.ArrowForward,
-                                            contentDescription = "뒤로가기",
-                                        )
-                                    }
-                                })
-                        }
+                        )
                     }
-
                 },
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding))
