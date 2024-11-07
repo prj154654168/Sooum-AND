@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,6 +54,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.sooum.android.*
 import com.sooum.android.R
 import com.sooum.android.enums.DistanceEnum
@@ -70,9 +73,7 @@ import java.time.temporal.ChronoUnit
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun HomeScreen(mainNavController: NavHostController) {
-    val navController = rememberNavController()
-
+fun HomeScreen(navController: NavHostController) {
     var isVisible by remember { mutableStateOf(true) }
 
     val homeViewModel: HomeViewModel = hiltViewModel()
@@ -85,9 +86,27 @@ fun HomeScreen(mainNavController: NavHostController) {
     var openLocationDialog by remember { mutableStateOf(false) }
     var openSystemLocationDialog by remember { mutableStateOf(false) }
 
-    val latestScrollState = rememberLazyListState()
-    val popularityScrollState = rememberLazyListState()
-    val distanceScrollState = rememberLazyListState()
+    val latestScrollState = rememberScrollState()
+    val popularityScrollState = rememberScrollState()
+    val distanceScrollState = rememberScrollState()
+
+    val showMoveToTopButtonForLatest by remember {
+        derivedStateOf {
+            latestScrollState.value > 0
+        }
+    }
+
+    val showMoveToTopButtonForPopularity by remember {
+        derivedStateOf {
+            popularityScrollState.value > 0
+        }
+    }
+
+    val showMoveToTopButtonForDistance by remember {
+        derivedStateOf {
+            distanceScrollState.value > 0
+        }
+    }
 
     var latestPreviousIndex by remember { mutableStateOf(0) }
     var popularityPreviousIndex by remember { mutableStateOf(0) }
@@ -96,78 +115,28 @@ fun HomeScreen(mainNavController: NavHostController) {
     var selected by remember { mutableStateOf(HomeSelectEnum.LATEST) }
     var distance by remember { mutableStateOf(DistanceEnum.UNDER_1) }
 
-    var latestCardList by remember {
-        mutableStateOf<List<SortedByLatestDataModel.Embedded.LatestFeedCard>>(
-            emptyList()
-        )
-    }
-    latestCardList = homeViewModel.latestCardList
-
-    var popularityCardList by remember {
-        mutableStateOf<List<SortedByPopularityDataModel.Embedded.PopularFeedCard>>(
-            emptyList()
-        )
-    }
-    popularityCardList = homeViewModel.popularityCardList
-
     var distanceCardList by remember {
         mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
             emptyList()
         )
     }
 
-    var distance1CardList by remember {
-        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
-            emptyList()
-        )
-    }
-    distance1CardList = homeViewModel.distance1CardList
-
-    var distance5CardList by remember {
-        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
-            emptyList()
-        )
-    }
-    distance5CardList = homeViewModel.distance5CardList
-
-
-    var distance10CardList by remember {
-        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
-            emptyList()
-        )
-    }
-    distance10CardList = homeViewModel.distance10CardList
-
-    var distance20CardList by remember {
-        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
-            emptyList()
-        )
-    }
-    distance20CardList = homeViewModel.distance20CardList
-
-    var distance50CardList by remember {
-        mutableStateOf<List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>(
-            emptyList()
-        )
-    }
-    distance50CardList = homeViewModel.distance50CardList
-
     LaunchedEffect(latestScrollState) {
-        snapshotFlow { latestScrollState.firstVisibleItemIndex }
+        snapshotFlow { latestScrollState.value }
             .collect { currentIndex ->
                 isVisible = currentIndex <= latestPreviousIndex
                 latestPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(popularityScrollState) {
-        snapshotFlow { popularityScrollState.firstVisibleItemIndex }
+        snapshotFlow { popularityScrollState.value }
             .collect { currentIndex ->
                 isVisible = currentIndex <= popularityPreviousIndex
                 popularityPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(distanceScrollState) {
-        snapshotFlow { distanceScrollState.firstVisibleItemIndex }
+        snapshotFlow { distanceScrollState.value }
             .collect { currentIndex ->
                 isVisible = currentIndex <= distancePreviousIndex
                 distancePreviousIndex = currentIndex
@@ -199,7 +168,7 @@ fun HomeScreen(mainNavController: NavHostController) {
                 visible = isVisible
             ) {
                 Column {
-                    HomeSelect(navController = navController,
+                    HomeSelect(
                         selected = selected,
                         onSelectedChange = { newSelectedEnum ->
                             selected = newSelectedEnum
@@ -219,23 +188,23 @@ fun HomeScreen(mainNavController: NavHostController) {
                             distance = newDistance
                             when (distance) {
                                 DistanceEnum.UNDER_1 -> {
-                                    distanceCardList = distance1CardList
+                                    distanceCardList = homeViewModel.distance1CardList
                                 }
 
                                 DistanceEnum.UNDER_5 -> {
-                                    distanceCardList = distance5CardList
+                                    distanceCardList = homeViewModel.distance5CardList
                                 }
 
                                 DistanceEnum.UNDER_10 -> {
-                                    distanceCardList = distance10CardList
+                                    distanceCardList = homeViewModel.distance10CardList
                                 }
 
                                 DistanceEnum.UNDER_20 -> {
-                                    distanceCardList = distance20CardList
+                                    distanceCardList = homeViewModel.distance20CardList
                                 }
 
                                 DistanceEnum.UNDER_50 -> {
-                                    distanceCardList = distance50CardList
+                                    distanceCardList = homeViewModel.distance50CardList
                                 }
                             }
                         })
@@ -243,30 +212,20 @@ fun HomeScreen(mainNavController: NavHostController) {
                 }
             }
 
-            NavHost(
-                navController = navController,
-                startDestination = "latestFeedList"
-            ) {
-                composable("latestFeedList") {
-                    LatestFeedList(
-                        scrollState = latestScrollState,
-                        latestCardList = latestCardList,
-                        navController = mainNavController
-                    )
+            when (selected) {
+                HomeSelectEnum.LATEST -> {
+                    LatestFeedList(latestScrollState, homeViewModel.latestCardList, showMoveToTopButtonForLatest, navController)
                 }
-                composable("popularityFeedList") {
-                    PopularityFeedList(
-                        scrollState = popularityScrollState,
-                        popularityCardList = popularityCardList
-                    )
+
+                HomeSelectEnum.POPULARITY -> {
+                    PopularityFeedList(popularityScrollState, homeViewModel.popularityCardList, showMoveToTopButtonForPopularity)
                 }
-                composable("distanceFeedList") {
-                    DistanceFeedList(
-                        scrollState = distanceScrollState,
-                        distanceCardList = distanceCardList
-                    )
+
+                HomeSelectEnum.DISTANCE -> {
+                    DistanceFeedList(distanceScrollState, distanceCardList, showMoveToTopButtonForDistance)
                 }
             }
+
             if (openLocationDialog) {
                 LocationDialog(openLocationDialog = {isOpen ->
                     openLocationDialog = isOpen
@@ -310,13 +269,12 @@ fun HomeScreen(mainNavController: NavHostController) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LatestFeedList(
-    scrollState: LazyListState,
+    scrollState: ScrollState,
     latestCardList: List<SortedByLatestDataModel.Embedded.LatestFeedCard>,
+    showMoveToTopButton: Boolean,
     navController: NavHostController,
 ) {
-    val showMoveToTopButton by derivedStateOf {
-        scrollState.firstVisibleItemIndex > 0 || scrollState.firstVisibleItemScrollOffset > 0
-    }
+//   기존 lazyColumn 때 사용했던 pullRefresh 로직, 임시 보관
     val coroutineScope = rememberCoroutineScope()
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -339,12 +297,11 @@ fun LatestFeedList(
         if (latestCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(
-                state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)
+            Column(
+                modifier = Modifier.verticalScroll(scrollState).pullRefresh(pullRefreshState)
             ) {
-                items(latestCardList) { item ->
-                    LatestContentCard(item, navController)
+                for (i in 0 until latestCardList.size) {
+                    LatestContentCard(latestCardList[i], navController)
                 }
             }
             if (showMoveToTopButton) {
@@ -353,27 +310,65 @@ fun LatestFeedList(
                     .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
-                            scrollState.animateScrollToItem(0)
+                            scrollState.animateScrollTo(0)
                         }
-                    }) {
+                    }
+                ) {
                     MoveToTop()
                 }
             }
             RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
     }
+
+//    var isRefreshing by remember { mutableStateOf(false) }
+//    val items = remember { mutableStateListOf<String>() }
+//    val scorllStatea = rememberScrollState()
+//
+//    // 예시 데이터 추가
+//    if (items.isEmpty()) {
+//        items.addAll((1..20).map { "Item $it" })
+//    }
+//
+//    SwipeRefresh(
+//        state = rememberSwipeRefreshState(isRefreshing),
+//        onRefresh = {
+//            isRefreshing = true
+//            // 예시로 2초 후에 새로고침 완료
+//            kotlinx.coroutines.GlobalScope.launch {
+//                kotlinx.coroutines.delay(2000)
+//                isRefreshing = false
+//                // 새 데이터 추가 또는 업데이트 로직
+//            }
+//        },
+//        // 커스텀 인디케이터
+//        indicator = { state, trigger ->
+//            // 커스텀 인디케이터를 만들어 사용
+//            if (state.isRefreshing) {
+//                Image(
+//                    painter = painterResource(R.drawable.ic_refresh_circle),
+//                    contentDescription = null,
+//                    modifier = Modifier.size(40.dp)
+//                )
+//            }
+//        }
+//    ) {
+//        Column(modifier = Modifier.fillMaxSize().verticalScroll(scorllStatea).padding(16.dp)) {
+//            for (item in items) {
+//                Text(text = item, modifier = Modifier.padding(vertical = 8.dp))
+//            }
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PopularityFeedList(
-    scrollState: LazyListState,
+    scrollState: ScrollState,
     popularityCardList: List<SortedByPopularityDataModel.Embedded.PopularFeedCard>,
+    showMoveToTopButton: Boolean
 ) {
-    val showMoveToTopButton by derivedStateOf {
-        scrollState.firstVisibleItemIndex > 0 || scrollState.firstVisibleItemScrollOffset > 0
-    }
     val coroutineScope = rememberCoroutineScope()
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -396,12 +391,11 @@ fun PopularityFeedList(
         if (popularityCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(
-                state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)
+            Column(
+                modifier = Modifier.verticalScroll(scrollState).pullRefresh(pullRefreshState)
             ) {
-                items(popularityCardList) { item ->
-                    PopularityContentCard(item)
+                for (i in 0 until popularityCardList.size) {
+                    PopularityContentCard(popularityCardList[i])
                 }
             }
             if (showMoveToTopButton) {
@@ -410,9 +404,10 @@ fun PopularityFeedList(
                     .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
-                            scrollState.animateScrollToItem(0)
+                            scrollState.animateScrollTo(0)
                         }
-                    }) {
+                    }
+                ) {
                     MoveToTop()
                 }
             }
@@ -426,12 +421,10 @@ fun PopularityFeedList(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DistanceFeedList(
-    scrollState: LazyListState,
+    scrollState: ScrollState,
     distanceCardList: List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>,
+    showMoveToTopButton: Boolean
 ) {
-    val showMoveToTopButton by derivedStateOf {
-        scrollState.firstVisibleItemIndex > 0 || scrollState.firstVisibleItemScrollOffset > 0
-    }
     val coroutineScope = rememberCoroutineScope()
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -454,12 +447,11 @@ fun DistanceFeedList(
         if (distanceCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            LazyColumn(
-                state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)
+            Column(
+                modifier = Modifier.verticalScroll(scrollState).pullRefresh(pullRefreshState)
             ) {
-                items(distanceCardList) { item ->
-                    DistanceContentCard(item)
+                for (i in 0 until distanceCardList.size) {
+                    DistanceContentCard(distanceCardList[i])
                 }
             }
             if (showMoveToTopButton) {
@@ -468,9 +460,10 @@ fun DistanceFeedList(
                     .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
-                            scrollState.animateScrollToItem(0)
+                            scrollState.animateScrollTo(0)
                         }
-                    }) {
+                    }
+                ) {
                     MoveToTop()
                 }
             }
@@ -1019,7 +1012,6 @@ fun InfoElement(painter: Painter, description: String, count: String, isTrue: Bo
 //목록 선택
 @Composable
 fun HomeSelect(
-    navController: NavController,
     selected: HomeSelectEnum,
     onSelectedChange: (HomeSelectEnum) -> Unit,
 ) {
@@ -1041,7 +1033,7 @@ fun HomeSelect(
             modifier = Modifier.clickable(
                 onClick = {
                     onSelectedChange(HomeSelectEnum.LATEST)
-                    navController.navigate("latestFeedList")
+//                    navController.navigate("latestFeedList")
                 },
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -1063,7 +1055,7 @@ fun HomeSelect(
             modifier = Modifier.clickable(
                 onClick = {
                     onSelectedChange(HomeSelectEnum.POPULARITY)
-                    navController.navigate("popularityFeedList")
+//                    navController.navigate("popularityFeedList")
                 },
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -1085,7 +1077,7 @@ fun HomeSelect(
             modifier = Modifier.clickable(
                 onClick = {
                     onSelectedChange(HomeSelectEnum.DISTANCE)
-                    navController.navigate("distanceFeedList")
+//                    navController.navigate("distanceFeedList")
                 },
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
