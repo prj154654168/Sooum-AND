@@ -98,4 +98,10 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.48.1")
     kapt("com.google.dagger:hilt-compiler:2.48.1")
     implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Paging3 라이브러리
+    implementation("androidx.paging:paging-runtime-ktx:3.3.2")
+
+    // Compose와 Paging3 통합을 위한 라이브러리
+    implementation("androidx.paging:paging-compose:3.3.2")
 }
