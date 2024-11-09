@@ -124,25 +124,25 @@ fun HomeScreen(navController: NavHostController) {
     var openLocationDialog by remember { mutableStateOf(false) }
     var openSystemLocationDialog by remember { mutableStateOf(false) }
 
-    val latestScrollState = rememberScrollState()
-    val popularityScrollState = rememberScrollState()
-    val distanceScrollState = rememberScrollState()
+    val latestScrollState = rememberLazyListState()
+    val popularityScrollState = rememberLazyListState()
+    val distanceScrollState = rememberLazyListState()
 
     val showMoveToTopButtonForLatest by remember {
         derivedStateOf {
-            latestScrollState.value > 0
+            latestScrollState.firstVisibleItemIndex > 0 || latestScrollState.firstVisibleItemScrollOffset > 0
         }
     }
 
     val showMoveToTopButtonForPopularity by remember {
         derivedStateOf {
-            popularityScrollState.value > 0
+            popularityScrollState.firstVisibleItemIndex > 0 || popularityScrollState.firstVisibleItemScrollOffset > 0
         }
     }
 
     val showMoveToTopButtonForDistance by remember {
         derivedStateOf {
-            distanceScrollState.value > 0
+            distanceScrollState.firstVisibleItemIndex > 0 || distanceScrollState.firstVisibleItemScrollOffset > 0
         }
     }
 
@@ -160,21 +160,21 @@ fun HomeScreen(navController: NavHostController) {
     }
 
     LaunchedEffect(latestScrollState) {
-        snapshotFlow { latestScrollState.value }
+        snapshotFlow { latestScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
                 isVisible = currentIndex <= latestPreviousIndex
                 latestPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(popularityScrollState) {
-        snapshotFlow { popularityScrollState.value }
+        snapshotFlow { popularityScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
                 isVisible = currentIndex <= popularityPreviousIndex
                 popularityPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(distanceScrollState) {
-        snapshotFlow { distanceScrollState.value }
+        snapshotFlow { distanceScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
                 isVisible = currentIndex <= distancePreviousIndex
                 distancePreviousIndex = currentIndex
@@ -312,7 +312,7 @@ fun HomeScreen(navController: NavHostController) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LatestFeedList(
-    scrollState: ScrollState,
+    scrollState: LazyListState,
     latestCardList: List<SortedByLatestDataModel.Embedded.LatestFeedCard>,
     showMoveToTopButton: Boolean,
     navController: NavHostController,
@@ -340,11 +340,12 @@ fun LatestFeedList(
         if (latestCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            Column(
-                modifier = Modifier.verticalScroll(scrollState).pullRefresh(pullRefreshState)
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
-                for (i in 0 until latestCardList.size) {
-                    LatestContentCard(latestCardList[i], navController)
+                items(latestCardList) { item ->
+                    LatestContentCard(item, navController)
                 }
             }
             if (showMoveToTopButton) {
@@ -353,7 +354,7 @@ fun LatestFeedList(
                     .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
-                            scrollState.animateScrollTo(0)
+                            scrollState.animateScrollToItem(0)
                         }
                     }
                 ) {
@@ -408,7 +409,7 @@ fun LatestFeedList(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PopularityFeedList(
-    scrollState: ScrollState,
+    scrollState: LazyListState,
     popularityCardList: List<SortedByPopularityDataModel.Embedded.PopularFeedCard>,
     showMoveToTopButton: Boolean
 ) {
@@ -434,11 +435,12 @@ fun PopularityFeedList(
         if (popularityCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            Column(
-                modifier = Modifier.verticalScroll(scrollState).pullRefresh(pullRefreshState)
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
-                for (i in 0 until popularityCardList.size) {
-                    PopularityContentCard(popularityCardList[i])
+                items(popularityCardList) { item ->
+                    PopularityContentCard(item)
                 }
             }
             if (showMoveToTopButton) {
@@ -447,7 +449,7 @@ fun PopularityFeedList(
                     .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
-                            scrollState.animateScrollTo(0)
+                            scrollState.animateScrollToItem(0)
                         }
                     }
                 ) {
@@ -464,7 +466,7 @@ fun PopularityFeedList(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DistanceFeedList(
-    scrollState: ScrollState,
+    scrollState: LazyListState,
     distanceCardList: List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>,
     showMoveToTopButton: Boolean
 ) {
@@ -490,11 +492,12 @@ fun DistanceFeedList(
         if (distanceCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
-            Column(
-                modifier = Modifier.verticalScroll(scrollState).pullRefresh(pullRefreshState)
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
-                for (i in 0 until distanceCardList.size) {
-                    DistanceContentCard(distanceCardList[i])
+                items(distanceCardList) { item ->
+                    DistanceContentCard(item)
                 }
             }
             if (showMoveToTopButton) {
@@ -503,7 +506,7 @@ fun DistanceFeedList(
                     .padding(bottom = 120.dp)
                     .clickable() {
                         coroutineScope.launch {
-                            scrollState.animateScrollTo(0)
+                            scrollState.animateScrollToItem(0)
                         }
                     }
                 ) {
