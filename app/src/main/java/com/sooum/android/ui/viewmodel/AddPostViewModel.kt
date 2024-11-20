@@ -7,13 +7,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.Constants.ACCESS_TOKEN
 import com.sooum.android.data.remote.RetrofitInterface
 import com.sooum.android.domain.model.DefaultImageDataModel
+import com.sooum.android.domain.model.ImageIssueDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
+import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.usecase.postcard.DefaultImageUseCase
+import com.sooum.android.domain.usecase.postcard.FeedCardUseCase
 import com.sooum.android.domain.usecase.postcard.RelatedTagUseCase
+import com.sooum.android.enums.FontEnum
+import com.sooum.android.enums.ImgTypeEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,30 +33,71 @@ import javax.inject.Inject
 @HiltViewModel
 class AddPostViewModel @Inject constructor(
     private val getDefaultImageUseCase: DefaultImageUseCase,
-    private val getRelatedTagUseCase: RelatedTagUseCase
+    private val getRelatedTagUseCase: RelatedTagUseCase,
+    private val postFeedCardUseCase: FeedCardUseCase
 ) : ViewModel() {
     var defaultImageList = mutableStateListOf<DefaultImageDataModel.Embedded.ImgUrlInfo>()
         private set
 
     var refreshImageQuery = ""
 
-    var nowImage: String by mutableStateOf(null.toString())
+    var selectedImageForDefault: String by mutableStateOf(null.toString())
 
     var relatedTagList = mutableStateListOf<RelatedTagDataModel.Embedded.RelatedTag>()
         private set
 
     val cardAPIInstance = RetrofitInterface.getInstance().create(CardApi::class.java)
 
+    var postFeedCardStatus by mutableStateOf<Status?>(null)
+        private set
+
+    var userImageUrl by mutableStateOf<String?>(null)
+
+    fun postFeedCard(
+        isDistanceShared: Boolean,
+        latitude: Double?,
+        longitude: Double?,
+        isPublic: Boolean,
+        isStory: Boolean,
+        content: String,
+        font: FontEnum,
+        imgType: ImgTypeEnum,
+        imgName: String,
+        feedTags: List<String>
+    ) {
+        viewModelScope.launch {
+            try {
+                val responseBody = postFeedCardUseCase(
+                    isDistanceShared,
+                    latitude,
+                    longitude,
+                    isPublic,
+                    isStory,
+                    content,
+                    font,
+                    imgType,
+                    imgName,
+                    feedTags
+                )
+                postFeedCardStatus = responseBody
+                Log.d("AddPostViewModel", postFeedCardStatus?.httpCode.toString())
+            }
+            catch (e: Exception) {
+                Log.e("AddPostViewModel", e.toString())
+            }
+        }
+    }
+
     fun getDefaultImageList() {
         viewModelScope.launch {
             try {
                 val responseBody = getDefaultImageUseCase(null)
                 val imageList = responseBody.embedded.imgUrlInfoList
+                defaultImageList.clear()
                 defaultImageList.addAll(imageList)
                 refreshImageQuery = getPreviousImages(responseBody.links.next.href)
-                nowImage = defaultImageList[0].url.href
-            }
-            catch (e: Exception) {
+                selectedImageForDefault = defaultImageList[0].url.href
+            } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
         }
@@ -64,9 +111,8 @@ class AddPostViewModel @Inject constructor(
                 defaultImageList.clear()
                 defaultImageList.addAll(imageList)
                 refreshImageQuery = getPreviousImages(responseBody.links.next.href)
-                nowImage = defaultImageList[0].url.href
-            }
-            catch (e: Exception) {
+                selectedImageForDefault = defaultImageList[0].url.href
+            } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
         }
@@ -75,8 +121,10 @@ class AddPostViewModel @Inject constructor(
     fun getImageUrl(byteArray: ByteArray) {
         viewModelScope.launch {
             val urlResponse = cardAPIInstance.getImageUrl(ACCESS_TOKEN).body()
-            //Log.e("urlResponse",urlResponse.toString())
+            Log.e("response",urlResponse.toString())
+
             if (urlResponse != null) {
+                userImageUrl = urlResponse.imgName
                 val client = OkHttpClient()
 
                 val mediaType = "image/jpeg".toMediaTypeOrNull()
@@ -110,8 +158,7 @@ class AddPostViewModel @Inject constructor(
             try {
                 val tagList = getRelatedTagUseCase(keyword, size)
                 relatedTagList.addAll(tagList)
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
         }
