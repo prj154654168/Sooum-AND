@@ -177,8 +177,10 @@ fun AddPostScreen(navController: NavHostController) {
         }
     }
 
+    //여기입니다
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
 
+    //여기입니다
     val imageCropLauncher =
         rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
             if (result.isSuccessful) {
@@ -369,10 +371,12 @@ fun AddPostScreen(navController: NavHostController) {
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
 //                                    galleryLauncher.launch("image/*")
+                                    //여기입니다
                                     val cropOptions = CropImageContractOptions(
                                         null,
                                         CropImageOptions(imageSourceIncludeCamera = false)
                                     )
+
                                     imageCropLauncher.launch(cropOptions)
                                 }
                             )
@@ -430,10 +434,12 @@ fun AddPostScreen(navController: NavHostController) {
                             colors = CardDefaults.cardColors(containerColor = colorResource(R.color.gray04)),
                             onClick = {
 //                                galleryLauncher.launch("image/*")
+                                //여기입니다
                                 val cropOptions = CropImageContractOptions(
                                     null,
                                     CropImageOptions(imageSourceIncludeCamera = false)
                                 )
+
                                 imageCropLauncher.launch(cropOptions)
                             }
                         ) {
