@@ -104,4 +104,11 @@ dependencies {
 
     // Compose와 Paging3 통합을 위한 라이브러리
     implementation("androidx.paging:paging-compose:3.3.2")
+
+    // Image Cropper
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
+    // OkHttp 및 HttpLoggingInterceptor
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
 }
