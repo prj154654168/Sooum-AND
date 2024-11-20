@@ -1,16 +1,16 @@
 package com.sooum.android.data.remote
 
-import com.sooum.android.enums.DistanceEnum
-import com.sooum.android.enums.ReportTypeEnum
 import com.sooum.android.domain.model.DefaultImageDataModel
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.FeedCardDataModel
-import com.sooum.android.domain.model.ImageUploadDataModel
+import com.sooum.android.domain.model.ImageIssueDataModel
+import com.sooum.android.domain.model.PostFeedRequestDataModel
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.domain.model.Status
+import com.sooum.android.enums.DistanceEnum
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -94,5 +94,11 @@ interface CardApi {
     @GET("/imgs/cards/upload?extension=jpeg")
     suspend fun getImageUrl(
         @Header("Authorization") accessToken: String,
-    ): Response<ImageUploadDataModel>
+    ): Response<ImageIssueDataModel>
+
+    @POST("/cards")
+    suspend fun postFeedCard(
+        @Header("Authorization") accessToken: String,
+        @Body request: PostFeedRequestDataModel
+        ): Response<Status>
 }

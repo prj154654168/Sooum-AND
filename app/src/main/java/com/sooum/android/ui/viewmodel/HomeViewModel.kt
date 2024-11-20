@@ -1,18 +1,16 @@
 package com.sooum.android.ui.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.*
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sooum.android.data.remote.CardApi
-import com.sooum.android.data.remote.RetrofitInterface
-import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.domain.usecase.homefeed.DistanceFeedUseCase
 import com.sooum.android.domain.usecase.homefeed.LatestFeedUseCase
 import com.sooum.android.domain.usecase.homefeed.PopularityFeedUseCase
+import com.sooum.android.enums.DistanceEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -48,6 +46,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getLatestFeedUseCase(latitude, longitude)
+                latestCardList.clear()
                 latestCardList.addAll(cardList)
             }
             catch (e: Exception) {
@@ -60,6 +59,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getPopularityFeedUseCase(latitude, longitude)
+                popularityCardList.clear()
                 popularityCardList.addAll(cardList)
             }
             catch (e: Exception) {
@@ -72,6 +72,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_1)
+                distance1CardList.clear()
                 distance1CardList.addAll(cardList)
             }
             catch (e: Exception) {
@@ -84,6 +85,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_5)
+                distance5CardList.clear()
                 distance5CardList.addAll(cardList)
             }
             catch (e: Exception) {
@@ -96,6 +98,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_10)
+                distance10CardList.clear()
                 distance10CardList.addAll(cardList)
             }
             catch (e: Exception) {
@@ -108,6 +111,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_20)
+                distance20CardList.clear()
                 distance20CardList.addAll(cardList)
             }
             catch (e: Exception) {
@@ -120,6 +124,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_50)
+                distance50CardList.clear()
                 distance50CardList.addAll(cardList)
             }
             catch (e: Exception) {
