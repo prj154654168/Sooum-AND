@@ -19,9 +19,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -84,16 +81,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.sooum.android.*
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.domain.model.SortedByDistanceDataModel
@@ -364,45 +354,6 @@ fun LatestFeedList(
             RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
     }
-
-//    var isRefreshing by remember { mutableStateOf(false) }
-//    val items = remember { mutableStateListOf<String>() }
-//    val scorllStatea = rememberScrollState()
-//
-//    // 예시 데이터 추가
-//    if (items.isEmpty()) {
-//        items.addAll((1..20).map { "Item $it" })
-//    }
-//
-//    SwipeRefresh(
-//        state = rememberSwipeRefreshState(isRefreshing),
-//        onRefresh = {
-//            isRefreshing = true
-//            // 예시로 2초 후에 새로고침 완료
-//            kotlinx.coroutines.GlobalScope.launch {
-//                kotlinx.coroutines.delay(2000)
-//                isRefreshing = false
-//                // 새 데이터 추가 또는 업데이트 로직
-//            }
-//        },
-//        // 커스텀 인디케이터
-//        indicator = { state, trigger ->
-//            // 커스텀 인디케이터를 만들어 사용
-//            if (state.isRefreshing) {
-//                Image(
-//                    painter = painterResource(R.drawable.ic_refresh_circle),
-//                    contentDescription = null,
-//                    modifier = Modifier.size(40.dp)
-//                )
-//            }
-//        }
-//    ) {
-//        Column(modifier = Modifier.fillMaxSize().verticalScroll(scorllStatea).padding(16.dp)) {
-//            for (item in items) {
-//                Text(text = item, modifier = Modifier.padding(vertical = 8.dp))
-//            }
-//        }
-//    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
