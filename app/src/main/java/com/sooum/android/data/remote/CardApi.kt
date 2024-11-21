@@ -95,4 +95,6 @@ interface CardApi {
     suspend fun getImageUrl(
         @Header("Authorization") accessToken: String,
     ): Response<ImageUploadDataModel>
+
+    
 }

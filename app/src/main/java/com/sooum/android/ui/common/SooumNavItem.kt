@@ -16,6 +16,10 @@ object NavigationRouteName {
     const val PROFILE = "프로필"
     const val DETAIL = "상세화면"
     const val REPORT = "신고하기"
+    const val LON_IN = "로그인"
+    const val AGREE = "약관동의"
+    const val NICKNAME = "닉네임"
+    const val LOG_IN_PROFILE = "로그인 사진"
 }
 
 sealed class SoonumNav(
@@ -47,4 +51,13 @@ sealed class PostNav(
 ) {
     data object Detail : PostNav(NavigationRouteName.DETAIL)
     data object Report : PostNav(NavigationRouteName.REPORT)
+}
+
+sealed class LogInNav(
+    val screenRoute: String,
+) {
+    data object LogIn : LogInNav(NavigationRouteName.LON_IN)
+    data object Agree : LogInNav(NavigationRouteName.AGREE)
+    data object NickName : LogInNav(NavigationRouteName.NICKNAME)
+    data object LogInProfile : LogInNav(NavigationRouteName.LOG_IN_PROFILE)
 }

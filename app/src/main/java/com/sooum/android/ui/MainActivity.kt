@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.LocationServices
 import com.sooum.android.R
 import com.sooum.android.User
+import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.common.SoonumBottomNavigation
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
@@ -207,7 +208,7 @@ fun Main() {
 
                 SoonumNavHost(
                     navController = navController,
-                    startDestination = SoonumNav.Home.screenRoute
+                    startDestination = LogInNav.LogIn.screenRoute
                 )
             }
         }
