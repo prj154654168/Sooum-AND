@@ -6,8 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.sooum.android.ui.ProfileScreen
-import com.sooum.android.ui.TagScreen
 import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.AgreeScreen
 import com.sooum.android.ui.DetailScreen
@@ -15,7 +13,9 @@ import com.sooum.android.ui.HomeScreen
 import com.sooum.android.ui.LogInProfileScreen
 import com.sooum.android.ui.LogInScreen
 import com.sooum.android.ui.NickNameScreen
+import com.sooum.android.ui.ProfileScreen
 import com.sooum.android.ui.ReportScreen
+import com.sooum.android.ui.TagScreen
 
 @Composable
 fun SoonumNavHost(

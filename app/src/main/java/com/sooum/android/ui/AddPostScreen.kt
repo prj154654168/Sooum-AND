@@ -1,10 +1,15 @@
 package com.sooum.android.ui
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
+import android.view.ViewTreeObserver
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -20,13 +25,20 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -34,12 +46,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Chip
 import androidx.compose.material.ChipDefaults
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.rememberBottomSheetState
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -52,13 +66,17 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +84,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -74,12 +95,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.canhub.cropper.CropImageContract
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
+import com.sooum.android.User
 import com.sooum.android.domain.model.RelatedTagDataModel
+import com.sooum.android.enums.FontEnum
+import com.sooum.android.enums.ImgTypeEnum
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
 import java.io.ByteArrayOutputStream
@@ -88,11 +118,14 @@ import java.io.InputStream
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPostScreen(navController: NavHostController) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val coroutineScope = rememberCoroutineScope()
+    val addPostViewModel: AddPostViewModel = hiltViewModel()
+
+    val scaffoldState = rememberBottomSheetScaffoldState(
+        bottomSheetState = rememberStandardBottomSheetState(skipHiddenState = false)
+    )
 
     //기본 이미지 : true, 내 사진 : false
-    var imageRoute by remember { mutableStateOf(true) }
+    var imgType by remember { mutableStateOf(ImgTypeEnum.DEFAULT) }
 
     //스위치 상태
     var storyChecked by remember { mutableStateOf(false) }
@@ -100,22 +133,20 @@ fun AddPostScreen(navController: NavHostController) {
     var privacyChecked by remember { mutableStateOf(false) }
 
     //고딕체 : true, 손글씨체 : false
-    var fontChecked by remember { mutableStateOf(true) }
+    var fontType by remember { mutableStateOf(FontEnum.PRETENDARD) }
 
     var selectedImage by remember { mutableStateOf(0) }
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var selectedImageUriForDefault by remember { mutableStateOf<Uri?>(null) }
-    var selectedImageUriForGallery by remember { mutableStateOf<Uri?>(null) }
+//    var selectedImageForDefault by remember { mutableStateOf<String?>(addPostViewModel.nowImage) }
+    var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
 
     var content by remember { mutableStateOf("") }
     val scrollState = rememberScrollState()
 
     var tagTextField by remember { mutableStateOf("") }
 
-    val tagList = remember { mutableStateListOf("디자인", "개발", "ㅁㄴㅇㅁㄴㅇㅁㄴ") }
-
-    val addPostViewModel: AddPostViewModel = hiltViewModel()
+    val tagList = remember { mutableStateListOf("테스트1", "안드로이드") }
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
@@ -145,29 +176,118 @@ fun AddPostScreen(navController: NavHostController) {
 
         }
     }
+
+    //여기입니다
+    var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
+
+    //여기입니다
+    val imageCropLauncher =
+        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
+            if (result.isSuccessful) {
+                result.uriContent?.let {
+                    //getBitmap method is deprecated in Android SDK 29 or above so we need to do this check here
+                    selectedImageBitmap = if (Build.VERSION.SDK_INT < 28) {
+                        MediaStore.Images
+                            .Media.getBitmap(context.contentResolver, it)
+                    } else {
+                        val source = ImageDecoder
+                            .createSource(context.contentResolver, it)
+                        ImageDecoder.decodeBitmap(source)
+                    }
+
+                    selectedImageForGallery = selectedImageBitmap
+
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    selectedImageBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                    val byteArray = byteArrayOutputStream.toByteArray()
+                    addPostViewModel.getImageUrl(byteArray)
+                }
+
+            } else {
+                Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
+            }
+        }
+
     val scrollState2 = rememberScrollState()
+
+    val keyboardState by keyboardAsState()
+    Log.d("keyboard", keyboardState.toString())
+
+    LaunchedEffect(keyboardState) {
+        if (keyboardState) {
+            scaffoldState.bottomSheetState.hide()
+        }
+        else {
+            scaffoldState.bottomSheetState.show()
+        }
+    }
 
     BottomSheetScaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        modifier = Modifier.padding(start = 20.dp),
-                        text = "작성하기",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (storyChecked) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(37.dp),
+                                color = colorResource(R.color.blue200),
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
+                                    text = "시간제한 카드",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                    color = colorResource(R.color.gray800)
+                                )
+                            }
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(
                         onClick = { navController.popBackStack() }
                     ) {
                         Icon(
-                            Icons.Default.ArrowForward,
+                            painter = painterResource(R.drawable.ic_arrow_back),
+                            tint = colorResource(R.color.gray800),
                             contentDescription = "뒤로가기",
                         )
                     }
-                })
+                },
+                actions = {
+                    Text(
+                        modifier = Modifier
+                            .padding(end = 20.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                addPostViewModel.postFeedCard(
+                                    distanceChecked,
+                                    if (distanceChecked) User.userInfo.latitude
+                                    else null,
+                                    if (distanceChecked) User.userInfo.longitude
+                                    else null,
+                                    !privacyChecked,
+                                    storyChecked,
+                                    content,
+                                    fontType,
+                                    imgType,
+                                    if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageForDefault
+                                    else addPostViewModel.userImageUrl!!,
+                                    tagList.toList()
+                                )
+                            },
+                        text = "작성하기",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = colorResource(R.color.blue300)
+                    )
+                }
+            )
         },
         sheetContainerColor = Color.White,
         scaffoldState = scaffoldState,
@@ -181,7 +301,7 @@ fun AddPostScreen(navController: NavHostController) {
                         text = "기본이미지",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = if (imageRoute) {
+                        color = if (imgType == ImgTypeEnum.DEFAULT) {
                             Color.Black
                         } else {
                             colorResource(R.color.gray03)
@@ -190,7 +310,7 @@ fun AddPostScreen(navController: NavHostController) {
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            imageRoute = true
+                            imgType = ImgTypeEnum.DEFAULT
                         }
                     )
                     Spacer(modifier = Modifier.width(24.dp))
@@ -198,7 +318,7 @@ fun AddPostScreen(navController: NavHostController) {
                         text = "내 사진",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = if (!imageRoute) {
+                        color = if (imgType == ImgTypeEnum.USER) {
                             Color.Black
                         } else {
                             colorResource(R.color.gray03)
@@ -207,16 +327,17 @@ fun AddPostScreen(navController: NavHostController) {
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            imageRoute = false
+                            imgType = ImgTypeEnum.USER
                         }
                     )
                     Spacer(modifier = Modifier.weight(1f))
-                    if (imageRoute) {
+                    if (imgType == ImgTypeEnum.DEFAULT) {
                         Box(
                             modifier = Modifier.clickable(
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) {
+                                selectedImage = 0
                                 addPostViewModel.refreshDefaultImageList()
                             }
                         ) {
@@ -239,8 +360,8 @@ fun AddPostScreen(navController: NavHostController) {
                             }
                         }
                     } else {
-                        if (selectedImageUri != null) {
-                            androidx.compose.material3.Text(
+                        if (selectedImageBitmap != null) {
+                            Text(
                                 text = "사진 변경",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
@@ -249,14 +370,21 @@ fun AddPostScreen(navController: NavHostController) {
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    galleryLauncher.launch("image/*")
+//                                    galleryLauncher.launch("image/*")
+                                    //여기입니다
+                                    val cropOptions = CropImageContractOptions(
+                                        null,
+                                        CropImageOptions(imageSourceIncludeCamera = false)
+                                    )
+
+                                    imageCropLauncher.launch(cropOptions)
                                 }
                             )
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                if (imageRoute) {
+                if (imgType == ImgTypeEnum.DEFAULT) {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp)
@@ -277,7 +405,7 @@ fun AddPostScreen(navController: NavHostController) {
                                             interactionSource = remember { MutableInteractionSource() }
                                         ) {
                                             selectedImage = imageIndex
-                                            addPostViewModel.nowImage = addPostViewModel.defaultImageList[imageIndex].url.href
+                                            addPostViewModel.selectedImageForDefault = addPostViewModel.defaultImageList[imageIndex].url.href
                                         }
                                     ) {
                                         AsyncImage(
@@ -305,7 +433,14 @@ fun AddPostScreen(navController: NavHostController) {
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.cardColors(containerColor = colorResource(R.color.gray04)),
                             onClick = {
-                                galleryLauncher.launch("image/*")
+//                                galleryLauncher.launch("image/*")
+                                //여기입니다
+                                val cropOptions = CropImageContractOptions(
+                                    null,
+                                    CropImageOptions(imageSourceIncludeCamera = false)
+                                )
+
+                                imageCropLauncher.launch(cropOptions)
                             }
                         ) {
                             Box(
@@ -313,10 +448,10 @@ fun AddPostScreen(navController: NavHostController) {
                                     .fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (selectedImageUri != null) {
+                                if (selectedImageBitmap != null) {
                                     // 선택된 이미지가 있으면 이미지 표시
                                     AsyncImage(
-                                        model = selectedImageUri, // 이미지 URL
+                                        model = selectedImageBitmap, // 이미지 URL
                                         contentDescription = "Sample Image", // 접근성 설명
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop// 원하는 Modifier 추가
@@ -347,7 +482,7 @@ fun AddPostScreen(navController: NavHostController) {
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Surface(
-                        color = if (fontChecked) {
+                        color = if (fontType == FontEnum.PRETENDARD) {
                             colorResource(R.color.primary_color)
                         } else {
                             colorResource(R.color.gray03)
@@ -357,7 +492,7 @@ fun AddPostScreen(navController: NavHostController) {
                             .weight(1f)
                             .height(40.dp),
                         onClick = {
-                            fontChecked = true
+                            fontType = FontEnum.PRETENDARD
                         }
                     ) {
                         Box(
@@ -368,7 +503,7 @@ fun AddPostScreen(navController: NavHostController) {
                                 text = "고딕체",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (fontChecked) {
+                                color = if (fontType == FontEnum.PRETENDARD) {
                                     Color.White
                                 } else {
                                     colorResource(R.color.gray01)
@@ -378,7 +513,7 @@ fun AddPostScreen(navController: NavHostController) {
                     }
                     Spacer(modifier = Modifier.width(4.dp))
                     Surface(
-                        color = if (!fontChecked) {
+                        color = if (fontType == FontEnum.SCHOOL_SAFE_CHALKBOARD_ERASER) {
                             colorResource(R.color.primary_color)
                         } else {
                             colorResource(R.color.gray03)
@@ -388,7 +523,7 @@ fun AddPostScreen(navController: NavHostController) {
                             .weight(1f)
                             .height(40.dp),
                         onClick = {
-                            fontChecked = false
+                            fontType = FontEnum.SCHOOL_SAFE_CHALKBOARD_ERASER
                         }
                     ) {
                         Box(
@@ -399,7 +534,7 @@ fun AddPostScreen(navController: NavHostController) {
                                 text = "손글씨체",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (!fontChecked) {
+                                color = if (fontType == FontEnum.SCHOOL_SAFE_CHALKBOARD_ERASER) {
                                     Color.White
                                 } else {
                                     colorResource(R.color.gray01)
@@ -530,9 +665,11 @@ fun AddPostScreen(navController: NavHostController) {
         sheetPeekHeight = 280.dp
     ) { innerPadding ->
         // Main Content
+
         Box(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
+                .imePadding()
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
@@ -544,7 +681,7 @@ fun AddPostScreen(navController: NavHostController) {
 
                         .padding(start = 20.dp, end = 20.dp)
                 ) {
-                    ContentCard(addPostViewModel)
+                    ContentCard(addPostViewModel, imgType, addPostViewModel.selectedImageForDefault, selectedImageForGallery, content, onContentChanged = { content = it })
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
@@ -908,8 +1045,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentCard(addPostViewModel: AddPostViewModel) {
-    var content by remember { mutableStateOf("") }
+fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, selectedImageForDefault: String?, selectedImageForGallery: Bitmap?, content: String, onContentChanged: (String) -> Unit) {
     val scrollState = rememberScrollState()
     Card(
         modifier = Modifier
@@ -927,13 +1063,14 @@ fun ContentCard(addPostViewModel: AddPostViewModel) {
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.8f)),
             ) {
-                ImageLoader(addPostViewModel.nowImage)
+                if (imgType == ImgTypeEnum.DEFAULT) ImageLoaderForUrl(selectedImageForDefault)
+                else ImageLoaderForBitmap(selectedImageForGallery)
             }
             BasicTextField(
                 value = content,
                 onValueChange = {
                     if (it.length <= 1000) {
-                        content = it
+                        onContentChanged(it)
                     }
                 },
                 modifier = Modifier
@@ -1078,4 +1215,44 @@ private fun isCompleteHangul(text: String): Boolean {
 
     Log.d("tag", isSyllable.toString())
     return isSyllable
+}
+
+@Composable
+fun keyboardAsState() : State<Boolean> {
+    val keyboardState = remember { mutableStateOf(false) }
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val listener = ViewTreeObserver.OnGlobalLayoutListener {
+            keyboardState.value = ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) ?: true
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(listener)
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+        }
+    }
+    return keyboardState
+}
+
+@Composable
+fun ImageLoaderForUrl(url: String?) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(url)
+            .build(),
+        contentDescription = "카드 이미지",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun ImageLoaderForBitmap(bitmap: Bitmap?) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(bitmap)
+            .build(),
+        contentDescription = "카드 이미지",
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
 }
