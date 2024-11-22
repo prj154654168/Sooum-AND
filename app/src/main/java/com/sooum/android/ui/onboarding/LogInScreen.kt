@@ -66,14 +66,14 @@ fun LogInScreen(navController: NavHostController) {
             onClick = {
                 if (viewModel.login == 1) {
                     navController.navigate(SoonumNav.Home.screenRoute) {
-                        popUpTo(navController.graph.startDestinationId) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         } // 백 스택 비우기
                         launchSingleTop = true // 중복된 화면 생성 방지
                     }
                 } else {
                     navController.navigate(LogInNav.Agree.screenRoute) {
-                        popUpTo(navController.graph.startDestinationId) {
+                        popUpTo(navController.graph.id) {
                             inclusive = true
                         } // 백 스택 비우기
                         launchSingleTop = true // 중복된 화면 생성 방지

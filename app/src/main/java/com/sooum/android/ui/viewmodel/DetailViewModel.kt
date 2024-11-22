@@ -25,37 +25,51 @@ class DetailViewModel : ViewModel() {
         private set
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
 
-    fun getFeedCard(cardId: Long) {
+    fun getFeedCard(toLong: Double, longitude: Double, cardId: Long) {
         viewModelScope.launch {
-            feedCardDataModel = retrofitInstance.getFeedCard( cardId).body()
+            try {
+                feedCardDataModel = retrofitInstance.getFeedCard(cardId, toLong, longitude).body()
+                Log.e("feedCardDataModel",feedCardDataModel.toString())
+            } catch (E: Exception) {
+                println(E)
+            }
         }
     }
 
     fun getDetailCardLikeCommentCount(cardId: Long) {
         viewModelScope.launch {
-            detailCardLikeCommentCountDataModel =
-                retrofitInstance.getCardLikeCommentCount( cardId).body()
-
+            try {
+                detailCardLikeCommentCountDataModel =
+                    retrofitInstance.getCardLikeCommentCount(cardId).body()
+                Log.e("detailCardLikeCommentCountDataModel",detailCardLikeCommentCountDataModel.toString())
+            } catch (E: Exception) {
+                println(E)
+            }
         }
     }
 
-    fun getDetailCommentCard(cardId: Long) {
+    fun getDetailCommentCard(cardId: Long, latitude: Double, longitude: Double) {
         viewModelScope.launch {
-            detailCommentCardDataModel =
-                retrofitInstance.getDeatilCommentCard( cardId).body()
+            try {
+                detailCommentCardDataModel =
+                    retrofitInstance.getDeatilCommentCard(cardId, latitude, longitude).body()
+                Log.e("detailCommentCardDataModel",detailCommentCardDataModel.toString())
+            } catch (E: Exception) {
+                println(E)
+            }
         }
     }
 
     fun likeOn(cardId: Long) {
         viewModelScope.launch {
-            retrofitInstance.likeOn( cardId).body()
+            retrofitInstance.likeOn(cardId).body()
             getDetailCardLikeCommentCount(cardId)
         }
     }
 
     fun likeOff(cardId: Long) {
         viewModelScope.launch {
-            retrofitInstance.likeOff( cardId).body()
+            retrofitInstance.likeOff(cardId).body()
             getDetailCardLikeCommentCount(cardId)
         }
     }
@@ -74,7 +88,12 @@ class DetailViewModel : ViewModel() {
 
     fun deleteCard(cardId: Long) {
         viewModelScope.launch {
-            retrofitInstance.deleteCard( cardId)
+            try {
+                retrofitInstance.deleteCard(cardId)
+            } catch (E: Exception) {
+                println(E)
+            }
+
         }
     }
 

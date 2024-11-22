@@ -3,8 +3,10 @@ package com.sooum.android.ui
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,14 +57,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
 import com.sooum.android.ui.common.PostNav
+import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -73,9 +79,16 @@ fun DetailScreen(
     cardId: String?,
     viewModel: DetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
-    cardId?.let { viewModel.getFeedCard(it.toLong()) }
-    cardId?.let { viewModel.getDetailCardLikeCommentCount(it.toLong()) }
-    cardId?.let { viewModel.getDetailCommentCard(it.toLong()) }
+    var latitude = User.userInfo.latitude
+    var longitude = User.userInfo.longitude
+    cardId?.let {
+        Log.e("latitude", latitude.toString())
+        Log.e("latitude", longitude.toString())
+        viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
+        viewModel.getDetailCardLikeCommentCount(it.toLong())
+        viewModel.getDetailCommentCard(it.toLong(), latitude!!, longitude!!)
+    }
+
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -121,7 +134,8 @@ fun DetailScreen(
                     Text(
                         text = "차단하기",
                         fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.Red
                     )
                 }
                 Box(
@@ -143,7 +157,8 @@ fun DetailScreen(
                     Text(
                         text = "신고하기",
                         fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        color = Color.Red
                     )
 
                 }
@@ -155,7 +170,7 @@ fun DetailScreen(
     var count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
 
 
-    if (data != null && count != null && comment != null) {
+    if (data != null) {
         Scaffold(topBar = {
             TopAppBar(
                 title = {
@@ -178,7 +193,13 @@ fun DetailScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        /* 버튼 클릭 이벤트 */
+                        navController.navigate(SoonumNav.Home.screenRoute) {
+                            // 모든 Back Stack을 비우고 "destination_screen"으로 이동
+                            popUpTo(navController.graph.id) {
+                                inclusive = true // "startDestinationId"까지 포함하여 모든 화면을 제거
+                            }
+                            launchSingleTop = true // 이미 존재하는 화면은 새로 시작하지 않음
+                        }
                     }) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_home),
@@ -206,6 +227,7 @@ fun DetailScreen(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
+
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight(0.25f)
@@ -216,7 +238,7 @@ fun DetailScreen(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                             ) {
-                                if (data.isStory) {
+                                if (data.storyExpirationTime != null) {
                                     PungTime("14 : 00 : 00")
                                 }
                             }
@@ -253,6 +275,49 @@ fun DetailScreen(
                         }
 
                         ImageLoader(data.backgroundImgUrl.href)
+                        if (data.previousCardId != null) {
+                            Card(
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(
+                                        start = 20.dp,
+                                        top = 20.dp
+                                    )
+                                    .height(50.dp)
+                                    .width(50.dp)
+                                    .border(
+                                        BorderStroke(2.dp, Color.White), // 흰색 테두리
+                                        shape = RoundedCornerShape(16.dp) // 테두리 모양을 Card의 shape에 맞춤
+                                    ),
+                                shape = RoundedCornerShape(40.dp),
+                                onClick = { navController.popBackStack() }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                ) {
+                                    if (!data.isParentDeleted) {
+                                        ImageLoader(data.previousCardImgLink!!.href.toString())
+                                        Text(
+                                            "전글", color = Color.White, modifier = Modifier.align(
+                                                Alignment.Center
+                                            ), fontSize = 14.sp
+                                        )
+                                    } else {
+                                        Box(modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(Gray3))
+                                        Text(
+                                            "삭제됨", color = Color.White, modifier = Modifier.align(
+                                                Alignment.Center
+                                            ), fontSize = 14.sp
+                                        )
+                                    }
+
+                                }
+                            }
+                        }
+
                         Box(
                             modifier = Modifier
                                 .background(
@@ -353,29 +418,33 @@ fun DetailScreen(
                         .align(Alignment.End),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    DetailLike(count, viewModel, cardId)
-                    Icon(
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .width(24.dp)
-                            .height(24.dp),
-                        painter = painterResource(R.drawable.ic_detail_comment),
-                        contentDescription = "댓글",
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = count.commentCnt.toString(),
-                        fontSize = 14.sp,
-                        color = Color.Black
-                    )
+                    if (count != null) {
+                        DetailLike(count, viewModel, cardId)
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .width(24.dp)
+                                .height(24.dp),
+                            painter = painterResource(R.drawable.ic_detail_comment),
+                            contentDescription = "댓글",
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = count.commentCnt.toString(),
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                    }
                 }
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp)
                 ) {
-                    items(comment.embedded.commentCardsInfoList) { item ->
-                        DeatilCommentItem(item)
+                    if (comment != null) {
+                        items(comment.embedded.commentCardsInfoList) { item ->
+                            DeatilCommentItem(item, navController)
+                        }
                     }
                 }
             }
@@ -429,7 +498,10 @@ fun DetailLike(
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
+fun DeatilCommentItem(
+    item: DetailCommentCardDataModel.CommentCardsInfo,
+    navHostController: NavHostController,
+) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -440,7 +512,7 @@ fun DeatilCommentItem(item: DetailCommentCardDataModel.CommentCardsInfo) {
             .aspectRatio(1 / 0.9f)
             .padding(start = 10.dp, bottom = 10.dp),
         shape = RoundedCornerShape(40.dp),
-        onClick = { }
+        onClick = { navHostController.navigate("${PostNav.Detail.screenRoute}/${item.id}") }
     ) {
         Box(
             modifier = Modifier

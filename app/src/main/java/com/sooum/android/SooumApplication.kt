@@ -7,6 +7,7 @@ import android.util.Log
 import com.sooum.android.data.remote.AuthInterceptor
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -37,8 +38,11 @@ class SooumApplication : Application() {
     }
 
     fun initialize() {
-        Log.e("AuthInterceptor","2")
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY // 요청/응답 본문까지 출력
+        }
         val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
             .addInterceptor(AuthInterceptor()) // Context 전달
             .build()
 

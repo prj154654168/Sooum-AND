@@ -52,20 +52,22 @@ interface CardApi {
 
     @GET("/cards/{cardId}/detail")
     suspend fun getFeedCard(
-
         @Path("cardId") cardId: Long,
+        @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
     ): Response<FeedCardDataModel>
 
     @GET("/cards/current/{currentCardId}/summary")
     suspend fun getCardLikeCommentCount(
-
         @Path("currentCardId") cardId: Long,
     ): Response<DetailCardLikeCommentCountDataModel>
 
     @GET("/comments/current/{currentCardId}")
     suspend fun getDeatilCommentCard(
-
         @Path("currentCardId") cardId: Long,
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+
     ): Response<DetailCommentCardDataModel>
 
     @POST("/cards/{cardId}/like")
