@@ -3,19 +3,26 @@ package com.sooum.android.data.remote
 import com.sooum.android.domain.model.DefaultImageDataModel
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
+import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.FeedCardDataModel
 import com.sooum.android.domain.model.ImageIssueDataModel
+import com.sooum.android.domain.model.KeyModel
 import com.sooum.android.domain.model.PostFeedRequestDataModel
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.domain.model.Status
+import com.sooum.android.domain.model.logInModel
+import com.sooum.android.domain.model.profileBody
+import com.sooum.android.domain.model.signUpModel
+import com.sooum.android.domain.model.signUpResponse
 import com.sooum.android.enums.DistanceEnum
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -101,5 +108,23 @@ interface CardApi {
         @Header("Authorization") accessToken: String,
         @Body request: PostFeedRequestDataModel
         ): Response<Status>
+    @GET("/users/key")
+    suspend fun getRsaKey(
+    ): Response<KeyModel>
 
+    @POST("/users/login")
+    suspend fun logIn(
+        @Body encryptedDeviceId : EncryptedDeviceId
+    ): Response<logInModel>
+
+    @POST("/users/sign-up")
+    suspend fun signUp(
+        @Body encryptedDeviceId : signUpModel
+    ): Response<signUpResponse>
+
+    @PATCH("/profiles")
+    suspend fun profiles(
+        @Header("Authorization") accessToken: String,
+        @Body profileBody : profileBody
+    ): Response<Status>
 }

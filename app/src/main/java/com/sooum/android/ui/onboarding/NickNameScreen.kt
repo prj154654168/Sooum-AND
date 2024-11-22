@@ -1,14 +1,11 @@
-package com.sooum.android.ui
+package com.sooum.android.ui.onboarding
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -17,14 +14,11 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +33,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,40 +52,47 @@ fun NickNameScreen(navController: NavHostController) {
         })
     }) {
         it
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-        ) {
-            Text(
-                modifier = Modifier.padding(top = 50.dp),
-                text = "반가워요!", fontSize = 22.sp,
-            )
-            Text(text = "당신을 어떻게 부르면 될까요?", fontSize = 22.sp)
-            Text(text = "닉네임은 추후 변경 가능해요", fontSize = 14.sp)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp)
+            ) {
+                Text(
+                    modifier = Modifier.padding(top = 50.dp),
+                    text = "반가워요!", fontSize = 22.sp,
+                )
+                Text(text = "당신을 어떻게 부르면 될까요?", fontSize = 22.sp)
+                Text(
+                    text = "닉네임은 추후 변경 가능해요",
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
+                )
 
-            CustomBasicTextField(
-                text = text,
-                onTextChange = { newText -> text = newText }
-            )
+                CustomBasicTextField(
+                    text = text,
+                    onTextChange = { newText -> text = newText }
+                )
 
+
+            }
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .align(Alignment.End),
+                    .align(Alignment.BottomCenter),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                onClick = { /*TODO*/ }) {
+                onClick = { navController.navigate(LogInNav.LogInProfile.screenRoute) }) {
                 Text(text = "확인")
             }
         }
-
     }
 }
+
 @Composable
 fun CustomBasicTextField(
     text: String,
     onTextChange: (String) -> Unit,
-    placeholder: String = "Enter text..."
+    placeholder: String = "Enter text...",
 ) {
     Box(
         modifier = Modifier
