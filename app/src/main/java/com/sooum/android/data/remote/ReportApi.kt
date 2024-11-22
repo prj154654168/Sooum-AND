@@ -9,7 +9,7 @@ import retrofit2.http.Query
 interface ReportApi {
     @POST("/report/cards/{cardPk}")
     suspend fun cardReport(
-        @Header("Authorization") accessToken: String,
+
         @Path("cardPk") cardPk: Long,
         @Query("reportType") reportTypeEnum : ReportTypeEnum
     )

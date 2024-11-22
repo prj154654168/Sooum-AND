@@ -1,5 +1,6 @@
 package com.sooum.android.ui.viewmodel
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -8,9 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
-import com.sooum.android.data.remote.RetrofitInterface
+
 import com.sooum.android.domain.model.EncryptedDeviceId
+import com.sooum.android.domain.model.Token
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
 import java.security.PublicKey
@@ -19,8 +22,11 @@ import java.util.Base64
 import javax.crypto.Cipher
 
 class LogInViewModel : ViewModel() {
-    val retrofitInstance = RetrofitInterface.getInstance().create(CardApi::class.java)
+    val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
+    var login by mutableStateOf<Int>(0)
+    var token: Token? = null
+    var encryptedDeviceId: String = ""
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
@@ -44,22 +50,45 @@ class LogInViewModel : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun convert(android_id: String): String {
-
         val publicKey = base64ToRSAPublicKey(key.toString())
         // 문자열 암호화
         return encryptWithRSAPublicKey(android_id, publicKey)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun login(android_id: String) {
+    fun login(android_id: String, context: Context) {
         viewModelScope.launch {
             try {
                 val a = retrofitInstance.getRsaKey()
                 key = a.body()!!.publicKey
-                Log.e("getRsaKey", key.toString())
-                val b = retrofitInstance.logIn(EncryptedDeviceId(convert(android_id)))
-                Log.e("convert", convert(android_id).toString())
-                Log.e("convert", b.toString())
+                encryptedDeviceId = convert(android_id)
+                SooumApplication().saveVariable(
+
+                    "encryptedDeviceId",
+                    encryptedDeviceId
+                )
+                val b = retrofitInstance.logIn(EncryptedDeviceId(encryptedDeviceId))
+                Log.e("EncryptedDeviceId", b.body().toString())
+
+                if (b.body()?.isRegistered == true) {
+                    login = 1
+                    token = b.body()!!.token
+                    token?.let {
+                        SooumApplication().saveVariable(
+
+                            "accessToken",
+                            it.accessToken
+                        )
+                        SooumApplication().saveVariable(
+
+                            "refreshToken",
+                            it.accessToken
+                        )
+                    }
+                } else {
+                    login = 2
+                }
+
             } catch (E: Exception) {
                 println(E)
             }

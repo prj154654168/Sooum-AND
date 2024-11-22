@@ -30,21 +30,21 @@ import retrofit2.http.Query
 interface CardApi {
     @GET("/cards/home/latest")
     suspend fun getLatestCardList(
-        @Header("Authorization") accessToken: String,
+
         @Query("latitude") latitude: Double? = null,
         @Query("longitude") longitude: Double? = null,
     ): Response<SortedByLatestDataModel>
 
     @GET("/cards/home/popular")
     suspend fun getPopularityCardList(
-        @Header("Authorization") accessToken: String,
+
         @Query("latitude") latitude: Double? = null,
         @Query("longitude") longitude: Double? = null,
     ): Response<SortedByPopularityDataModel>
 
     @GET("/cards/home/distance")
     suspend fun getDistanceCardList(
-        @Header("Authorization") accessToken: String,
+
         @Query("latitude") latitude: Double,
         @Query("longitude") longitude: Double,
         @Query("distanceFilter") distance: DistanceEnum,
@@ -52,60 +52,60 @@ interface CardApi {
 
     @GET("/cards/{cardId}/detail")
     suspend fun getFeedCard(
-        @Header("Authorization") accessToken: String,
+
         @Path("cardId") cardId: Long,
     ): Response<FeedCardDataModel>
 
     @GET("/cards/current/{currentCardId}/summary")
     suspend fun getCardLikeCommentCount(
-        @Header("Authorization") accessToken: String,
+
         @Path("currentCardId") cardId: Long,
     ): Response<DetailCardLikeCommentCountDataModel>
 
     @GET("/comments/current/{currentCardId}")
     suspend fun getDeatilCommentCard(
-        @Header("Authorization") accessToken: String,
+
         @Path("currentCardId") cardId: Long,
     ): Response<DetailCommentCardDataModel>
 
     @POST("/cards/{cardId}/like")
     suspend fun likeOn(
-        @Header("Authorization") accessToken: String,
+
         @Path("cardId") cardId: Long,
     ): Response<Status>
 
     @DELETE("/cards/{cardId}/like")
     suspend fun likeOff(
-        @Header("Authorization") accessToken: String,
+
         @Path("cardId") cardId: Long,
     ): Response<Status>
 
     @GET("/imgs/default")
     suspend fun getDefaultImage(
-        @Header("Authorization") accessToken: String,
+
         @Query("previousImgsName") previousImgsName: String? = null,
     ): Response<DefaultImageDataModel>
 
     @POST("/blocks")
     suspend fun userBlocks(
-        @Header("Authorization") accessToken: String,
+
         @Body toMemberId: Long,
     ): Response<Status>
 
     @DELETE("/cards/{cardId}")
     suspend fun deleteCard(
-        @Header("Authorization") accessToken: String,
+
         @Path("cardId") cardId: Long,
     ): Response<Status>
 
     @GET("/imgs/cards/upload?extension=jpeg")
     suspend fun getImageUrl(
-        @Header("Authorization") accessToken: String,
+
     ): Response<ImageIssueDataModel>
 
     @POST("/cards")
     suspend fun postFeedCard(
-        @Header("Authorization") accessToken: String,
+
         @Body request: PostFeedRequestDataModel
         ): Response<Status>
     @GET("/users/key")
@@ -124,7 +124,6 @@ interface CardApi {
 
     @PATCH("/profiles")
     suspend fun profiles(
-        @Header("Authorization") accessToken: String,
         @Body profileBody : profileBody
     ): Response<Status>
 }

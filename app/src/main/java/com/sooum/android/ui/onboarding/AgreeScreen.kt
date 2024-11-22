@@ -28,10 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.sooum.android.SooumApplication
 import com.sooum.android.domain.model.MemberInfo
 import com.sooum.android.domain.model.Policy
 import com.sooum.android.domain.model.signUpModel
@@ -46,12 +48,15 @@ fun AgreeScreen(navController: NavHostController) {
     var allChecked by remember { mutableStateOf(false) }
     var firstChecked by remember { mutableStateOf(false) }
     var secondChecked by remember { mutableStateOf(false) }
+    var thirdChecked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     // "모두 동의합니다" 선택 시 다른 항목도 체크되도록 처리
     LaunchedEffect(allChecked) {
         if (allChecked) {
             firstChecked = true
             secondChecked = true
+            thirdChecked = true
         }
     }
     Scaffold(topBar = {
@@ -125,12 +130,12 @@ fun AgreeScreen(navController: NavHostController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { secondChecked = !secondChecked },
+                        .clickable { thirdChecked = !thirdChecked },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        checked = secondChecked,
-                        onCheckedChange = { secondChecked = it }
+                        checked = thirdChecked,
+                        onCheckedChange = { thirdChecked = it }
                     )
                     Text(" [필수] 개인정보 처리 방침")
                 }
@@ -147,14 +152,24 @@ fun AgreeScreen(navController: NavHostController) {
                         signUpModel(
                             memberInfo = MemberInfo(
                                 "ANDROID",
-                                "bdRM3dAmU8jna5YcPzl7e54Kwn7edbW/JQzv13ljTeQWlvQv/zRNYQdkqKLBi716g1QR4F+51Pz2OSfigYSGHdZQWpa2SoaUJaZ4aGsi058aqk+5KeKB2KwkNj2Gxhr+Lqy3I3M9EBAk/3triOCH21sdx3KL65uAXY04b2RTe30=",
+                                SooumApplication().getVariable("encryptedDeviceId")
+                                    .toString(),
                                 "string",
                                 false
                             ),
-                            policy = Policy(true, true, true)
+                            policy = Policy(firstChecked, secondChecked, thirdChecked)
                         )
                     )
-
+                    viewModel.token?.let { it1 ->
+                        SooumApplication().saveVariable(
+                             "accessToken",
+                            it1.accessToken
+                        )
+                        SooumApplication().saveVariable(
+                             "refreshToken",
+                            it1.refreshToken
+                        )
+                    }
 
                     navController.navigate(LogInNav.NickName.screenRoute)
                 }) {

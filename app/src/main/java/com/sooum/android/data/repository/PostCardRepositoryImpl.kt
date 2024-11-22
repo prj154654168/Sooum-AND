@@ -1,7 +1,6 @@
 package com.sooum.android.data.repository
 
 import android.util.Log
-import com.sooum.android.Constants.ACCESS_TOKEN
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.remote.TagAPI
 import com.sooum.android.domain.model.DefaultImageDataModel
@@ -15,13 +14,13 @@ import javax.inject.Inject
 
 class PostCardRepositoryImpl @Inject constructor(
     private val tagApi: TagAPI,
-    private val cardApi: CardApi
+    private val cardApi: CardApi,
 ) : PostCardRepository {
     override suspend fun getRelatedTag(
         keyword: String,
-        size: Int
+        size: Int,
     ): List<RelatedTagDataModel.Embedded.RelatedTag> {
-        val response = tagApi.getRelatedTag(ACCESS_TOKEN, keyword, size)
+        val response = tagApi.getRelatedTag(keyword, size)
 
         var relatedTagList: List<RelatedTagDataModel.Embedded.RelatedTag> = listOf()
 
@@ -34,7 +33,7 @@ class PostCardRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDefaultImage(previousImgsName: String?): DefaultImageDataModel {
-        val response = cardApi.getDefaultImage(ACCESS_TOKEN, previousImgsName)
+        val response = cardApi.getDefaultImage(previousImgsName)
 
         if (response.isSuccessful) {
             return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
@@ -57,10 +56,10 @@ class PostCardRepositoryImpl @Inject constructor(
         font: FontEnum,
         imgType: ImgTypeEnum,
         imgName: String,
-        feedTags: List<String>
+        feedTags: List<String>,
     ): Status {
         val response = cardApi.postFeedCard(
-            ACCESS_TOKEN,
+
             PostFeedRequestDataModel(
                 isDistanceShared,
                 latitude,

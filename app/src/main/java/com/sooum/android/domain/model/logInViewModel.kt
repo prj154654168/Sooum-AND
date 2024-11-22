@@ -4,15 +4,10 @@ data class logInModel(
     val isRegistered: Boolean,
     val status: Status,
     val token: Token?,
-    val links: Links,
+    val _links: Links,
 ) {
-    data class Token(
-        val accessToken: String,
-        val refreshToken: String,
-    )
-
     data class Links(
-        val tagFeed: signUp,
+        val signup: signUp,
     )
 
     data class signUp(val href: String)

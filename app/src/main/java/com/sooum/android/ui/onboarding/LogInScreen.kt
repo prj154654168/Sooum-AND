@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.LogInViewModel
 
@@ -35,9 +36,9 @@ fun LogInScreen(navController: NavHostController) {
         LocalContext.current.getContentResolver(),
         Settings.Secure.ANDROID_ID
     )
-    val viewModel : LogInViewModel = viewModel()
-
-    viewModel.login(android_id)
+    val viewModel: LogInViewModel = viewModel()
+    val context = LocalContext.current
+    viewModel.login(android_id, context)
 
     Column(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -62,7 +63,24 @@ fun LogInScreen(navController: NavHostController) {
                 .fillMaxWidth()
                 .padding(start = 20.dp, end = 20.dp, top = 100.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Primary),
-            onClick = { navController.navigate(LogInNav.Agree.screenRoute) }) {
+            onClick = {
+                if (viewModel.login == 1) {
+                    navController.navigate(SoonumNav.Home.screenRoute) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        } // 백 스택 비우기
+                        launchSingleTop = true // 중복된 화면 생성 방지
+                    }
+                } else {
+                    navController.navigate(LogInNav.Agree.screenRoute) {
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        } // 백 스택 비우기
+                        launchSingleTop = true // 중복된 화면 생성 방지
+                    }
+                }
+
+            }) {
             Text(text = "숨 시작하기")
         }
         Text(

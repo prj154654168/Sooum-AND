@@ -9,7 +9,7 @@ import retrofit2.http.Query
 interface TagAPI {
     @GET("/tags/search")
     suspend fun getRelatedTag(
-        @Header("Authorization") accessToken: String,
+
         @Query("keyword") keyword: String,
         @Query("size") size: Int
     ): Response<RelatedTagDataModel>

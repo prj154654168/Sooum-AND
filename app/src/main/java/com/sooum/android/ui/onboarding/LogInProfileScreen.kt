@@ -44,8 +44,7 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.sooum.android.R
-import com.sooum.android.domain.model.profileBody
-import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
@@ -55,7 +54,7 @@ import java.io.ByteArrayOutputStream
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogInProfileScreen(navController: NavHostController) {
-    val viewModel : LogInProfileViewModel = viewModel()
+    val viewModel: LogInProfileViewModel = viewModel()
     val context = LocalContext.current
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
@@ -76,7 +75,11 @@ fun LogInProfileScreen(navController: NavHostController) {
                     selectedImageForGallery = selectedImageBitmap
 
                     val byteArrayOutputStream = ByteArrayOutputStream()
-                    selectedImageBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                    selectedImageBitmap?.compress(
+                        Bitmap.CompressFormat.JPEG,
+                        100,
+                        byteArrayOutputStream
+                    )
                     val byteArray = byteArrayOutputStream.toByteArray()
                     //viewModel.getImageUrl(byteArray)
                 }
@@ -116,7 +119,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                     fontSize = 14.sp,
                     modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
                 )
-                if(selectedImageBitmap==null){
+                if (selectedImageBitmap == null) {
                     Image(
                         painter = painterResource(id = R.drawable.sooum_logo),
                         contentDescription = "Background Image",
@@ -133,20 +136,22 @@ fun LogInProfileScreen(navController: NavHostController) {
                             },
                         contentScale = ContentScale.Crop
                     )
-                }
-                else{
+                } else {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(selectedImageForGallery)
                             .build(),
                         contentDescription = "카드 이미지",
-                        modifier = Modifier.fillMaxSize().clickable {
-                            val cropOptions = CropImageContractOptions(
-                                null,
-                                CropImageOptions(imageSourceIncludeCamera = false)
-                            )
-                            imageCropLauncher.launch(cropOptions)
-                        }.height(100.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable {
+                                val cropOptions = CropImageContractOptions(
+                                    null,
+                                    CropImageOptions(imageSourceIncludeCamera = false)
+                                )
+                                imageCropLauncher.launch(cropOptions)
+                            }
+                            .height(100.dp),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -160,8 +165,16 @@ fun LogInProfileScreen(navController: NavHostController) {
                         .fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     onClick = {
-                        viewModel.profiles()
-                        navController.navigate(SoonumNav.Home.screenRoute) }) {
+                        viewModel.profiles(
+                            SooumApplication().getVariable("nickName").toString()
+                        )
+                        navController.navigate(SoonumNav.Home.screenRoute) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                inclusive = true
+                            } // 백 스택 비우기
+                            launchSingleTop = true // 중복된 화면 생성 방지
+                        }
+                    }) {
                     Text(text = "확인")
                 }
                 Button(

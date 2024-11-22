@@ -29,18 +29,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NickNameScreen(navController: NavHostController) {
     var text by remember { mutableStateOf("") }
-
+    val context = LocalContext.current
     Scaffold(topBar = {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
@@ -81,7 +84,9 @@ fun NickNameScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                onClick = { navController.navigate(LogInNav.LogInProfile.screenRoute) }) {
+                onClick = {
+                    SooumApplication().saveVariable("nickName",text)
+                    navController.navigate(LogInNav.LogInProfile.screenRoute) }) {
                 Text(text = "확인")
             }
         }

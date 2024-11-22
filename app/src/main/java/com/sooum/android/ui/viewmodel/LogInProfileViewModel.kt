@@ -6,9 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sooum.android.Constants
+import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
-import com.sooum.android.data.remote.RetrofitInterface
+
 import com.sooum.android.domain.model.profileBody
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -19,13 +19,13 @@ import okhttp3.Response
 import java.io.IOException
 
 class LogInProfileViewModel : ViewModel() {
-    val cardAPIInstance = RetrofitInterface.getInstance().create(CardApi::class.java)
+    val cardAPIInstance = SooumApplication().instance.create(CardApi::class.java)
     var userImageUrl by mutableStateOf<String?>(null)
 
 
     fun getImageUrl(byteArray: ByteArray) {
         viewModelScope.launch {
-            val urlResponse = cardAPIInstance.getImageUrl(Constants.ACCESS_TOKEN).body()
+            val urlResponse = cardAPIInstance.getImageUrl().body()
             Log.e("response", urlResponse.toString())
 
             if (urlResponse != null) {
@@ -58,11 +58,12 @@ class LogInProfileViewModel : ViewModel() {
 
     }
 
-    fun profiles() {
+    fun profiles(nickname: String) {
         viewModelScope.launch {
             try {
-                val b = cardAPIInstance.profiles("",profileBody("이현섭", userImageUrl.toString()))
-                Log.e("convert",b.toString())
+                val b = cardAPIInstance.profiles(profileBody(nickname, userImageUrl.toString()))
+                Log.e("convert", b.toString())
+                Log.e("signUpModel", profileBody(nickname, userImageUrl.toString()).toString())
             } catch (E: Exception) {
                 println(E)
             }

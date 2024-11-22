@@ -7,12 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
+import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
-import com.sooum.android.Constants.ACCESS_TOKEN
-import com.sooum.android.data.remote.RetrofitInterface
+
 import com.sooum.android.domain.model.DefaultImageDataModel
-import com.sooum.android.domain.model.ImageIssueDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.usecase.postcard.DefaultImageUseCase
@@ -34,7 +32,7 @@ import javax.inject.Inject
 class AddPostViewModel @Inject constructor(
     private val getDefaultImageUseCase: DefaultImageUseCase,
     private val getRelatedTagUseCase: RelatedTagUseCase,
-    private val postFeedCardUseCase: FeedCardUseCase
+    private val postFeedCardUseCase: FeedCardUseCase,
 ) : ViewModel() {
     var defaultImageList = mutableStateListOf<DefaultImageDataModel.Embedded.ImgUrlInfo>()
         private set
@@ -46,7 +44,7 @@ class AddPostViewModel @Inject constructor(
     var relatedTagList = mutableStateListOf<RelatedTagDataModel.Embedded.RelatedTag>()
         private set
 
-    val cardAPIInstance = RetrofitInterface.getInstance().create(CardApi::class.java)
+    val cardAPIInstance = SooumApplication().instance.create(CardApi::class.java)
 
     var postFeedCardStatus by mutableStateOf<Status?>(null)
         private set
@@ -63,7 +61,7 @@ class AddPostViewModel @Inject constructor(
         font: FontEnum,
         imgType: ImgTypeEnum,
         imgName: String,
-        feedTags: List<String>
+        feedTags: List<String>,
     ) {
         viewModelScope.launch {
             try {
@@ -81,8 +79,7 @@ class AddPostViewModel @Inject constructor(
                 )
                 postFeedCardStatus = responseBody
                 Log.d("AddPostViewModel", postFeedCardStatus?.httpCode.toString())
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.toString())
             }
         }
@@ -120,8 +117,8 @@ class AddPostViewModel @Inject constructor(
 
     fun getImageUrl(byteArray: ByteArray) {
         viewModelScope.launch {
-            val urlResponse = cardAPIInstance.getImageUrl(ACCESS_TOKEN).body()
-            Log.e("response",urlResponse.toString())
+            val urlResponse = cardAPIInstance.getImageUrl().body()
+            Log.e("response", urlResponse.toString())
 
             if (urlResponse != null) {
                 userImageUrl = urlResponse.imgName
@@ -142,7 +139,7 @@ class AddPostViewModel @Inject constructor(
 
                     override fun onResponse(call: okhttp3.Call, response: Response) {
                         if (response.isSuccessful) {
-                            Log.e("response",response.toString())
+                            Log.e("response", response.toString())
                         } else {
                             println("Upload failed: ${response.message}")
                         }
