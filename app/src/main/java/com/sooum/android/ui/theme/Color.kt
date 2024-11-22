@@ -16,6 +16,8 @@ val White70 = Color(0xB3FFFFFF)
 val Gray1 = Color(0xFF7D7D7D)
 val Gray3 = Color(0xFFC7C7C7)
 val Gray4 = Color(0xFFDEDEDE)
+val Gray50 = Color(0xFFF9F9F9)
+val Gray5 = Color(0xFF8D8D8D)
 
 
 val Primary = Color(0xFF0BC7F2)

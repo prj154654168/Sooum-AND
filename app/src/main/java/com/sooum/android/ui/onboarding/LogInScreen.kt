@@ -73,13 +73,8 @@ fun LogInScreen(navController: NavHostController) {
                     }
                 } else {
                     navController.navigate(LogInNav.Agree.screenRoute) {
-                        popUpTo(navController.graph.id) {
-                            inclusive = true
-                        } // 백 스택 비우기
-                        launchSingleTop = true // 중복된 화면 생성 방지
                     }
                 }
-
             }) {
             Text(text = "숨 시작하기")
         }

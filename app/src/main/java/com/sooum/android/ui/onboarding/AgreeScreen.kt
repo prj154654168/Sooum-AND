@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +40,7 @@ import com.sooum.android.domain.model.MemberInfo
 import com.sooum.android.domain.model.Policy
 import com.sooum.android.domain.model.signUpModel
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.theme.Gray5
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AgreeViewModel
 
@@ -45,10 +48,11 @@ import com.sooum.android.ui.viewmodel.AgreeViewModel
 @Composable
 fun AgreeScreen(navController: NavHostController) {
     val viewModel: AgreeViewModel = viewModel()
-    var allChecked by remember { mutableStateOf(false) }
+
     var firstChecked by remember { mutableStateOf(false) }
     var secondChecked by remember { mutableStateOf(false) }
     var thirdChecked by remember { mutableStateOf(false) }
+    val allChecked by remember { derivedStateOf { firstChecked && secondChecked && thirdChecked } }
     val context = LocalContext.current
 
     // "모두 동의합니다" 선택 시 다른 항목도 체크되도록 처리
@@ -57,6 +61,11 @@ fun AgreeScreen(navController: NavHostController) {
             firstChecked = true
             secondChecked = true
             thirdChecked = true
+        }
+        if (!allChecked) {
+            firstChecked = false
+            secondChecked = false
+            thirdChecked = false
         }
     }
     Scaffold(topBar = {
@@ -85,14 +94,26 @@ fun AgreeScreen(navController: NavHostController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 20.dp)
-                        .clickable { allChecked = !allChecked },
+                        .clickable {
+                            //allChecked = !allChecked
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
                         checked = allChecked,
-                        onCheckedChange = { allChecked = it }
+                        onCheckedChange = { isChecked ->
+                            // 전체 선택 클릭 시 모든 체크박스를 업데이트
+                            firstChecked = isChecked
+                            secondChecked = isChecked
+                            thirdChecked = isChecked
+                        },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Primary,
+                            uncheckedColor = Gray5
+                        )
+
                     )
-                    Text("약관 전체 동의")
+                    Text(text = "약관 전체 동의", color = if (allChecked) Primary else Gray5)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -106,9 +127,12 @@ fun AgreeScreen(navController: NavHostController) {
                 ) {
                     Checkbox(
                         checked = firstChecked,
-                        onCheckedChange = { firstChecked = it }
+                        onCheckedChange = { firstChecked = it }, colors = CheckboxDefaults.colors(
+                            checkedColor = Primary,
+                            uncheckedColor = Gray5
+                        )
                     )
-                    Text(" [필수] 서비스 이용 약관")
+                    Text(" [필수] 서비스 이용 약관", color = if (firstChecked) Primary else Gray5)
                 }
 
 
@@ -121,9 +145,12 @@ fun AgreeScreen(navController: NavHostController) {
                 ) {
                     Checkbox(
                         checked = secondChecked,
-                        onCheckedChange = { secondChecked = it }
+                        onCheckedChange = { secondChecked = it }, colors = CheckboxDefaults.colors(
+                            checkedColor = Primary,
+                            uncheckedColor = Gray5
+                        )
                     )
-                    Text(" [필수] 위치정보 이용 약관")
+                    Text(" [필수] 위치정보 이용 약관", color = if (secondChecked) Primary else Gray5)
                 }
 
                 // 개별 약관 동의 항목 2
@@ -135,9 +162,12 @@ fun AgreeScreen(navController: NavHostController) {
                 ) {
                     Checkbox(
                         checked = thirdChecked,
-                        onCheckedChange = { thirdChecked = it }
+                        onCheckedChange = { thirdChecked = it }, colors = CheckboxDefaults.colors(
+                            checkedColor = Primary,
+                            uncheckedColor = Gray5
+                        )
                     )
-                    Text(" [필수] 개인정보 처리 방침")
+                    Text(" [필수] 개인정보 처리 방침", color = if (thirdChecked) Primary else Gray5)
                 }
 
 
@@ -145,6 +175,7 @@ fun AgreeScreen(navController: NavHostController) {
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(20.dp)
                     .align(Alignment.BottomCenter),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
                 onClick = {
@@ -162,11 +193,11 @@ fun AgreeScreen(navController: NavHostController) {
                     )
                     viewModel.token?.let { it1 ->
                         SooumApplication().saveVariable(
-                             "accessToken",
+                            "accessToken",
                             it1.accessToken
                         )
                         SooumApplication().saveVariable(
-                             "refreshToken",
+                            "refreshToken",
                             it1.refreshToken
                         )
                     }

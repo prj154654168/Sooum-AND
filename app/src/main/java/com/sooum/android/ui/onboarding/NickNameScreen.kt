@@ -1,5 +1,6 @@
 package com.sooum.android.ui.onboarding
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,13 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.LogInNav
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.theme.Gray1
+import com.sooum.android.ui.theme.Gray50
 import com.sooum.android.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,6 +73,7 @@ fun NickNameScreen(navController: NavHostController) {
                 Text(
                     text = "닉네임은 추후 변경 가능해요",
                     fontSize = 14.sp,
+                    color = Gray1,
                     modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
                 )
 
@@ -76,17 +81,40 @@ fun NickNameScreen(navController: NavHostController) {
                     text = text,
                     onTextChange = { newText -> text = newText }
                 )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    if(text.isEmpty()){
+                        Row() {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_warning),
+                                contentDescription = "warning",
+                                modifier = Modifier.padding(end = 5.dp)
+                            )
+                            Text("한글자 이상 입력해주세요", color = Color.Red, fontSize = 14.sp)
+                        }
+                    }
+
+                    Text(
+                        "${text.length}/8",
+                        color = Gray1,
+                        fontSize = 14.sp,
+                        modifier = Modifier.align(
+                            Alignment.TopEnd
+                        )
+                    )
+                }
 
 
             }
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(20.dp)
                     .align(Alignment.BottomCenter),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
                 onClick = {
-                    SooumApplication().saveVariable("nickName",text)
-                    navController.navigate(LogInNav.LogInProfile.screenRoute) }) {
+                    SooumApplication().saveVariable("nickName", text)
+                    navController.navigate(LogInNav.LogInProfile.screenRoute)
+                }) {
                 Text(text = "확인")
             }
         }
@@ -102,17 +130,23 @@ fun CustomBasicTextField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color.LightGray, shape = RoundedCornerShape(20.dp))
+            .background(color = Gray50, shape = RoundedCornerShape(20.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
             // BasicTextField
             BasicTextField(
                 value = text,
-                onValueChange = onTextChange,
+                onValueChange = { newText ->
+                    // 텍스트 길이 제한
+                    if (newText.length <= 8) {
+                        onTextChange(newText)
+                    }
+                },
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp),
@@ -129,7 +163,8 @@ fun CustomBasicTextField(
                         if (text.isEmpty()) {
                             Text(
                                 text = placeholder,
-                                style = TextStyle(color = Color.Gray, fontSize = 16.sp)
+                                style = TextStyle(color = Color.Gray, fontSize = 16.sp),
+                                modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)
                             )
                         }
                         innerTextField()  // TextField의 텍스트를 표시
@@ -149,4 +184,5 @@ fun CustomBasicTextField(
             }
         }
     }
+
 }

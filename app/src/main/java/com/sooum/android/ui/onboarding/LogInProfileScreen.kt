@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
@@ -81,7 +82,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                         byteArrayOutputStream
                     )
                     val byteArray = byteArrayOutputStream.toByteArray()
-                    //viewModel.getImageUrl(byteArray)
+                    viewModel.getImageUrl(byteArray)
                 }
 
             } else {
@@ -121,20 +122,20 @@ fun LogInProfileScreen(navController: NavHostController) {
                 )
                 if (selectedImageBitmap == null) {
                     Image(
-                        painter = painterResource(id = R.drawable.sooum_logo),
+                        painter = painterResource(id = R.drawable.ic_sooum_logo),
                         contentDescription = "Background Image",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                            .padding(top = 30.dp)
+                            .height(240.dp)
+                            .width(240.dp)
+                            .padding(top = 100.dp)
                             .clickable {
                                 val cropOptions = CropImageContractOptions(
                                     null,
                                     CropImageOptions(imageSourceIncludeCamera = false)
                                 )
                                 imageCropLauncher.launch(cropOptions)
-                            },
-                        contentScale = ContentScale.Crop
+                            }
+                            .align(Alignment.CenterHorizontally),
                     )
                 } else {
                     AsyncImage(
@@ -162,7 +163,9 @@ fun LogInProfileScreen(navController: NavHostController) {
             ) {
                 Button(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp)
+                    ,
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     onClick = {
                         viewModel.profiles(
@@ -179,7 +182,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                 }
                 Button(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth().padding(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Gray3),
                     onClick = { }) {
                     Text(text = "다음에 변경하기")
