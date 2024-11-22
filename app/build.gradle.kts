@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -11,8 +13,8 @@ android {
         applicationId = "com.sooum.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -66,4 +68,47 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    //navigation
+    val nav_version = "2.5.3"
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
+    //Coil
+    implementation("io.coil-kt:coil-compose:2.3.0")
+
+    //Retrofit2
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    //Pull to Refresh
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.36.0")
+    implementation("androidx.compose.material:material:1.7.3")
+
+    //viewmodel livedata(추후에 변경할듯)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.compose.runtime:runtime-livedata:1.3.2")
+
+    //GPS
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
+    //flowRow
+    implementation ("com.google.accompanist:accompanist-flowlayout:0.30.1")
+
+    //Hilt
+    implementation("com.google.dagger:hilt-android:2.48.1")
+    kapt("com.google.dagger:hilt-compiler:2.48.1")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    // Paging3 라이브러리
+    implementation("androidx.paging:paging-runtime-ktx:3.3.2")
+
+    // Compose와 Paging3 통합을 위한 라이브러리
+    implementation("androidx.paging:paging-compose:3.3.2")
+
+    // Image Cropper
+    implementation("com.vanniktech:android-image-cropper:4.5.0")
+
+    // OkHttp 및 HttpLoggingInterceptor
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
 }
