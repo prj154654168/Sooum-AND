@@ -41,6 +41,8 @@ class AddPostViewModel @Inject constructor(
 
     var selectedImageForDefault: String by mutableStateOf(null.toString())
 
+    var selectedImageName : String by mutableStateOf(null.toString())
+
     var relatedTagList = mutableStateListOf<RelatedTagDataModel.Embedded.RelatedTag>()
         private set
 
@@ -94,6 +96,7 @@ class AddPostViewModel @Inject constructor(
                 defaultImageList.addAll(imageList)
                 refreshImageQuery = getPreviousImages(responseBody.links.next.href)
                 selectedImageForDefault = defaultImageList[0].url.href
+                selectedImageName = defaultImageList[0].imgName
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
@@ -109,6 +112,7 @@ class AddPostViewModel @Inject constructor(
                 defaultImageList.addAll(imageList)
                 refreshImageQuery = getPreviousImages(responseBody.links.next.href)
                 selectedImageForDefault = defaultImageList[0].url.href
+                selectedImageName = defaultImageList[0].imgName
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }

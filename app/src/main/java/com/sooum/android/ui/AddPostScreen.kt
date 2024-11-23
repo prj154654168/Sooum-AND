@@ -276,7 +276,7 @@ fun AddPostScreen(navController: NavHostController) {
                                     content,
                                     fontType,
                                     imgType,
-                                    if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageForDefault
+                                    if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName
                                     else addPostViewModel.userImageUrl!!,
                                     tagList.toList()
                                 )
@@ -406,6 +406,7 @@ fun AddPostScreen(navController: NavHostController) {
                                         ) {
                                             selectedImage = imageIndex
                                             addPostViewModel.selectedImageForDefault = addPostViewModel.defaultImageList[imageIndex].url.href
+                                            addPostViewModel.selectedImageName = addPostViewModel.defaultImageList[imageIndex].imgName
                                         }
                                     ) {
                                         AsyncImage(
