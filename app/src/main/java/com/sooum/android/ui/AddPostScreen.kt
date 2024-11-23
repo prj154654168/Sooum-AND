@@ -263,7 +263,8 @@ fun AddPostScreen(navController: NavHostController) {
                             .padding(end = 20.dp)
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },
-                                indication = null
+                                indication = null,
+                                enabled = if (content.isEmpty()) false else true
                             ) {
                                 addPostViewModel.postFeedCard(
                                     distanceChecked,
@@ -284,7 +285,7 @@ fun AddPostScreen(navController: NavHostController) {
                         text = "작성하기",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
-                        color = colorResource(R.color.blue300)
+                        color = if (content.isEmpty()) colorResource(R.color.gray700) else  colorResource(R.color.blue300)
                     )
                 }
             )
