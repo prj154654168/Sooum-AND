@@ -63,7 +63,7 @@ class AddPostViewModel @Inject constructor(
         font: FontEnum,
         imgType: ImgTypeEnum,
         imgName: String,
-        feedTags: List<String>,
+        feedTags: List<String>?,
     ) {
         viewModelScope.launch {
             try {

@@ -16,7 +16,7 @@ class FeedCardUseCase @Inject constructor(private val repository: PostCardReposi
         font: FontEnum,
         imgType: ImgTypeEnum,
         imgName: String,
-        feedTags: List<String>
+        feedTags: List<String>?
     ) = repository.postFeedCard(
         isDistanceShared, latitude, longitude, isPublic, isStory, content, font, imgType, imgName, feedTags
     )
