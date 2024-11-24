@@ -64,6 +64,7 @@ class AddPostViewModel @Inject constructor(
         imgType: ImgTypeEnum,
         imgName: String,
         feedTags: List<String>?,
+        onStatusChanged: (Int) -> Unit
     ) {
         viewModelScope.launch {
             try {
@@ -80,6 +81,9 @@ class AddPostViewModel @Inject constructor(
                     feedTags
                 )
                 postFeedCardStatus = responseBody
+                if (postFeedCardStatus?.httpCode == 201) {
+                    onStatusChanged(201)
+                }
                 Log.d("AddPostViewModel", postFeedCardStatus?.httpCode.toString())
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.toString())

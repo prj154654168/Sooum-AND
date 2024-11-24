@@ -110,6 +110,8 @@ import com.sooum.android.User
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.enums.FontEnum
 import com.sooum.android.enums.ImgTypeEnum
+import com.sooum.android.ui.common.PostNav
+import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
 import java.io.ByteArrayOutputStream
@@ -280,7 +282,12 @@ fun AddPostScreen(navController: NavHostController) {
                                     if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName
                                     else addPostViewModel.userImageUrl!!,
                                     if (!storyChecked) tagList
-                                    else null
+                                    else null,
+                                    onStatusChanged = {
+                                        if (it == 201) {
+                                            navController.navigate(SoonumNav.Home.screenRoute)
+                                        }
+                                    }
                                 )
                             },
                         text = "작성하기",
