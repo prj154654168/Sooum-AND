@@ -146,7 +146,7 @@ fun AddPostScreen(navController: NavHostController) {
 
     var tagTextField by remember { mutableStateOf("") }
 
-    val tagList = remember { mutableStateListOf("테스트1", "안드로이드") }
+    val tagList by remember { mutableStateOf(mutableListOf<String>()) }
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
@@ -279,7 +279,8 @@ fun AddPostScreen(navController: NavHostController) {
                                     imgType,
                                     if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName
                                     else addPostViewModel.userImageUrl!!,
-                                    tagList.toList()
+                                    if (!storyChecked) tagList
+                                    else null
                                 )
                             },
                         text = "작성하기",
@@ -687,152 +688,152 @@ fun AddPostScreen(navController: NavHostController) {
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-
-                if (tagList.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                    ) {
-                        tagList.forEachIndexed { index, tag ->
-                            Spacer(
-                                modifier = if (index == 0) {
-                                    Modifier.width(20.dp)
-                                } else {
-                                    Modifier.width(12.dp)
-                                }
-                            )
-                            Surface(
-                                modifier = Modifier.clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null
-                                ) {
-                                    tagList.remove(tag)
-                                },
-                                color = colorResource(R.color.gray05),
-                                shape = RoundedCornerShape(4.dp),
-                            ) {
-                                Box(
-                                    modifier = Modifier.padding(
-                                        start = 16.dp,
-                                        end = 16.dp,
-                                        top = 4.dp,
-                                        bottom = 4.dp
-                                    ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_tag_cancel),
-                                            contentDescription = "tagCancle",
-                                            modifier = Modifier.size(16.dp),
-                                            tint = colorResource(R.color.gray02)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        androidx.compose.material3.Text(
-                                            text = "#${tag}",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = colorResource(R.color.gray02)
-                                        )
+                if (!storyChecked) {
+                    if (tagList.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                        ) {
+                            tagList.forEachIndexed { index, tag ->
+                                Spacer(
+                                    modifier = if (index == 0) {
+                                        Modifier.width(20.dp)
+                                    } else {
+                                        Modifier.width(12.dp)
                                     }
-                                }
-                            }
-                            if (index == tagList.lastIndex) {
-                                Spacer(modifier = Modifier.width(20.dp))
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp)
-                ) {
-                    androidx.compose.material3.OutlinedTextField(
-                        value = tagTextField,
-                        onValueChange = {
-                            tagTextField = it
-                            if (isCompleteHangul(tagTextField)) {
-                                addPostViewModel.getRelatedTag(
-                                    tagTextField,
-                                    5
-                                ) //int값에 뭐가 들어가야되는지 모르겠음
-                                Log.d("tag", "api호출")
-                            }
-                        },
-                        placeholder = {
-                            Text(
-                                text = "#태그를 입력해주세요!",
-                                fontSize = 16.sp,
-                                color = colorResource(R.color.gray02),
-                                fontWeight = FontWeight.Medium,
-                                textDecoration = TextDecoration.None
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-//                        .border(width = 1.dp, color = colorResource(R.color.gray02), shape = RoundedCornerShape(12.dp))
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = colorResource(R.color.primary_color),
-                            unfocusedBorderColor = colorResource(R.color.gray02),
-                            cursorColor = colorResource(R.color.primary_color)
-                        ),
-                        textStyle = TextStyle(
-                            fontSize = 16.sp,
-                            color = colorResource(R.color.gray02),
-                            fontWeight = FontWeight.Medium,
-                            textDecoration = TextDecoration.None
-                        ),
-                        trailingIcon = {
-                            if (tagTextField.isNotBlank()) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_add),
-                                    contentDescription = "Add Post",
-                                    tint = colorResource(R.color.gray02),
+                                )
+                                Surface(
                                     modifier = Modifier.clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null
                                     ) {
-                                        tagList.add(0, tagTextField)
-                                        tagTextField = ""
+                                        tagList.remove(tag)
+                                    },
+                                    color = colorResource(R.color.gray05),
+                                    shape = RoundedCornerShape(4.dp),
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(
+                                            start = 16.dp,
+                                            end = 16.dp,
+                                            top = 4.dp,
+                                            bottom = 4.dp
+                                        ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.ic_tag_cancel),
+                                                contentDescription = "tagCancle",
+                                                modifier = Modifier.size(16.dp),
+                                                tint = colorResource(R.color.gray02)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            androidx.compose.material3.Text(
+                                                text = "#${tag}",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = colorResource(R.color.gray02)
+                                            )
+                                        }
                                     }
-
-                                )
+                                }
+                                if (index == tagList.lastIndex) {
+                                    Spacer(modifier = Modifier.width(20.dp))
+                                }
                             }
-                        },
-                        singleLine = true
-                    )
-                    Spacer(modifier = Modifier.height(13.dp))
-                    if (tagHintList.isNotEmpty()) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "#관련태그",
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, end = 20.dp)
+                    ) {
+                        androidx.compose.material3.OutlinedTextField(
+                            value = tagTextField,
+                            onValueChange = {
+                                tagTextField = it
+                                if (isCompleteHangul(tagTextField)) {
+                                    addPostViewModel.getRelatedTag(
+                                        tagTextField,
+                                        5
+                                    ) //int값에 뭐가 들어가야되는지 모르겠음
+                                    Log.d("tag", "api호출")
+                                }
+                            },
+                            placeholder = {
+                                Text(
+                                    text = "#태그를 입력해주세요!",
+                                    fontSize = 16.sp,
+                                    color = colorResource(R.color.gray02),
+                                    fontWeight = FontWeight.Medium,
+                                    textDecoration = TextDecoration.None
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+//                        .border(width = 1.dp, color = colorResource(R.color.gray02), shape = RoundedCornerShape(12.dp))
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = colorResource(R.color.primary_color),
+                                unfocusedBorderColor = colorResource(R.color.gray02),
+                                cursorColor = colorResource(R.color.primary_color)
+                            ),
+                            textStyle = TextStyle(
+                                fontSize = 16.sp,
+                                color = colorResource(R.color.gray02),
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            FlowRow(
-                                mainAxisSpacing = 8.dp,
-                                crossAxisSpacing = 8.dp,
+                                textDecoration = TextDecoration.None
+                            ),
+                            trailingIcon = {
+                                if (tagTextField.isNotBlank()) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_add),
+                                        contentDescription = "Add Post",
+                                        tint = colorResource(R.color.gray02),
+                                        modifier = Modifier.clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {
+                                            tagList.add(0, tagTextField)
+                                            tagTextField = ""
+                                        }
+
+                                    )
+                                }
+                            },
+                            singleLine = true
+                        )
+                        Spacer(modifier = Modifier.height(13.dp))
+                        if (tagHintList.isNotEmpty()) {
+                            Column(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                tagHintList.forEach { tagHint ->
-                                    TagHintChip(tagHint = tagHint.content, tagHint.count) { tag ->
-                                        tagList.add(0, tag)
-                                        tagTextField = ""
-                                        tagHintList = emptyList()
+                                Text(
+                                    text = "#관련태그",
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 15.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                FlowRow(
+                                    mainAxisSpacing = 8.dp,
+                                    crossAxisSpacing = 8.dp,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    tagHintList.forEach { tagHint ->
+                                        TagHintChip(tagHint = tagHint.content, tagHint.count) { tag ->
+                                            tagList.add(0, tag)
+                                            tagTextField = ""
+                                            tagHintList = emptyList()
+                                        }
                                     }
                                 }
                             }
                         }
-
                     }
                 }
             }
