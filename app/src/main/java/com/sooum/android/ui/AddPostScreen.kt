@@ -49,6 +49,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomSheetValue
 import androidx.compose.material.Chip
 import androidx.compose.material.ChipDefaults
+import androidx.compose.material.Colors
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -82,6 +83,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -104,9 +106,11 @@ import coil.request.ImageRequest
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
 import com.sooum.android.User
+import com.sooum.android.Utils
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.enums.FontEnum
 import com.sooum.android.enums.ImgTypeEnum
@@ -383,7 +387,7 @@ fun AddPostScreen(navController: NavHostController) {
                                     //여기입니다
                                     val cropOptions = CropImageContractOptions(
                                         null,
-                                        CropImageOptions(imageSourceIncludeCamera = false)
+                                        Utils.cropOption
                                     )
 
                                     imageCropLauncher.launch(cropOptions)
@@ -447,7 +451,7 @@ fun AddPostScreen(navController: NavHostController) {
                                 //여기입니다
                                 val cropOptions = CropImageContractOptions(
                                     null,
-                                    CropImageOptions(imageSourceIncludeCamera = false)
+                                    Utils.cropOption
                                 )
 
                                 imageCropLauncher.launch(cropOptions)
