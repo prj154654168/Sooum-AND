@@ -7,6 +7,7 @@ import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.FeedCardDataModel
 import com.sooum.android.domain.model.ImageIssueDataModel
 import com.sooum.android.domain.model.KeyModel
+import com.sooum.android.domain.model.PostCommentCardRequestDataModel
 import com.sooum.android.domain.model.PostFeedRequestDataModel
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
@@ -127,4 +128,10 @@ interface CardApi {
     suspend fun profiles(
         @Body profileBody : profileBody
     ): Response<Status>
+
+    @POST("/cards/{cardId}")
+    suspend fun postCommentCard(
+        @Path("cardId") cardId: Long,
+        @Body postCommentCardRequest: PostCommentCardRequestDataModel
+    ) : Response<Status>
 }
