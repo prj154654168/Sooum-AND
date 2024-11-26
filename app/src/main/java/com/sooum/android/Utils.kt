@@ -11,6 +11,8 @@ object Utils {
         aspectRatioY = 9,
         allowFlipping = false,
         allowRotation = false,
-        guidelines = CropImageView.Guidelines.OFF
+        guidelines = CropImageView.Guidelines.OFF,
+        borderLineThickness = 1.5f,
+
     )
 }
