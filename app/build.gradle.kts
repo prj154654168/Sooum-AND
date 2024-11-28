@@ -111,4 +111,7 @@ dependencies {
     // OkHttp 및 HttpLoggingInterceptor
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
+
+    //haze
+    implementation("dev.chrisbanes.haze:haze:1.0.2")
 }

@@ -224,9 +224,3 @@ fun Main() {
 
     }
 }
-
-
-@Composable
-fun TagScreen() {
-    Text(text = "Tag")
-}
