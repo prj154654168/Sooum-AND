@@ -10,11 +10,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
@@ -32,9 +35,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -120,42 +125,57 @@ fun LogInProfileScreen(navController: NavHostController) {
                     fontSize = 14.sp,
                     modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
                 )
-                if (selectedImageBitmap == null) {
+                Box(modifier = Modifier.align(Alignment.CenterHorizontally).aspectRatio(1f)) {
+                    if (selectedImageBitmap == null) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_sooum_logo),
+                            contentDescription = "Background Image",
+                            modifier = Modifier
+                                .size(240.dp)
+                                .aspectRatio(1f)
+                                .padding(top = 100.dp)
+                                .clickable {
+                                    val cropOptions = CropImageContractOptions(
+                                        null,
+                                        CropImageOptions(imageSourceIncludeCamera = false)
+                                    )
+                                    imageCropLauncher.launch(cropOptions)
+                                }
+                                .align(Alignment.Center),
+                        )
+                    } else {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(selectedImageForGallery)
+                                .build(),
+                            contentDescription = "카드 이미지",
+                            modifier = Modifier
+                                .size(240.dp)
+                                .aspectRatio(1f)
+                                .padding(top = 100.dp)
+                                .clickable {
+                                    val cropOptions = CropImageContractOptions(
+                                        null,
+                                        CropImageOptions(imageSourceIncludeCamera = false)
+                                    )
+                                    imageCropLauncher.launch(cropOptions)
+                                }
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                     Image(
-                        painter = painterResource(id = R.drawable.ic_sooum_logo),
+                        painter = painterResource(id = R.drawable.ic_picture_button),
                         contentDescription = "Background Image",
                         modifier = Modifier
-                            .height(240.dp)
-                            .width(240.dp)
-                            .padding(top = 100.dp)
-                            .clickable {
-                                val cropOptions = CropImageContractOptions(
-                                    null,
-                                    CropImageOptions(imageSourceIncludeCamera = false)
-                                )
-                                imageCropLauncher.launch(cropOptions)
-                            }
-                            .align(Alignment.CenterHorizontally),
+                            .height(32.dp)
+                            .width(32.dp)
+                            .align(Alignment.BottomEnd),
                     )
-                } else {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(selectedImageForGallery)
-                            .build(),
-                        contentDescription = "카드 이미지",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable {
-                                val cropOptions = CropImageContractOptions(
-                                    null,
-                                    CropImageOptions(imageSourceIncludeCamera = false)
-                                )
-                                imageCropLauncher.launch(cropOptions)
-                            }
-                            .height(100.dp),
-                        contentScale = ContentScale.Crop
-                    )
+
+
                 }
+
 
             }
             Column(
@@ -164,8 +184,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp)
-                    ,
+                        .padding(start = 20.dp, end = 20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     onClick = {
                         viewModel.profiles(
@@ -180,13 +199,16 @@ fun LogInProfileScreen(navController: NavHostController) {
                     }) {
                     Text(text = "확인")
                 }
-                Button(
+                Text(
                     modifier = Modifier
-                        .fillMaxWidth().padding(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Gray3),
-                    onClick = { }) {
-                    Text(text = "다음에 변경하기")
-                }
+                        .align(Alignment.CenterHorizontally)
+                        .padding(20.dp)
+                        .clickable {
+                        },
+                    text = "다음에 변경하기",
+                    textDecoration = TextDecoration.Underline,
+                    color = Primary
+                )
             }
 
         }

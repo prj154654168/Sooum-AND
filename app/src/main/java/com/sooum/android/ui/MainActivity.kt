@@ -3,12 +3,16 @@ package com.sooum.android.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +39,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -49,12 +53,15 @@ import com.sooum.android.ui.common.SoonumBottomNavigation
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
 import com.sooum.android.ui.theme.SoonumTheme
+import com.sooum.android.ui.viewmodel.LogInViewModel
+import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val mainViewModel : MainViewModel by viewModels()
         setContent {
             val navController = rememberNavController()
 
@@ -63,14 +70,15 @@ class MainActivity : ComponentActivity() {
                 startDestination = "splash"
             ) {
                 composable("splash") {
-                    SplashScreen(navController)
+                    SplashScreen(navController,mainViewModel)
                 }
                 composable("main") {
-                    Main()
+                    Main(mainViewModel)
                 }
             }
         }
     }
+
 }
 
 /*
@@ -85,8 +93,16 @@ class MainActivity : ComponentActivity() {
 
 만약 위치 권한이 없을 때, 거리별 탭으로 들어가면 아래 만든 커스텀 다이얼로그 띄우고 취소 누르면 그냥 dismiss, 설정 누르면 위치 권한 dialog 띄우기
  */
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
+    val android_id = Settings.Secure.getString(
+        LocalContext.current.getContentResolver(),
+        Settings.Secure.ANDROID_ID
+    )
+   // val viewModel: LogInViewModel = viewModel()
+    val context = LocalContext.current
+    mainViewModel.login(android_id, context)
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -105,7 +121,12 @@ fun SplashScreen(navController: NavController) {
     GetUserLocation { location ->
         User.userInfo.latitude = location?.latitude
         User.userInfo.longitude = location?.longitude
-        navController.navigate("main")
+        navController.navigate("main"){
+            popUpTo(navController.graph.id) {
+                inclusive = true
+            } // 백 스택 비우기
+            launchSingleTop = true // 중복된 화면 생성 방지
+        }
     }
 }
 
@@ -164,7 +185,7 @@ fun GetUserLocation(onLocationReceived: (Location?) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Main() {
+fun Main(mainViewModel: MainViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -214,11 +235,21 @@ fun Main() {
                 },
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding))
-
                 SoonumNavHost(
                     navController = navController,
-                    startDestination = LogInNav.LogIn.screenRoute
+                    startDestination = LogInNav.NickName.screenRoute
                 )
+//                if (mainViewModel.login == 1) {
+//                    SoonumNavHost(
+//                        navController = navController,
+//                        startDestination = SoonumNav.Home.screenRoute
+//                    )
+//                }else{
+//                    SoonumNavHost(
+//                        navController = navController,
+//                        startDestination = LogInNav.LogIn.screenRoute
+//                    )
+//                }
             }
         }
 

@@ -7,17 +7,24 @@ import com.sooum.android.domain.model.PostCommentCardRequestDataModel
 import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.repository.DetailRepository
 import com.sooum.android.enums.ReportTypeEnum
+import retrofit2.Response
 import javax.inject.Inject
 
-class DetailRepositoryImpl @Inject constructor(private val reportApi: ReportApi, private val cardApi: CardApi) :
+class DetailRepositoryImpl @Inject constructor(
+    private val reportApi: ReportApi,
+    private val cardApi: CardApi,
+) :
     DetailRepository {
-    override suspend fun postUserReport(cardId: Long, reportTypeEnum: ReportTypeEnum) {
-        reportApi.cardReport(cardId, reportTypeEnum)
+    override suspend fun postUserReport(
+        cardId: Long,
+        reportTypeEnum: ReportTypeEnum,
+    ): Response<Status> {
+        return reportApi.cardReport(cardId, reportTypeEnum)
     }
 
     override suspend fun postCommentCard(
         cardId: Long,
-        postCommentCardRequest: PostCommentCardRequestDataModel
+        postCommentCardRequest: PostCommentCardRequestDataModel,
     ): Status {
         val response = cardApi.postCommentCard(cardId, postCommentCardRequest)
 

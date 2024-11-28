@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -130,6 +131,7 @@ fun CustomBasicTextField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(60.dp)
             .background(color = Gray50, shape = RoundedCornerShape(20.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -149,6 +151,7 @@ fun CustomBasicTextField(
                 },
                 modifier = Modifier
                     .weight(1f)
+                    .align(Alignment.CenterVertically)
                     .padding(end = 8.dp),
                 singleLine = true,
                 textStyle = TextStyle(

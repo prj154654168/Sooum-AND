@@ -1,5 +1,6 @@
 package com.sooum.android.data.remote
 
+import com.sooum.android.domain.model.BlockBody
 import com.sooum.android.domain.model.DefaultImageDataModel
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
@@ -91,8 +92,7 @@ interface CardApi {
 
     @POST("/blocks")
     suspend fun userBlocks(
-
-        @Body toMemberId: Long,
+        @Body toMemberId: BlockBody,
     ): Response<Status>
 
     @DELETE("/cards/{cardId}")

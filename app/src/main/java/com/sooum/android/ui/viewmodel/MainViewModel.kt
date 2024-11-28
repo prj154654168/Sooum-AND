@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
-
 import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.Token
 import kotlinx.coroutines.launch
@@ -21,7 +20,7 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
 import javax.crypto.Cipher
 
-class LogInViewModel : ViewModel() {
+class MainViewModel : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
     var login by mutableStateOf<Int>(0)
@@ -93,6 +92,4 @@ class LogInViewModel : ViewModel() {
             }
         }
     }
-
-
 }
