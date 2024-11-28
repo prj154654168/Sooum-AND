@@ -21,5 +21,5 @@ interface PostCardRepository {
                              font: FontEnum,
                              imgType: ImgTypeEnum,
                              imgName: String,
-                             feedTags: List<String>) : Status
+                             feedTags: List<String>?) : Status
 }

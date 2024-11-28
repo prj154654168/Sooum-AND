@@ -41,6 +41,8 @@ class AddPostViewModel @Inject constructor(
 
     var selectedImageForDefault: String by mutableStateOf(null.toString())
 
+    var selectedImageName : String by mutableStateOf(null.toString())
+
     var relatedTagList = mutableStateListOf<RelatedTagDataModel.Embedded.RelatedTag>()
         private set
 
@@ -61,7 +63,8 @@ class AddPostViewModel @Inject constructor(
         font: FontEnum,
         imgType: ImgTypeEnum,
         imgName: String,
-        feedTags: List<String>,
+        feedTags: List<String>?,
+        onStatusChanged: (Int) -> Unit
     ) {
         viewModelScope.launch {
             try {
@@ -78,6 +81,9 @@ class AddPostViewModel @Inject constructor(
                     feedTags
                 )
                 postFeedCardStatus = responseBody
+                if (postFeedCardStatus?.httpCode == 201) {
+                    onStatusChanged(201)
+                }
                 Log.d("AddPostViewModel", postFeedCardStatus?.httpCode.toString())
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.toString())
@@ -94,6 +100,7 @@ class AddPostViewModel @Inject constructor(
                 defaultImageList.addAll(imageList)
                 refreshImageQuery = getPreviousImages(responseBody.links.next.href)
                 selectedImageForDefault = defaultImageList[0].url.href
+                selectedImageName = defaultImageList[0].imgName
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
@@ -109,6 +116,7 @@ class AddPostViewModel @Inject constructor(
                 defaultImageList.addAll(imageList)
                 refreshImageQuery = getPreviousImages(responseBody.links.next.href)
                 selectedImageForDefault = defaultImageList[0].url.href
+                selectedImageName = defaultImageList[0].imgName
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
