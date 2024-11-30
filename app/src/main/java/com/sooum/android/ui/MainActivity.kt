@@ -1,21 +1,27 @@
 package com.sooum.android.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,13 +42,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
@@ -87,6 +97,24 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 fun SplashScreen(navController: NavController) {
+    val context = LocalContext.current
+    val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // 권한이 허용된 경우 위치를 가져옵니다.
+            fetchSingleLocation(context, fusedLocationProviderClient, onLocationReceived = { location ->
+                User.userInfo.latitude = location?.latitude
+                User.userInfo.longitude = location?.longitude
+                navController.navigate("main")
+            })
+        }
+        else {
+            navController.navigate("main")
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,10 +130,35 @@ fun SplashScreen(navController: NavController) {
             tint = Color.White
         )
     }
-    GetUserLocation { location ->
-        User.userInfo.latitude = location?.latitude
-        User.userInfo.longitude = location?.longitude
-        navController.navigate("main")
+//    GetUserLocation { location ->
+//        User.userInfo.latitude = location?.latitude
+//        User.userInfo.longitude = location?.longitude
+//        navController.navigate("main")
+//    }
+
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+}
+
+private fun fetchSingleLocation(context: Context, fusedLocationProviderClient: FusedLocationProviderClient, onLocationReceived: (Location?) -> Unit) {
+    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        fusedLocationProviderClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            null // Optional CancellationToken, null로 설정 가능
+        ).addOnSuccessListener { location ->
+            if (location != null) {
+                onLocationReceived(location)
+                Log.d("123", "위도: ${location.latitude}, 경도: ${location.longitude}")
+            }
+        }.addOnFailureListener { exception ->
+            onLocationReceived(null)
+            Log.e("123", "위치를 가져오는 중 오류 발생: ${exception.message}")
+        }
+    } else {
+        onLocationReceived(null)
+        Toast.makeText(context, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
     }
 }
 
