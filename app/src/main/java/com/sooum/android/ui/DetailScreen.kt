@@ -70,7 +70,6 @@ import com.sooum.android.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -424,7 +423,11 @@ fun DetailScreen(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .width(24.dp)
-                                .height(24.dp),
+                                .height(24.dp)
+                                .clickable(
+                                ) {
+                                    navController.navigate("addCommentCard/${cardId}")
+                                },
                             painter = painterResource(R.drawable.ic_detail_comment),
                             contentDescription = "댓글",
                         )
