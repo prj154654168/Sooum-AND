@@ -8,6 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,7 +44,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +77,6 @@ import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -182,26 +183,25 @@ fun DetailScreen(
     val data = viewModel.feedCardDataModel
     val comment = viewModel.detailCommentCardDataModel
     var count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
-
-    var isRefreshing by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    var isRefreshing by remember { mutableStateOf(false) }
+
     val coroutineScope = rememberCoroutineScope()
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
             coroutineScope.launch {
-                delay(1000)
                 cardId?.let {
-                    viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
-                    viewModel.getDetailCardLikeCommentCount(it.toLong())
+                    //viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
+                    //viewModel.getDetailCardLikeCommentCount(it.toLong())
                 }
                 isRefreshing = false
             }
 
         }
     )
-
+    var dragProgress by remember { mutableStateOf(0f) }
     if (data != null) {
         Scaffold(topBar = {
             TopAppBar(
@@ -249,13 +249,37 @@ fun DetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pullRefresh(pullRefreshState)
+//                    .pointerInput(Unit) {
+//                        detectVerticalDragGestures(
+//                            onVerticalDrag = { change, dragAmount ->
+//                                change.consume() // 이벤트 소비
+//
+//                                // 아래로 드래그하면 pullRefreshState를 호출
+//                                if (dragAmount > 0) {
+//                                    dragProgress += dragAmount
+//                                    println("Dragging Downwards: $dragProgress")
+//
+//                                    // 드래그 양이 일정 범위 이상일 경우 새로고침 시작
+//                                    if (dragProgress > 200 && !isRefreshing) { // 예: 200 이상 드래그
+//                                        // 직접 refreshing 상태를 true로 설정하여 새로고침 트리거
+//                                    }
+//                                }
+//                                if (isRefreshing) {
+//                                    coroutineScope.launch {
+//                                        delay(1000) // 새로고침 후 잠시 대기
+//                                        isRefreshing = false // 새로고침 완료 후 상태를 false로 변경
+//                                    }
+//                                }
+//                            },
+//                        )
+//                    }
+                .pullRefresh(pullRefreshState)
             ) {
 
                 Column(
                     modifier = Modifier
-                        .padding(it)
                         .verticalScroll(scrollState)
+                        .padding(it)
                 ) {
                     Card(
                         modifier = Modifier
@@ -455,6 +479,7 @@ fun DetailScreen(
                         }
                     }
 
+
 //            Box(
 //                //color = Color.Black,
 //                modifier = Modifier
@@ -464,6 +489,7 @@ fun DetailScreen(
 //            ){
 //                Row(modifier = Modifier.background(Color.Black)){}
 //            }
+
                     Row(
                         modifier = Modifier
                             .padding(start = 20.dp)
@@ -476,7 +502,11 @@ fun DetailScreen(
                                 modifier = Modifier
                                     .padding(start = 10.dp)
                                     .width(24.dp)
-                                    .height(24.dp),
+                                    .height(24.dp)
+                                    .clickable(
+                                    ) {
+                                        navController.navigate("addCommentCard/${cardId}")
+                                    },
                                 painter = painterResource(R.drawable.ic_detail_comment),
                                 contentDescription = "댓글",
                             )
@@ -491,6 +521,7 @@ fun DetailScreen(
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .height(270.dp)
                             .padding(top = 10.dp)
                     ) {
                         if (comment != null) {
@@ -500,12 +531,14 @@ fun DetailScreen(
                         }
                     }
                 }
+
                 PullRefreshIndicator(
                     refreshing = isRefreshing,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter),
                     contentColor = Primary
                 )
+
             }
 
         }
@@ -824,4 +857,9 @@ fun BlockDialog(
             }
         }
     }
+}
+
+enum class ScrollDirection {
+    UP,
+    DOWN
 }

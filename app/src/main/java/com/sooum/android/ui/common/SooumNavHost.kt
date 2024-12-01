@@ -4,8 +4,10 @@ package com.sooum.android.ui.common
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.DetailScreen
@@ -33,6 +35,12 @@ fun SoonumNavHost(
 
         composable(route = SoonumNav.AddPost.screenRoute) {
             AddPostScreen(navController)
+        }
+
+        composable(route = "addCommentCard/{cardId}", arguments = listOf(navArgument("cardId") {type = NavType.StringType}))
+        { backStackEntry ->
+            val cardId = backStackEntry.arguments?.getString("cardId")
+            AddPostScreen(navController, cardId)
         }
 
         composable(route = SoonumNav.Tag.screenRoute) {

@@ -11,8 +11,10 @@ import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 
 import com.sooum.android.domain.model.DefaultImageDataModel
+import com.sooum.android.domain.model.PostCommentCardRequestDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.domain.model.Status
+import com.sooum.android.domain.usecase.detail.PostCommentCardUseCase
 import com.sooum.android.domain.usecase.postcard.DefaultImageUseCase
 import com.sooum.android.domain.usecase.postcard.FeedCardUseCase
 import com.sooum.android.domain.usecase.postcard.RelatedTagUseCase
@@ -33,6 +35,7 @@ class AddPostViewModel @Inject constructor(
     private val getDefaultImageUseCase: DefaultImageUseCase,
     private val getRelatedTagUseCase: RelatedTagUseCase,
     private val postFeedCardUseCase: FeedCardUseCase,
+    private val postCommentCardUseCase: PostCommentCardUseCase
 ) : ViewModel() {
     var defaultImageList = mutableStateListOf<DefaultImageDataModel.Embedded.ImgUrlInfo>()
         private set
@@ -51,7 +54,29 @@ class AddPostViewModel @Inject constructor(
     var postFeedCardStatus by mutableStateOf<Status?>(null)
         private set
 
+    var postCommentCardStatus by mutableStateOf<Status?>(null)
+        private set
+
     var userImageUrl by mutableStateOf<String?>(null)
+
+    fun postCommentCard(
+        cardId: Long,
+        commentCardRequest: PostCommentCardRequestDataModel,
+        onStatusChanged: (Int) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val responseBody = postCommentCardUseCase(cardId, commentCardRequest)
+                postCommentCardStatus = responseBody
+
+                if (postCommentCardStatus?.httpCode == 201) {
+                    onStatusChanged(201)
+                }
+            } catch (e: Exception) {
+                Log.e("AddPostViewModel", e.toString())
+            }
+        }
+    }
 
     fun postFeedCard(
         isDistanceShared: Boolean,
