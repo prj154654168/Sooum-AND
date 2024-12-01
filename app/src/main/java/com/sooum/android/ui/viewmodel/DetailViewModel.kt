@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
+import com.sooum.android.domain.model.BlockBody
 
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
@@ -24,6 +25,7 @@ class DetailViewModel : ViewModel() {
     )
         private set
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
+
 
     fun getFeedCard(toLong: Double, longitude: Double, cardId: Long) {
         viewModelScope.launch {
@@ -78,8 +80,7 @@ class DetailViewModel : ViewModel() {
         viewModelScope.launch {
             val temp = feedCardDataModel?.member?.id?.let {
                 retrofitInstance.userBlocks(
-
-                    it.toLong()
+                    BlockBody(it.toLong())
                 ).body()
             }
             Log.e("temp", feedCardDataModel?.member?.id.toString())

@@ -95,7 +95,9 @@ import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Duration
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -761,15 +763,49 @@ fun ImageLoader(url: String) {
         contentScale = ContentScale.Crop
     )
 }
+@RequiresApi(Build.VERSION_CODES.O)
+fun calculateRemainingTime(inputTime: String): String {
+    // 입력 시간의 형식 정의
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
 
+    // 입력 시간을 LocalDateTime으로 파싱
+    val targetTime = LocalDateTime.parse(inputTime, formatter)
+
+    // 현재 시간
+    val currentTime = LocalDateTime.now()
+
+    // 두 시간 간의 차이 계산
+    val duration = Duration.between(currentTime, targetTime)
+
+    return if (duration.isNegative) {
+        "시간이 이미 지났습니다."
+    } else {
+        // 남은 시간 계산
+        val days = duration.toDays()
+        val hours = duration.toHours() % 24
+        val minutes = duration.toMinutes() % 60
+        val seconds = duration.seconds % 60
+        "$hours:$minutes:$seconds"
+    }
+}
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PungTime(time: String) {
+    var currentTime by remember { mutableStateOf(LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss"))) }
+    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+
+    LaunchedEffect(currentTime) {
+        while (currentTime > LocalTime.MIN) { // 00:00:00이 될 때까지 실행
+            delay(1000L) // 1초 대기
+            currentTime = currentTime.minusSeconds(1) // 1초 감소
+        }
+    }
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = colorResource(R.color.primary_color)
     ) {
         Text(
-            text = time,
+            text = currentTime.format(formatter),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -82,7 +84,7 @@ fun NickNameScreen(navController: NavHostController) {
                     onTextChange = { newText -> text = newText }
                 )
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    if(text.isEmpty()){
+                    if (text.isEmpty()) {
                         Row() {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_warning),
@@ -130,13 +132,15 @@ fun CustomBasicTextField(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(60.dp)
             .background(color = Gray50, shape = RoundedCornerShape(20.dp))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        contentAlignment = Alignment.BottomCenter
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().align(Alignment.CenterStart)
         ) {
             // BasicTextField
             BasicTextField(
@@ -148,23 +152,28 @@ fun CustomBasicTextField(
                     }
                 },
                 modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp),
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth(),
                 singleLine = true,
                 textStyle = TextStyle(
                     color = Color.Black,
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Start
                 ),
                 cursorBrush = SolidColor(Color.Black),
                 decorationBox = { innerTextField ->
                     Box(
-                        Modifier.fillMaxWidth()
+                        Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.CenterVertically)
                     ) {
                         if (text.isEmpty()) {
                             Text(
                                 text = placeholder,
                                 style = TextStyle(color = Color.Gray, fontSize = 16.sp),
-                                modifier = Modifier.padding(top = 10.dp, bottom = 10.dp)
+                                modifier = Modifier
+                                    .padding(top = 10.dp, bottom = 10.dp)
+                                    .align(Alignment.CenterStart)
                             )
                         }
                         innerTextField()  // TextField의 텍스트를 표시
