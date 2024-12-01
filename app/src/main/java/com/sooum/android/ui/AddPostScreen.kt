@@ -281,7 +281,7 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                 indication = null,
                                 enabled = if (content.isEmpty()) false else true
                             ) {
-                                if (cardId != null) {
+                                if (parentId == null) {
                                     addPostViewModel.postFeedCard(
                                         distanceChecked,
                                         if (distanceChecked) User.userInfo.latitude
@@ -305,7 +305,7 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                     )
                                 }
                                 else {
-                                    addPostViewModel.postCommentCard(cardId = parentId!!,
+                                    addPostViewModel.postCommentCard(cardId = parentId,
                                         commentCardRequest = PostCommentCardRequestDataModel(
                                         isDistanceShared = distanceChecked,
                                         latitude = if (distanceChecked) User.userInfo.latitude else null,
