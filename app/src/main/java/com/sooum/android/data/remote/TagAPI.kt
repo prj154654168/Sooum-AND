@@ -1,5 +1,6 @@
 package com.sooum.android.data.remote
 
+import com.sooum.android.domain.model.RecommendTagDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import retrofit2.Response
 import retrofit2.http.GET
@@ -13,4 +14,7 @@ interface TagAPI {
         @Query("keyword") keyword: String,
         @Query("size") size: Int
     ): Response<RelatedTagDataModel>
+
+    @GET("/tags/recommendation")
+    suspend fun getRecommendTagList() : Response<RecommendTagDataModel>
 }
