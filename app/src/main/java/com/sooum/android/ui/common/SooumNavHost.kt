@@ -9,17 +9,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sooum.android.ui.AddPostScreen
-import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.DetailScreen
 import com.sooum.android.ui.HomeScreen
 import com.sooum.android.ui.ModifyProfileScreen
 import com.sooum.android.ui.MyProfileScreen
+import com.sooum.android.ui.ReportScreen
+import com.sooum.android.ui.SettingScreen
+import com.sooum.android.ui.TagListScreen
+import com.sooum.android.ui.TagScreen
+import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.onboarding.LogInProfileScreen
 import com.sooum.android.ui.onboarding.LogInScreen
 import com.sooum.android.ui.onboarding.NickNameScreen
-import com.sooum.android.ui.ReportScreen
-import com.sooum.android.ui.SettingScreen
-import com.sooum.android.ui.TagScreen
 
 @Composable
 fun SoonumNavHost(
@@ -39,14 +40,17 @@ fun SoonumNavHost(
             AddPostScreen(navController)
         }
 
-        composable(route = "addCommentCard/{cardId}", arguments = listOf(navArgument("cardId") {type = NavType.StringType}))
+        composable(
+            route = "addCommentCard/{cardId}",
+            arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+        )
         { backStackEntry ->
             val cardId = backStackEntry.arguments?.getString("cardId")
             AddPostScreen(navController, cardId)
         }
 
         composable(route = SoonumNav.Tag.screenRoute) {
-            TagScreen()
+            TagScreen(navController)
         }
         composable(route = SoonumNav.Profile.screenRoute) {
             MyProfileScreen(navController)
@@ -71,11 +75,16 @@ fun SoonumNavHost(
         composable(route = LogInNav.LogInProfile.screenRoute) {
             LogInProfileScreen(navController)
         }
+
         composable(route = MyProfile.ProfileModify.screenRoute) {
             ModifyProfileScreen(navController)
         }
         composable(route = MyProfile.Setting.screenRoute) {
             SettingScreen(navController)
+        }
+        composable(route = "${MyProfile.TagNav.TagList.screenRoute}/{tagId}") { backStackEntry ->
+            val tagId = backStackEntry.arguments?.getString("tagId").toString()
+            TagListScreen(navController, tagId)
         }
     }
 }

@@ -22,6 +22,7 @@ object NavigationRouteName {
     const val LOG_IN_PROFILE = "로그인 사진"
     const val PROFILE_MODIFY = "프로필 수정"
     const val SETTING = "설정"
+    const val TAG_LIST = "태그 리스트"
 }
 
 sealed class SoonumNav(
@@ -64,10 +65,16 @@ sealed class LogInNav(
     data object LogInProfile : LogInNav(NavigationRouteName.LOG_IN_PROFILE)
 }
 
+
 sealed class MyProfile(
     val screenRoute: String,
 ) {
     data object ProfileModify : LogInNav(NavigationRouteName.PROFILE_MODIFY)
     data object Setting : LogInNav(NavigationRouteName.SETTING)
+}
 
+sealed class TagNav(
+    val screenRoute: String,
+) {
+    data object TagList : TagNav(NavigationRouteName.TAG_LIST)
 }
