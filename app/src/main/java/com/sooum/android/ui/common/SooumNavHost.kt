@@ -17,6 +17,7 @@ import com.sooum.android.ui.onboarding.LogInScreen
 import com.sooum.android.ui.onboarding.NickNameScreen
 import com.sooum.android.ui.ProfileScreen
 import com.sooum.android.ui.ReportScreen
+import com.sooum.android.ui.TagListScreen
 import com.sooum.android.ui.TagScreen
 
 @Composable
@@ -44,7 +45,7 @@ fun SoonumNavHost(
         }
 
         composable(route = SoonumNav.Tag.screenRoute) {
-            TagScreen()
+            TagScreen(navController)
         }
         composable(route = SoonumNav.Profile.screenRoute) {
             ProfileScreen()
@@ -68,6 +69,10 @@ fun SoonumNavHost(
         }
         composable(route = LogInNav.LogInProfile.screenRoute) {
             LogInProfileScreen(navController)
+        }
+        composable(route = "${TagNav.TagList.screenRoute}/{tagId}") { backStackEntry ->
+            val tagId = backStackEntry.arguments?.getString("tagId").toString()
+            TagListScreen(navController, tagId)
         }
     }
 }

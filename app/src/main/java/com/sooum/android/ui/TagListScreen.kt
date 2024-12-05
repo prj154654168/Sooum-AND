@@ -1,7 +1,11 @@
 package com.sooum.android.ui
 
+import android.os.Build
 import android.widget.Space
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +24,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,10 +40,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.sooum.android.R
+import com.sooum.android.ui.viewmodel.TagViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TagListScreen() {
+fun TagListScreen(navController: NavController, tagId: String) {
+    val tagViewModel: TagViewModel = hiltViewModel()
+
+    var isFavorite by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        tagViewModel.getTagSummary(tagId)
+    }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -54,7 +74,7 @@ fun TagListScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "#최대글자수최대글자수최대",
+                    text = "#${tagViewModel.tagSummary?.content}",
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     lineHeight = 19.6.sp,
@@ -62,7 +82,7 @@ fun TagListScreen() {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "카드 갯수 167개",
+                    text = "카드 갯수 ${tagViewModel.tagSummary?.cardCnt}개",
                     fontWeight = FontWeight.Medium,
                     fontSize = 12.sp,
                     lineHeight = 16.8.sp,
@@ -70,10 +90,44 @@ fun TagListScreen() {
                 )
             }
             Icon(
-                painter = painterResource(R.drawable.ic_nav_tag),
+                painter = if (isFavorite) {
+                    painterResource(R.drawable.ic_star_filled)
+                } else {
+                    painterResource(R.drawable.ic_star)
+                },
                 contentDescription = null,
-                tint = colorResource(R.color.gray_black),
-                modifier = Modifier.align(Alignment.CenterEnd)
+                tint = if (isFavorite) {
+                    colorResource(R.color.blue300)
+                } else {
+                    colorResource(R.color.gray_black)
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) {
+                        if (isFavorite) {
+                            tagViewModel.deleteTagFavorite(tagId, onItemClick = {
+                                if (it == 204) {
+                                    isFavorite = false
+                                }
+                                else {
+                                    isFavorite = true
+                                }
+                            })
+                        }
+                        else {
+                            tagViewModel.postTagFavorite(tagId, onItemClick = {
+                                if (it == 201) {
+                                    isFavorite = true
+                                }
+                                else {
+                                    isFavorite = false
+                                }
+                            })
+                        }
+                    }
             )
         }
         LazyColumn {
@@ -84,6 +138,7 @@ fun TagListScreen() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TagContentCard() {
     val gradientBrush = Brush.verticalGradient(
@@ -114,7 +169,7 @@ fun TagContentCard() {
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    PungTime("14 : 00 : 00")
+//                    PungTime("14 : 00 : 00")
                 }
             }
             ImageLoader("https://cdn.speconomy.com/news/photo/201611/20161102_1_bodyimg_73550.jpg")

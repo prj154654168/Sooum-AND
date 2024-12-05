@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,8 +37,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -48,7 +55,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.sooum.android.R
+import com.sooum.android.ui.common.TagNav
+import com.sooum.android.ui.viewmodel.TagViewModel
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -56,17 +67,34 @@ import dev.chrisbanes.haze.haze
 import dev.chrisbanes.haze.hazeChild
 
 @Composable
-fun TagScreen() {
+fun TagScreen(navController: NavController) {
+    val tagViewModel: TagViewModel = hiltViewModel()
+
     val scrollState = rememberScrollState()
 
     var tagTextField by remember { mutableStateOf("") }
     var bookmarkTag: List<String?> by remember { mutableStateOf(listOf(null)) }
+
+    //임시 주석
+//    var focusState by remember { mutableStateOf(false) }
+//    val focusManager = LocalFocusManager.current
+//    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        tagViewModel.getRecommendTagList()
+    }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 20.dp, end = 20.dp)
             .verticalScroll(scrollState)
+        //임시 주석
+//            .pointerInput(Unit) {
+//                detectTapGestures {
+//                    focusManager.clearFocus()
+//                }
+//            }
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
@@ -86,6 +114,9 @@ fun TagScreen() {
             },
             modifier = Modifier
                 .fillMaxWidth(),
+            // 임시 주석
+//                .onFocusChanged { focusState = it.isFocused }
+//                .focusRequester(focusRequester),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = colorResource(R.color.primary_color),
@@ -118,6 +149,10 @@ fun TagScreen() {
             },
             singleLine = true
         )
+        //임시 주석
+//        if (!focusState) {
+//
+//        }
         if (bookmarkTag != null) {
             Text(
                 text = "내가 즐겨찾기한 태그",
@@ -128,7 +163,9 @@ fun TagScreen() {
                 modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
             )
             for (i in 0..3) {
-                BookmarkTagCardList("", 1)
+                BookmarkTagCardList("", 1, onItemClick = {
+                    navController.navigate(TagNav.TagList.screenRoute)
+                })
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
@@ -140,14 +177,19 @@ fun TagScreen() {
             lineHeight = 24.sp,
             modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
         )
-        for (i in 0..10) {
-            TagCard()
+//        for (i in 0..tagViewModel.recommendTagList.size) {
+//            TagCard()
+//        }
+        tagViewModel.recommendTagList.forEach { tag ->
+            TagCard(tag.tagId, tag.tagContent, tag.tagUsageCnt, tag.links.tagFeed.href, onItemClick = {
+                navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
+            })
         }
     }
 }
 
 @Composable
-fun BookmarkTagCardList(tag: String, tagCount: Int) {
+fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -180,7 +222,15 @@ fun BookmarkTagCardList(tag: String, tagCount: Int) {
                     )
                 }
                 Row(
-                    modifier = Modifier.align(Alignment.TopEnd)
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+//                            임시 주석
+//                            onItemClick(tag)
+                        }
                 ) {
                     Text(
                         text = "더보기",
@@ -260,7 +310,7 @@ fun BookmarkTagCard() {
 }
 
 @Composable
-fun TagCard() {
+fun TagCard(tagId: String, tagContent: String, tagCount: String, tagLink: String, onItemClick: (String) -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
         shape = RoundedCornerShape(12.dp),
@@ -275,7 +325,7 @@ fun TagCard() {
                 modifier = Modifier.align(Alignment.TopStart)
             ) {
                 Text(
-                    text = "#최대글자수최대글자수최대",
+                    text = "#${tagContent}",
                     fontSize = 12.sp,
                     color = colorResource(R.color.gray800),
                     fontWeight = FontWeight.Medium,
@@ -283,7 +333,7 @@ fun TagCard() {
                 )
                 Spacer(modifier = Modifier.width(2.dp))
                 Text(
-                    text = "+9999",
+                    text = "+${tagCount}",
                     fontSize = 12.sp,
                     color = colorResource(R.color.gray500),
                     fontWeight = FontWeight.Normal,
@@ -291,7 +341,14 @@ fun TagCard() {
                 )
             }
             Row(
-                modifier = Modifier.align(Alignment.TopEnd)
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        onItemClick(tagId)
+                    }
             ) {
                 Text(
                     text = "더보기",

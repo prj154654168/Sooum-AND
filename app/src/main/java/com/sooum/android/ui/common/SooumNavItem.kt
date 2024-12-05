@@ -20,6 +20,7 @@ object NavigationRouteName {
     const val AGREE = "약관동의"
     const val NICKNAME = "닉네임"
     const val LOG_IN_PROFILE = "로그인 사진"
+    const val TAG_LIST = "태그 리스트"
 }
 
 sealed class SoonumNav(
@@ -60,4 +61,10 @@ sealed class LogInNav(
     data object Agree : LogInNav(NavigationRouteName.AGREE)
     data object NickName : LogInNav(NavigationRouteName.NICKNAME)
     data object LogInProfile : LogInNav(NavigationRouteName.LOG_IN_PROFILE)
+}
+
+sealed class TagNav(
+    val screenRoute: String
+) {
+    data object TagList : TagNav(NavigationRouteName.TAG_LIST)
 }
