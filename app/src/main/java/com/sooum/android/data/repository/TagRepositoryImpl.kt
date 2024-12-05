@@ -36,7 +36,12 @@ class TagRepositoryImpl @Inject constructor(private val tagApi: TagAPI) : TagRep
         val response = tagApi.deleteTagFavorite(tagId)
 
         if (response.isSuccessful) {
-            return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+            if (response.code() == 204) {
+                return Status(204, "Good~!", "Delete Favorite Tag Successfully")
+            }
+            else {
+                return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+            }
         } else {
             // 실패한 경우의 에러 메시지를 로그로 출력
             val errorMessage = response.errorBody()?.string() ?: "Unknown error"
