@@ -20,6 +20,8 @@ object NavigationRouteName {
     const val AGREE = "약관동의"
     const val NICKNAME = "닉네임"
     const val LOG_IN_PROFILE = "로그인 사진"
+    const val PROFILE_MODIFY = "프로필 수정"
+    const val SETTING = "설정"
 }
 
 sealed class SoonumNav(
@@ -60,4 +62,12 @@ sealed class LogInNav(
     data object Agree : LogInNav(NavigationRouteName.AGREE)
     data object NickName : LogInNav(NavigationRouteName.NICKNAME)
     data object LogInProfile : LogInNav(NavigationRouteName.LOG_IN_PROFILE)
+}
+
+sealed class MyProfile(
+    val screenRoute: String,
+) {
+    data object ProfileModify : LogInNav(NavigationRouteName.PROFILE_MODIFY)
+    data object Setting : LogInNav(NavigationRouteName.SETTING)
+
 }

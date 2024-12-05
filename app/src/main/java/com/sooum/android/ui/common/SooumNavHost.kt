@@ -12,11 +12,13 @@ import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.DetailScreen
 import com.sooum.android.ui.HomeScreen
+import com.sooum.android.ui.ModifyProfileScreen
+import com.sooum.android.ui.MyProfileScreen
 import com.sooum.android.ui.onboarding.LogInProfileScreen
 import com.sooum.android.ui.onboarding.LogInScreen
 import com.sooum.android.ui.onboarding.NickNameScreen
-import com.sooum.android.ui.ProfileScreen
 import com.sooum.android.ui.ReportScreen
+import com.sooum.android.ui.SettingScreen
 import com.sooum.android.ui.TagScreen
 
 @Composable
@@ -47,7 +49,7 @@ fun SoonumNavHost(
             TagScreen()
         }
         composable(route = SoonumNav.Profile.screenRoute) {
-            ProfileScreen()
+            MyProfileScreen(navController)
         }
         composable(route = "${PostNav.Detail.screenRoute}/{cardId}") { backStackEntry ->
             val cardId = backStackEntry.arguments?.getString("cardId")
@@ -68,6 +70,12 @@ fun SoonumNavHost(
         }
         composable(route = LogInNav.LogInProfile.screenRoute) {
             LogInProfileScreen(navController)
+        }
+        composable(route = MyProfile.ProfileModify.screenRoute) {
+            ModifyProfileScreen(navController)
+        }
+        composable(route = MyProfile.Setting.screenRoute) {
+            SettingScreen(navController)
         }
     }
 }

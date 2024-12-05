@@ -66,7 +66,7 @@ class LogInProfileViewModel : ViewModel() {
                     Log.e("convert", b.toString())
                     Log.e("signUpModel", profileBody(nickname, userImageUrl.toString()).toString())
                 } else {
-                    val b = cardAPIInstance.profiles(profileBody(nickname, ""))
+                    val b = cardAPIInstance.profiles(profileBody(nickname, null))
                     Log.e("convert", b.toString())
                     Log.e("signUpModel", profileBody(nickname, userImageUrl.toString()).toString())
                 }
