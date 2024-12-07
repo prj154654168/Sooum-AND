@@ -1,4 +1,4 @@
-package com.sooum.android.ui
+package com.sooum.android.ui.myprofile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,6 +38,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
+import com.sooum.android.ui.ImageLoaderForUrl
 import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.viewmodel.MyProfileViewModel
 

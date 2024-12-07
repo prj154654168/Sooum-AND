@@ -1,4 +1,4 @@
-package com.sooum.android.ui
+package com.sooum.android.ui.myprofile
 
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder

@@ -23,6 +23,11 @@ object NavigationRouteName {
     const val PROFILE_MODIFY = "프로필 수정"
     const val SETTING = "설정"
     const val TAG_LIST = "태그 리스트"
+    const val COMMENT_HISTORY = "덧글 히스토리"
+    const val NOTICE = "공시사항"
+    const val USER_DELETE = "계정 탈퇴"
+    const val USER_CODE_MAKE = "계정 코드 발급"
+    const val USER_CODE_ENTER = "계정 코드 입력"
 }
 
 sealed class SoonumNav(
@@ -71,6 +76,14 @@ sealed class MyProfile(
 ) {
     data object ProfileModify : LogInNav(NavigationRouteName.PROFILE_MODIFY)
     data object Setting : LogInNav(NavigationRouteName.SETTING)
+
+    data object MyCommentHistory : LogInNav(NavigationRouteName.COMMENT_HISTORY)
+    data object Notice : LogInNav(NavigationRouteName.NOTICE)
+    data object UserDelete : LogInNav(NavigationRouteName.USER_DELETE)
+
+    data object MakeUserCode : LogInNav(NavigationRouteName.USER_CODE_MAKE)
+
+    data object EnterUserCode : LogInNav(NavigationRouteName.USER_CODE_ENTER)
 }
 
 sealed class TagNav(
