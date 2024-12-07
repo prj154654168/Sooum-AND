@@ -264,6 +264,9 @@ fun Main(mainViewModel: MainViewModel) {
                     if (SoonumNav.isMainRoute(currentRoute) == 1) {
                         SoonumBottomNavigation(navController)
                     }
+                    if (SoonumNav.isMainRoute(currentRoute) == 4) {
+                        SoonumBottomNavigation(navController)
+                    }
                 },
 
                 topBar = {//top bar 추후 수정 필요

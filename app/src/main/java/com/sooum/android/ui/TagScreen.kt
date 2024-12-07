@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +58,14 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.sooum.android.R
+import com.sooum.android.domain.model.FavoriteTagDataModel
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.viewmodel.TagViewModel
 import dev.chrisbanes.haze.HazeState
@@ -76,84 +84,134 @@ fun TagScreen(navController: NavController) {
     var bookmarkTag: List<String?> by remember { mutableStateOf(listOf(null)) }
 
     //임시 주석
-//    var focusState by remember { mutableStateOf(false) }
-//    val focusManager = LocalFocusManager.current
+    var isFocused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 //    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         tagViewModel.getRecommendTagList()
+        tagViewModel.getFavoriteTag(null)
+    }
+
+    val tagNavController = rememberNavController()
+    val currentBackStackEntry = tagNavController.currentBackStackEntryAsState()
+
+    var isMainTagRoute by remember { mutableStateOf(true) }
+
+    LaunchedEffect(currentBackStackEntry.value) {
+        val currentRoute = currentBackStackEntry.value?.destination?.route
+        if (currentRoute == "MainTagScreen") {
+            isMainTagRoute = true
+        }
+        else {
+            isMainTagRoute = false
+        }
     }
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp)
             .verticalScroll(scrollState)
-        //임시 주석
-//            .pointerInput(Unit) {
-//                detectTapGestures {
-//                    focusManager.clearFocus()
-//                }
-//            }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            }
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-        OutlinedTextField(
-            value = tagTextField,
-            onValueChange = {
-                tagTextField = it
-            },
-            placeholder = {
-                Text(
-                    text = "태그 키워드를 입력해주세요",
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (!isMainTagRoute) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back),
+                    contentDescription = null,
+                    tint = colorResource(R.color.gray_black),
+                    modifier = Modifier.clickable {
+                        tagNavController.navigate("MainTagScreen")
+                        focusManager.clearFocus()
+                        tagTextField = ""
+                        tagViewModel.searchTagList.clear()
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            OutlinedTextField(
+                value = tagTextField,
+                onValueChange = {
+                    tagTextField = it
+                },
+                placeholder = {
+                    Text(
+                        text = "태그 키워드를 입력해주세요",
+                        fontSize = 14.sp,
+                        color = colorResource(R.color.gray500),
+                        fontWeight = FontWeight.Medium,
+                        textDecoration = TextDecoration.None,
+                        lineHeight = 19.6.sp
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // 임시 주석
+                    .onFocusChanged {
+                        if (it.isFocused) tagNavController.navigate("SearchTagScreen")
+                    },
+//                .focusRequester(focusRequester),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colorResource(R.color.primary_color),
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = colorResource(R.color.primary_color),
+                    unfocusedContainerColor = colorResource(R.color.gray50),
+                    focusedContainerColor = Color.White
+
+                ),
+                textStyle = TextStyle(
                     fontSize = 14.sp,
-                    color = colorResource(R.color.gray500),
+                    color = colorResource(R.color.gray800),
                     fontWeight = FontWeight.Medium,
                     textDecoration = TextDecoration.None,
-                    lineHeight = 19.6.sp
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth(),
-            // 임시 주석
-//                .onFocusChanged { focusState = it.isFocused }
-//                .focusRequester(focusRequester),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = colorResource(R.color.primary_color),
-                unfocusedBorderColor = Color.Transparent,
-                cursorColor = colorResource(R.color.primary_color),
-                unfocusedContainerColor = colorResource(R.color.gray50),
-                focusedContainerColor = Color.White
+                    lineHeight = 24.sp
+                ),
+                trailingIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_search),
+                        contentDescription = null,
+                        tint = colorResource(R.color.gray400),
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            tagViewModel.getSearchTag(tagTextField)
+                        }
 
-            ),
-            textStyle = TextStyle(
-                fontSize = 14.sp,
-                color = colorResource(R.color.gray800),
-                fontWeight = FontWeight.Medium,
-                textDecoration = TextDecoration.None,
-                lineHeight = 24.sp
-            ),
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_search),
-                    contentDescription = null,
-                    tint = colorResource(R.color.gray400),
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        //클릭 이벤트
-                    }
+                    )
+                },
+                singleLine = true
+            )
+        }
 
-                )
-            },
-            singleLine = true
-        )
-        //임시 주석
-//        if (!focusState) {
-//
-//        }
-        if (bookmarkTag != null) {
+        NavHost(navController = tagNavController, startDestination = "MainTagScreen") {
+            composable("MainTagScreen") {
+                MainTagScreen(tagViewModel, navController)
+            }
+            composable("SearchTagScreen") {
+                SearchTagScreen(tagViewModel, navController)
+                //여기부터 다시
+            }
+        }
+    }
+}
+
+@Composable
+fun MainTagScreen(tagViewModel: TagViewModel, navController: NavController) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        if (tagViewModel.favoriteTagList.isNotEmpty()) {
             Text(
                 text = "내가 즐겨찾기한 태그",
                 fontSize = 16.sp,
@@ -162,10 +220,14 @@ fun TagScreen(navController: NavController) {
                 lineHeight = 24.sp,
                 modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
             )
-            for (i in 0..3) {
-                BookmarkTagCardList("", 1, onItemClick = {
-                    navController.navigate(TagNav.TagList.screenRoute)
-                })
+            tagViewModel.favoriteTagList.forEach { favoriteTag ->
+                BookmarkTagCardList(favoriteTag,
+                    onItemClick = { tagId ->
+                        navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
+                    },
+                    onCardCLick = { cardId ->
+                        navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
+                    })
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
@@ -177,19 +239,43 @@ fun TagScreen(navController: NavController) {
             lineHeight = 24.sp,
             modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
         )
-//        for (i in 0..tagViewModel.recommendTagList.size) {
-//            TagCard()
-//        }
         tagViewModel.recommendTagList.forEach { tag ->
-            TagCard(tag.tagId, tag.tagContent, tag.tagUsageCnt, tag.links.tagFeed.href, onItemClick = {
-                navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
-            })
+            TagCard(
+                tag.tagId,
+                tag.tagContent,
+                tag.tagUsageCnt,
+                onItemClick = {
+                    navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
+                })
         }
     }
 }
 
 @Composable
-fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Unit) {
+fun SearchTagScreen(tagViewModel: TagViewModel, navController: NavController) {
+    if (tagViewModel.searchTagList.isNotEmpty()) {
+        Column {
+            Spacer(modifier = Modifier.height(28.dp))
+            tagViewModel.searchTagList.forEach { tag ->
+                TagCard(
+                    tag.tagId,
+                    tag.content,
+                    tag.count.toString(),
+                    onItemClick = {
+                        navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BookmarkTagCardList(
+    favoriteTag: FavoriteTagDataModel.Embedded.FavoriteTag,
+    onItemClick: (String) -> Unit,
+    onCardCLick: (String) -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -206,7 +292,7 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                     modifier = Modifier.align(Alignment.TopStart)
                 ) {
                     Text(
-                        text = "#최대글자수최대글자수최대",
+                        text = "#${favoriteTag.tagContent}",
                         fontSize = 12.sp,
                         color = colorResource(R.color.gray800),
                         fontWeight = FontWeight.Medium,
@@ -214,7 +300,7 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        text = "+9999",
+                        text = "+${favoriteTag.tagUsageCnt}",
                         fontSize = 12.sp,
                         color = colorResource(R.color.gray500),
                         fontWeight = FontWeight.Normal,
@@ -229,7 +315,7 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                             indication = null
                         ) {
 //                            임시 주석
-//                            onItemClick(tag)
+                            onItemClick(favoriteTag.id)
                         }
                 ) {
                     Text(
@@ -247,29 +333,50 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                     )
                 }
             }
-            LazyRow(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(5) {
-                    if (it == 0) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
-                    BookmarkTagCard()
-                    if (it == 4) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
-                    else {
-                        Spacer(modifier = Modifier.width(8.dp))
+            if (favoriteTag.previewCards.isNotEmpty()) {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    favoriteTag.previewCards.forEachIndexed { index, previewCard ->
+                        if (index == 0) {
+                            Spacer(modifier = Modifier.width(16.dp))
+                        }
+                        BookmarkTagCard(previewCard, onItemClick = { cardId ->
+                            onCardCLick(cardId)
+                        })
+                        if (index == 4) {
+                            Spacer(modifier = Modifier.width(16.dp))
+                        } else {
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
+//            if (tagViewModel.favoriteTagList[index].previewCards.isNotEmpty()) {
+//                Row {
+//                    for (cardIndex in 0..tagViewModel.favoriteTagList[index].previewCards.size) {
+//                        if (cardIndex == 0) {
+//                            Spacer(modifier = Modifier.width(16.dp))
+//                        }
+//                        BookmarkTagCard()
+//                        if (cardIndex == 4) {
+//                            Spacer(modifier = Modifier.width(16.dp))
+//                        }
+//                        else {
+//                            Spacer(modifier = Modifier.width(8.dp))
+//                        }
+//                    }
+//                }
+//                Spacer(modifier = Modifier.height(16.dp))
+//            }
         }
     }
 }
 
 @Composable
-fun BookmarkTagCard() {
+fun BookmarkTagCard(
+    previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.PreviewCard,
+    onItemClick: (String) -> Unit
+) {
     val hazeState = remember { HazeState() }
 
     Box(
@@ -282,8 +389,14 @@ fun BookmarkTagCard() {
 //                    colors =
 //                )
 //            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) {
+                onItemClick(previewCard.id)
+            }
     ) {
-        ImageLoaderForUrl("https://cdn.speconomy.com/news/photo/201611/20161102_1_bodyimg_73550.jpg")
+        ImageLoaderForUrl(previewCard.backgroundImgUrl.href)
         Box(
             modifier = Modifier
                 .width(120.dp)
@@ -292,15 +405,20 @@ fun BookmarkTagCard() {
 //                .hazeChild(
 //                    state = hazeState
 //                )
-                .background(color = colorResource(R.color.gray500))
+                .background(
+                    Color.Black.copy(alpha = 0.7f),
+                    shape = RoundedCornerShape(20.dp)
+                )
         ) {
             Text(
-                text = "최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수",
+                text = previewCard.content,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 lineHeight = 16.8.sp,
                 color = Color.White,
-                modifier = Modifier.align(Alignment.Center).padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
                 textAlign = TextAlign.Center,
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis
@@ -310,9 +428,16 @@ fun BookmarkTagCard() {
 }
 
 @Composable
-fun TagCard(tagId: String, tagContent: String, tagCount: String, tagLink: String, onItemClick: (String) -> Unit) {
+fun TagCard(
+    tagId: String,
+    tagContent: String,
+    tagCount: String,
+    onItemClick: (String) -> Unit
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, color = colorResource(R.color.gray200))
     ) {
