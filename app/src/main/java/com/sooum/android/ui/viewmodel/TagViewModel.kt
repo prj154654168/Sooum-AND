@@ -7,11 +7,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sooum.android.domain.model.FavoriteTagDataModel
 import com.sooum.android.domain.model.RecommendTagDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.model.TagSummaryDataModel
 import com.sooum.android.domain.usecase.tag.DeleteTagFavoriteUseCase
+import com.sooum.android.domain.usecase.tag.FavoriteTagUseCase
 import com.sooum.android.domain.usecase.tag.PostTagFavoriteUseCase
 import com.sooum.android.domain.usecase.tag.RecommendTagUseCase
 import com.sooum.android.domain.usecase.tag.TagSummaryUseCase
@@ -24,13 +26,16 @@ class TagViewModel @Inject constructor(
     private val recommendTagUseCase: RecommendTagUseCase,
     private val tagSummaryUseCase: TagSummaryUseCase,
     private val postTagFavoriteUseCase: PostTagFavoriteUseCase,
-    private val deleteTagFavoriteUseCase: DeleteTagFavoriteUseCase
+    private val deleteTagFavoriteUseCase: DeleteTagFavoriteUseCase,
+    private val getFavoriteTagUseCase: FavoriteTagUseCase
 ) : ViewModel() {
     var recommendTagList = mutableStateListOf<RecommendTagDataModel.Embedded.RecommendTag>()
         private set
 
     var tagSummary by mutableStateOf<TagSummaryDataModel?>(null)
         private set
+
+    var favoriteTagList = mutableStateListOf<FavoriteTagDataModel.Embedded.FavoriteTag>()
 
     fun getRecommendTagList() {
         viewModelScope.launch {
@@ -89,6 +94,21 @@ class TagViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
                 onItemClick(400)
+            }
+        }
+    }
+
+    fun getFavoriteTag(last: String?) {
+        viewModelScope.launch {
+            try {
+
+                val response = getFavoriteTagUseCase(last)
+
+                favoriteTagList.clear()
+                favoriteTagList.addAll(response.embedded.favoriteTagList)
+            }
+            catch (e: Exception) {
+                Log.e("HomeViewModel", e.toString())
             }
         }
     }

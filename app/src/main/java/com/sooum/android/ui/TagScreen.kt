@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sooum.android.R
+import com.sooum.android.domain.model.FavoriteTagDataModel
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.viewmodel.TagViewModel
 import dev.chrisbanes.haze.HazeState
@@ -76,25 +78,26 @@ fun TagScreen(navController: NavController) {
     var bookmarkTag: List<String?> by remember { mutableStateOf(listOf(null)) }
 
     //임시 주석
-//    var focusState by remember { mutableStateOf(false) }
-//    val focusManager = LocalFocusManager.current
+    var isFocused by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 //    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
         tagViewModel.getRecommendTagList()
+        tagViewModel.getFavoriteTag(null)
     }
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp)
             .verticalScroll(scrollState)
-        //임시 주석
-//            .pointerInput(Unit) {
-//                detectTapGestures {
-//                    focusManager.clearFocus()
-//                }
-//            }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                focusManager.clearFocus()
+            }
     ) {
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
@@ -113,9 +116,9 @@ fun TagScreen(navController: NavController) {
                 )
             },
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
             // 임시 주석
-//                .onFocusChanged { focusState = it.isFocused }
+                .onFocusChanged { isFocused = it.isFocused },
 //                .focusRequester(focusRequester),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -150,46 +153,45 @@ fun TagScreen(navController: NavController) {
             singleLine = true
         )
         //임시 주석
-//        if (!focusState) {
-//
-//        }
-        if (bookmarkTag != null) {
+        if (!isFocused) {
+            if (tagViewModel.favoriteTagList.isNotEmpty()) {
+                Text(
+                    text = "내가 즐겨찾기한 태그",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorResource(R.color.gray_black),
+                    lineHeight = 24.sp,
+                    modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
+                )
+                tagViewModel.favoriteTagList.forEach { favoriteTag ->
+                    BookmarkTagCardList(favoriteTag, onItemClick = { tagId ->
+                        navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
+                    })
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
             Text(
-                text = "내가 즐겨찾기한 태그",
+                text = "추천태그",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colorResource(R.color.gray_black),
                 lineHeight = 24.sp,
                 modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
             )
-            for (i in 0..3) {
-                BookmarkTagCardList("", 1, onItemClick = {
-                    navController.navigate(TagNav.TagList.screenRoute)
-                })
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
-        Text(
-            text = "추천태그",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = colorResource(R.color.gray_black),
-            lineHeight = 24.sp,
-            modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
-        )
 //        for (i in 0..tagViewModel.recommendTagList.size) {
 //            TagCard()
 //        }
-        tagViewModel.recommendTagList.forEach { tag ->
-            TagCard(tag.tagId, tag.tagContent, tag.tagUsageCnt, tag.links.tagFeed.href, onItemClick = {
-                navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
-            })
+            tagViewModel.recommendTagList.forEach { tag ->
+                TagCard(tag.tagId, tag.tagContent, tag.tagUsageCnt, tag.links.tagFeed.href, onItemClick = {
+                    navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
+                })
+            }
         }
     }
 }
 
 @Composable
-fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Unit) {
+fun BookmarkTagCardList(favoriteTag: FavoriteTagDataModel.Embedded.FavoriteTag, onItemClick: (String) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -206,7 +208,7 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                     modifier = Modifier.align(Alignment.TopStart)
                 ) {
                     Text(
-                        text = "#최대글자수최대글자수최대",
+                        text = "#${favoriteTag.tagContent}",
                         fontSize = 12.sp,
                         color = colorResource(R.color.gray800),
                         fontWeight = FontWeight.Medium,
@@ -214,7 +216,7 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Text(
-                        text = "+9999",
+                        text = "+${favoriteTag.tagUsageCnt}",
                         fontSize = 12.sp,
                         color = colorResource(R.color.gray500),
                         fontWeight = FontWeight.Normal,
@@ -229,7 +231,7 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                             indication = null
                         ) {
 //                            임시 주석
-//                            onItemClick(tag)
+                            onItemClick(favoriteTag.id)
                         }
                 ) {
                     Text(
@@ -247,29 +249,46 @@ fun BookmarkTagCardList(tag: String, tagCount: Int, onItemClick: (String) -> Uni
                     )
                 }
             }
-            LazyRow(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(5) {
-                    if (it == 0) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
-                    BookmarkTagCard()
-                    if (it == 4) {
-                        Spacer(modifier = Modifier.width(16.dp))
-                    }
-                    else {
-                        Spacer(modifier = Modifier.width(8.dp))
+            if (favoriteTag.previewCards.isNotEmpty()) {
+                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    favoriteTag.previewCards.forEachIndexed { index, previewCard ->
+                        if (index == 0) {
+                            Spacer(modifier = Modifier.width(16.dp))
+                        }
+                        BookmarkTagCard(previewCard)
+                        if (index == 4) {
+                            Spacer(modifier = Modifier.width(16.dp))
+                        }
+                        else {
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
-            Spacer(modifier = Modifier.height(16.dp))
+//            if (tagViewModel.favoriteTagList[index].previewCards.isNotEmpty()) {
+//                Row {
+//                    for (cardIndex in 0..tagViewModel.favoriteTagList[index].previewCards.size) {
+//                        if (cardIndex == 0) {
+//                            Spacer(modifier = Modifier.width(16.dp))
+//                        }
+//                        BookmarkTagCard()
+//                        if (cardIndex == 4) {
+//                            Spacer(modifier = Modifier.width(16.dp))
+//                        }
+//                        else {
+//                            Spacer(modifier = Modifier.width(8.dp))
+//                        }
+//                    }
+//                }
+//                Spacer(modifier = Modifier.height(16.dp))
+//            }
         }
     }
 }
 
 @Composable
-fun BookmarkTagCard() {
+fun BookmarkTagCard(previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.PreviewCard) {
     val hazeState = remember { HazeState() }
 
     Box(
@@ -283,7 +302,7 @@ fun BookmarkTagCard() {
 //                )
 //            )
     ) {
-        ImageLoaderForUrl("https://cdn.speconomy.com/news/photo/201611/20161102_1_bodyimg_73550.jpg")
+        ImageLoaderForUrl(previewCard.backgroundImgUrl.href)
         Box(
             modifier = Modifier
                 .width(120.dp)
@@ -292,10 +311,13 @@ fun BookmarkTagCard() {
 //                .hazeChild(
 //                    state = hazeState
 //                )
-                .background(color = colorResource(R.color.gray500))
+                .background(
+                    Color.Black.copy(alpha = 0.7f),
+                    shape = RoundedCornerShape(20.dp)
+                )
         ) {
             Text(
-                text = "최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수",
+                text = previewCard.content,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 lineHeight = 16.8.sp,
