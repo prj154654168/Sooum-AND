@@ -14,6 +14,7 @@ import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.domain.model.Status
+import com.sooum.android.domain.model.TagFeedDataModel
 import com.sooum.android.domain.model.logInModel
 import com.sooum.android.domain.model.profileBody
 import com.sooum.android.domain.model.signUpModel
@@ -134,4 +135,12 @@ interface CardApi {
         @Path("cardId") cardId: Long,
         @Body postCommentCardRequest: PostCommentCardRequestDataModel
     ) : Response<Status>
+
+    @GET("/cards/tags/{tagId}")
+    suspend fun getTagFeed(
+        @Path("tagId") tagId: String,
+        @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
+        @Query("lastPk") lastPk: Long? = null
+    ): Response<TagFeedDataModel>
 }
