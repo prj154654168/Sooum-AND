@@ -60,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sooum.android.R
 import com.sooum.android.domain.model.FavoriteTagDataModel
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.viewmodel.TagViewModel
 import dev.chrisbanes.haze.HazeState
@@ -117,7 +118,7 @@ fun TagScreen(navController: NavController) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-            // 임시 주석
+                // 임시 주석
                 .onFocusChanged { isFocused = it.isFocused },
 //                .focusRequester(focusRequester),
             shape = RoundedCornerShape(12.dp),
@@ -164,9 +165,13 @@ fun TagScreen(navController: NavController) {
                     modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
                 )
                 tagViewModel.favoriteTagList.forEach { favoriteTag ->
-                    BookmarkTagCardList(favoriteTag, onItemClick = { tagId ->
-                        navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
-                    })
+                    BookmarkTagCardList(favoriteTag,
+                        onItemClick = { tagId ->
+                            navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
+                        },
+                        onCardCLick = { cardId ->
+                            navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
+                        })
                     Spacer(modifier = Modifier.height(12.dp))
                 }
             }
@@ -182,16 +187,25 @@ fun TagScreen(navController: NavController) {
 //            TagCard()
 //        }
             tagViewModel.recommendTagList.forEach { tag ->
-                TagCard(tag.tagId, tag.tagContent, tag.tagUsageCnt, tag.links.tagFeed.href, onItemClick = {
-                    navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
-                })
+                TagCard(
+                    tag.tagId,
+                    tag.tagContent,
+                    tag.tagUsageCnt,
+                    tag.links.tagFeed.href,
+                    onItemClick = {
+                        navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
+                    })
             }
         }
     }
 }
 
 @Composable
-fun BookmarkTagCardList(favoriteTag: FavoriteTagDataModel.Embedded.FavoriteTag, onItemClick: (String) -> Unit) {
+fun BookmarkTagCardList(
+    favoriteTag: FavoriteTagDataModel.Embedded.FavoriteTag,
+    onItemClick: (String) -> Unit,
+    onCardCLick: (String) -> Unit
+) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -255,11 +269,12 @@ fun BookmarkTagCardList(favoriteTag: FavoriteTagDataModel.Embedded.FavoriteTag, 
                         if (index == 0) {
                             Spacer(modifier = Modifier.width(16.dp))
                         }
-                        BookmarkTagCard(previewCard)
+                        BookmarkTagCard(previewCard, onItemClick = { cardId ->
+                            onCardCLick(cardId)
+                        })
                         if (index == 4) {
                             Spacer(modifier = Modifier.width(16.dp))
-                        }
-                        else {
+                        } else {
                             Spacer(modifier = Modifier.width(8.dp))
                         }
                     }
@@ -288,7 +303,10 @@ fun BookmarkTagCardList(favoriteTag: FavoriteTagDataModel.Embedded.FavoriteTag, 
 }
 
 @Composable
-fun BookmarkTagCard(previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.PreviewCard) {
+fun BookmarkTagCard(
+    previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.PreviewCard,
+    onItemClick: (String) -> Unit
+) {
     val hazeState = remember { HazeState() }
 
     Box(
@@ -301,6 +319,12 @@ fun BookmarkTagCard(previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.Previ
 //                    colors =
 //                )
 //            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) {
+                onItemClick(previewCard.id)
+            }
     ) {
         ImageLoaderForUrl(previewCard.backgroundImgUrl.href)
         Box(
@@ -322,7 +346,9 @@ fun BookmarkTagCard(previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.Previ
                 fontWeight = FontWeight.Medium,
                 lineHeight = 16.8.sp,
                 color = Color.White,
-                modifier = Modifier.align(Alignment.Center).padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
                 textAlign = TextAlign.Center,
                 maxLines = 5,
                 overflow = TextOverflow.Ellipsis
@@ -332,9 +358,17 @@ fun BookmarkTagCard(previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.Previ
 }
 
 @Composable
-fun TagCard(tagId: String, tagContent: String, tagCount: String, tagLink: String, onItemClick: (String) -> Unit) {
+fun TagCard(
+    tagId: String,
+    tagContent: String,
+    tagCount: String,
+    tagLink: String,
+    onItemClick: (String) -> Unit
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 12.dp),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, color = colorResource(R.color.gray200))
     ) {
