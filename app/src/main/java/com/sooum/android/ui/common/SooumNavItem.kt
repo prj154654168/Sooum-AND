@@ -41,6 +41,7 @@ sealed class SoonumNav(
             return when (route) {
                 MAIN_HOME -> 1
                 ADD_POST, REPORT -> 3
+                TAG->4
                 else -> 2
             }//top bar 추후 수정 필요
         }
