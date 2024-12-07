@@ -43,6 +43,8 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sooum.android.R
+import com.sooum.android.User
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.TagViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -54,6 +56,7 @@ fun TagListScreen(navController: NavController, tagId: String) {
 
     LaunchedEffect(Unit) {
         tagViewModel.getTagSummary(tagId)
+        tagViewModel.getTagFeedList(tagId, User.userInfo.latitude, User.userInfo.longitude, null)
     }
     Column(
         modifier = Modifier.fillMaxSize()
@@ -67,7 +70,14 @@ fun TagListScreen(navController: NavController, tagId: String) {
                 painter = painterResource(R.drawable.ic_arrow_back),
                 contentDescription = null,
                 tint = colorResource(R.color.gray_black),
-                modifier = Modifier.align(Alignment.CenterStart)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) {
+                        navController.popBackStack()
+                    }
             )
             Column(
                 modifier = Modifier.align(Alignment.Center),
@@ -131,8 +141,10 @@ fun TagListScreen(navController: NavController, tagId: String) {
             )
         }
         LazyColumn {
-            items(10) {
-                TagContentCard()
+            items(tagViewModel.tagFeedList.size) { index ->
+                TagContentCard(tagViewModel, index, onItemClick = { cardId ->
+                    navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
+                })
             }
         }
     }
@@ -140,7 +152,7 @@ fun TagListScreen(navController: NavController, tagId: String) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TagContentCard() {
+fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String) -> Unit) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -151,7 +163,10 @@ fun TagContentCard() {
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1 / 0.9f)
-            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
+            .clickable {
+                onItemClick(tagViewModel.tagFeedList[index].id)
+            },
         shape = RoundedCornerShape(40.dp)
     ) {
         Box(
@@ -172,7 +187,7 @@ fun TagContentCard() {
 //                    PungTime("14 : 00 : 00")
                 }
             }
-            ImageLoader("https://cdn.speconomy.com/news/photo/201611/20161102_1_bodyimg_73550.jpg")
+            ImageLoader(tagViewModel.tagFeedList[index].backgroundImgUrl.href)
             Box(
                 modifier = Modifier
                     .background(
@@ -187,7 +202,7 @@ fun TagContentCard() {
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
-                    text = "최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수최대글자수",
+                    text = tagViewModel.tagFeedList[index].content,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -219,37 +234,43 @@ fun TagContentCard() {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "30분전",
+                        text = formatTimeDifference(tagViewModel.tagFeedList[index].createdAt),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
                         color = colorResource(R.color.gray_white)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.ic_location),
-                        contentDescription = null,
-                        tint = colorResource(R.color.gray_white),
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "1km",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Normal,
-                        lineHeight = 16.8.sp,
-                        color = colorResource(R.color.gray_white)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    if (tagViewModel.tagFeedList[index].distance != null) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_location),
+                            contentDescription = null,
+                            tint = colorResource(R.color.gray_white),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = formatDistanceInKm(tagViewModel.tagFeedList[index].distance!!),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 16.8.sp,
+                            color = colorResource(R.color.gray_white)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
                     Icon(
                         painter = painterResource(R.drawable.ic_heart),
                         contentDescription = null,
-                        tint = colorResource(R.color.gray_white),
+                        tint = if (tagViewModel.tagFeedList[index].isLiked) {
+                            colorResource(R.color.blue300)
+                        } else {
+                            colorResource(R.color.gray_white)
+                        },
                         modifier = Modifier.size(12.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "24",
+                        text = tagViewModel.tagFeedList[index].likeCnt.toString(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
@@ -259,12 +280,16 @@ fun TagContentCard() {
                     Icon(
                         painter = painterResource(R.drawable.ic_comment),
                         contentDescription = null,
-                        tint = colorResource(R.color.gray_white),
+                        tint = if (tagViewModel.tagFeedList[index].isCommentWritten) {
+                            colorResource(R.color.blue300)
+                        } else {
+                            colorResource(R.color.gray_white)
+                        },
                         modifier = Modifier.size(12.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "06",
+                        text = tagViewModel.tagFeedList[index].commentCnt.toString(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
