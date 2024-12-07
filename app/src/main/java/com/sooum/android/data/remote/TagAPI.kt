@@ -1,5 +1,6 @@
 package com.sooum.android.data.remote
 
+import com.sooum.android.domain.model.FavoriteTagDataModel
 import com.sooum.android.domain.model.RecommendTagDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.domain.model.Status
@@ -16,13 +17,12 @@ import retrofit2.http.Query
 interface TagAPI {
     @GET("/tags/search")
     suspend fun getRelatedTag(
-
         @Query("keyword") keyword: String,
         @Query("size") size: Int
     ): Response<RelatedTagDataModel>
 
     @GET("/tags/recommendation")
-    suspend fun getRecommendTagList() : Response<RecommendTagDataModel>
+    suspend fun getRecommendTagList(): Response<RecommendTagDataModel>
 
     @POST("/tags/{tagId}/favorite")
     suspend fun postTagFavorite(
@@ -37,5 +37,10 @@ interface TagAPI {
     @GET("/tags/{tagId}/summary")
     suspend fun getTagSummary(
         @Path("tagId") tagId: String
-    ) : Response<TagSummaryDataModel>
+    ): Response<TagSummaryDataModel>
+
+    @GET("/tags/favorites")
+    suspend fun getFavoriteTag(
+//        @Path("last") last: String? = null
+    ): Response<FavoriteTagDataModel>
 }
