@@ -12,6 +12,7 @@ import com.sooum.android.domain.usecase.homefeed.LatestFeedUseCase
 import com.sooum.android.domain.usecase.homefeed.PopularityFeedUseCase
 import com.sooum.android.enums.DistanceEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,7 +43,7 @@ class HomeViewModel @Inject constructor(
     var distance50CardList = mutableStateListOf<SortedByDistanceDataModel.Embedded.DistanceFeedCard>()
         private set
 
-    fun fetchLatestCardList(latitude: Double?, longitude: Double?) {
+    fun fetchLatestCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getLatestFeedUseCase(latitude, longitude)
@@ -52,10 +53,14 @@ class HomeViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
         }
     }
 
-    fun fetchPopularityCardList(latitude: Double?, longitude: Double?) {
+    fun fetchPopularityCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getPopularityFeedUseCase(latitude, longitude)
@@ -65,10 +70,14 @@ class HomeViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
         }
     }
 
-    fun fetchDistance1CardList(latitude: Double, longitude: Double) {
+    fun fetchDistance1CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_1)
@@ -78,10 +87,14 @@ class HomeViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
         }
     }
 
-    fun fetchDistance5CardList(latitude: Double, longitude: Double) {
+    fun fetchDistance5CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_5)
@@ -91,10 +104,14 @@ class HomeViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
         }
     }
 
-    fun fetchDistance10CardList(latitude: Double, longitude: Double) {
+    fun fetchDistance10CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_10)
@@ -104,10 +121,14 @@ class HomeViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
         }
     }
 
-    fun fetchDistance20CardList(latitude: Double, longitude: Double) {
+    fun fetchDistance20CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_20)
@@ -117,10 +138,14 @@ class HomeViewModel @Inject constructor(
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
         }
     }
 
-    fun fetchDistance50CardList(latitude: Double, longitude: Double) {
+    fun fetchDistance50CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
                 val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_50)
@@ -129,6 +154,10 @@ class HomeViewModel @Inject constructor(
             }
             catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
+            }
+            finally {
+                delay(500)
+                onFetchFinished()
             }
         }
     }

@@ -1,13 +1,17 @@
 package com.sooum.android.data.repository
 
+import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.remote.TagAPI
+import com.sooum.android.domain.model.FavoriteTagDataModel
 import com.sooum.android.domain.model.RecommendTagDataModel
+import com.sooum.android.domain.model.SearchTagDataModel
 import com.sooum.android.domain.model.Status
+import com.sooum.android.domain.model.TagFeedDataModel
 import com.sooum.android.domain.model.TagSummaryDataModel
 import com.sooum.android.domain.repository.TagRepository
 import javax.inject.Inject
 
-class TagRepositoryImpl @Inject constructor(private val tagApi: TagAPI) : TagRepository {
+class TagRepositoryImpl @Inject constructor(private val tagApi: TagAPI, private val cardApi: CardApi) : TagRepository {
     override suspend fun getRecommendTag(): List<RecommendTagDataModel.Embedded.RecommendTag> {
         val response = tagApi.getRecommendTagList()
 
@@ -51,6 +55,47 @@ class TagRepositoryImpl @Inject constructor(private val tagApi: TagAPI) : TagRep
 
     override suspend fun getTagSummary(tagId: String): TagSummaryDataModel {
         val response = tagApi.getTagSummary(tagId)
+
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+        } else {
+            // 실패한 경우의 에러 메시지를 로그로 출력
+            val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+    }
+
+    override suspend fun getFavoriteTag(last: String?): FavoriteTagDataModel {
+        val response = tagApi.getFavoriteTag()
+
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+        } else {
+            // 실패한 경우의 에러 메시지를 로그로 출력
+            val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+    }
+
+    override suspend fun getTagFeedList(
+        tagId: String,
+        latitude: Double?,
+        longitude: Double?,
+        laskPk: Long?
+    ): TagFeedDataModel {
+        val response = cardApi.getTagFeed(tagId, latitude, longitude, laskPk)
+
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+        } else {
+            // 실패한 경우의 에러 메시지를 로그로 출력
+            val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+    }
+
+    override suspend fun getSearchTag(keyword: String): SearchTagDataModel {
+        val response = tagApi.getSearchTag(keyword)
 
         if (response.isSuccessful) {
             return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리

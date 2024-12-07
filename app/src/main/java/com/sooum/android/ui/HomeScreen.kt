@@ -81,6 +81,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -100,6 +101,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import javax.annotation.meta.When
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -173,17 +175,80 @@ fun HomeScreen(navController: NavHostController) {
             }
     }
 
-    LaunchedEffect(Unit) {
-        homeViewModel.apply {
-            fetchLatestCardList(latitude, longitude)
-            fetchPopularityCardList(latitude, longitude)
+    var initLatest by remember { mutableStateOf(false) }
+    var initPopularity by remember { mutableStateOf(false) }
+    var initDistance1 by remember { mutableStateOf(false) }
+    var initDistance5 by remember { mutableStateOf(false) }
+    var initDistance10 by remember { mutableStateOf(false) }
+    var initDistance20 by remember { mutableStateOf(false) }
+    var initDistance50 by remember { mutableStateOf(false) }
 
-            if (latitude != null && longitude != null) {
-                fetchDistance1CardList(latitude!!, longitude!!)
-                fetchDistance5CardList(latitude!!, longitude!!)
-                fetchDistance10CardList(latitude!!, longitude!!)
-                fetchDistance20CardList(latitude!!, longitude!!)
-                fetchDistance50CardList(latitude!!, longitude!!)
+    LaunchedEffect(selected) {
+        when (selected) {
+            HomeSelectEnum.LATEST -> {
+                if (homeViewModel.latestCardList.isEmpty()) {
+                    homeViewModel.fetchLatestCardList(latitude, longitude) {}
+                }
+            }
+            HomeSelectEnum.POPULARITY -> {
+                if (homeViewModel.popularityCardList.isEmpty()) {
+                    homeViewModel.fetchPopularityCardList(latitude, longitude) {}
+                }
+            }
+            HomeSelectEnum.DISTANCE -> {
+//                if (latitude != null && longitude != null) {
+//                    homeViewModel.apply {
+//                        fetchDistance1CardList(latitude!!, longitude!!) {}
+//                        fetchDistance5CardList(latitude!!, longitude!!) {}
+//                        fetchDistance10CardList(latitude!!, longitude!!) {}
+//                        fetchDistance20CardList(latitude!!, longitude!!) {}
+//                        fetchDistance50CardList(latitude!!, longitude!!) {}
+//                    }
+//                }
+            }
+        }
+//        homeViewModel.apply {
+//            fetchLatestCardList(latitude, longitude) {}
+//            fetchPopularityCardList(latitude, longitude) {}
+//
+//            if (latitude != null && longitude != null) {
+//                fetchDistance1CardList(latitude!!, longitude!!) {}
+//                fetchDistance5CardList(latitude!!, longitude!!) {}
+//                fetchDistance10CardList(latitude!!, longitude!!) {}
+//                fetchDistance20CardList(latitude!!, longitude!!) {}
+//                fetchDistance50CardList(latitude!!, longitude!!) {}
+//            }
+//        }
+    }
+
+    LaunchedEffect(distance) {
+        if (latitude != null && longitude != null) {
+            when (distance) {
+                DistanceEnum.UNDER_1 -> {
+                    if (homeViewModel.distance1CardList.isEmpty()) {
+                        homeViewModel.fetchDistance1CardList(latitude!!, longitude!!) {}
+                    }
+                }
+                DistanceEnum.UNDER_5 -> {
+                    if (homeViewModel.distance5CardList.isEmpty()) {
+                        homeViewModel.fetchDistance5CardList(latitude!!, longitude!!) {}
+                    }
+                }
+                DistanceEnum.UNDER_10 -> {
+                    if (homeViewModel.distance10CardList.isEmpty()) {
+                        homeViewModel.fetchDistance10CardList(latitude!!, longitude!!) {}
+                    }
+                }
+                DistanceEnum.UNDER_20 -> {
+                    if (homeViewModel.distance20CardList.isEmpty()) {
+                        homeViewModel.fetchDistance20CardList(latitude!!, longitude!!) {}
+                    }
+                }
+                DistanceEnum.UNDER_50 -> {
+                    if (homeViewModel.distance50CardList.isEmpty()) {
+                        homeViewModel.fetchDistance50CardList(latitude!!, longitude!!) {}
+                    }
+                }
             }
         }
     }
@@ -246,15 +311,32 @@ fun HomeScreen(navController: NavHostController) {
 
             when (selected) {
                 HomeSelectEnum.LATEST -> {
-                    LatestFeedList(latestScrollState, homeViewModel.latestCardList, showMoveToTopButtonForLatest, navController)
+                    LatestFeedList(latestScrollState, homeViewModel.latestCardList, showMoveToTopButtonForLatest, navController, homeViewModel)
                 }
 
                 HomeSelectEnum.POPULARITY -> {
-                    PopularityFeedList(popularityScrollState, homeViewModel.popularityCardList, showMoveToTopButtonForPopularity)
+                    PopularityFeedList(popularityScrollState, homeViewModel.popularityCardList, showMoveToTopButtonForPopularity, homeViewModel, navController)
                 }
 
                 HomeSelectEnum.DISTANCE -> {
-                    DistanceFeedList(distanceScrollState, distanceCardList, showMoveToTopButtonForDistance)
+                    when (distance) {
+                        DistanceEnum.UNDER_1 -> {
+                            DistanceFeedList(distanceScrollState, homeViewModel.distance1CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                        }
+                        DistanceEnum.UNDER_5 -> {
+                            DistanceFeedList(distanceScrollState, homeViewModel.distance5CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                        }
+                        DistanceEnum.UNDER_10 -> {
+                            DistanceFeedList(distanceScrollState, homeViewModel.distance10CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                        }
+                        DistanceEnum.UNDER_20 -> {
+                            DistanceFeedList(distanceScrollState, homeViewModel.distance20CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                        }
+                        DistanceEnum.UNDER_50 -> {
+                            DistanceFeedList(distanceScrollState, homeViewModel.distance50CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                        }
+                    }
+//                    DistanceFeedList(distanceScrollState, distanceCardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
                 }
             }
 
@@ -280,11 +362,11 @@ fun HomeScreen(navController: NavHostController) {
                         longitude = location?.longitude
                         homeViewModel.apply {
                             if (latitude != null && longitude != null) {
-                                fetchDistance1CardList(latitude!!, longitude!!)
-                                fetchDistance5CardList(latitude!!, longitude!!)
-                                fetchDistance10CardList(latitude!!, longitude!!)
-                                fetchDistance20CardList(latitude!!, longitude!!)
-                                fetchDistance50CardList(latitude!!, longitude!!)
+                                fetchDistance1CardList(latitude!!, longitude!!) {}
+                                fetchDistance5CardList(latitude!!, longitude!!) {}
+                                fetchDistance10CardList(latitude!!, longitude!!) {}
+                                fetchDistance20CardList(latitude!!, longitude!!) {}
+                                fetchDistance50CardList(latitude!!, longitude!!) {}
                             }
                         }
                     }
@@ -308,6 +390,7 @@ fun LatestFeedList(
     latestCardList: List<SortedByLatestDataModel.Embedded.LatestFeedCard>,
     showMoveToTopButton: Boolean,
     navController: NavHostController,
+    homeViewModel: HomeViewModel
 ) {
 //   기존 lazyColumn 때 사용했던 pullRefresh 로직, 임시 보관
     val coroutineScope = rememberCoroutineScope()
@@ -318,10 +401,9 @@ fun LatestFeedList(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            coroutineScope.launch {
-                delay(2000)
+            homeViewModel.fetchLatestCardList(User.userInfo.latitude, User.userInfo.longitude, onFetchFinished = {
                 isRefreshing = false
-            }
+            })
         }
     )
 
@@ -364,7 +446,9 @@ fun LatestFeedList(
 fun PopularityFeedList(
     scrollState: LazyListState,
     popularityCardList: List<SortedByPopularityDataModel.Embedded.PopularFeedCard>,
-    showMoveToTopButton: Boolean
+    showMoveToTopButton: Boolean,
+    homeViewModel: HomeViewModel,
+    navController: NavController
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -374,10 +458,9 @@ fun PopularityFeedList(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            coroutineScope.launch {
-                delay(2000)
+            homeViewModel.fetchPopularityCardList(User.userInfo.latitude, User.userInfo.longitude, onFetchFinished = {
                 isRefreshing = false
-            }
+            })
         }
     )
 
@@ -393,7 +476,7 @@ fun PopularityFeedList(
                 modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
                 items(popularityCardList) { item ->
-                    PopularityContentCard(item)
+                    PopularityContentCard(item, navController)
                 }
             }
             if (showMoveToTopButton) {
@@ -421,7 +504,10 @@ fun PopularityFeedList(
 fun DistanceFeedList(
     scrollState: LazyListState,
     distanceCardList: List<SortedByDistanceDataModel.Embedded.DistanceFeedCard>,
-    showMoveToTopButton: Boolean
+    showMoveToTopButton: Boolean,
+    homeViewModel: HomeViewModel,
+    distance: DistanceEnum,
+    navController: NavController
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -431,9 +517,38 @@ fun DistanceFeedList(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            coroutineScope.launch {
-                delay(2000)
-                isRefreshing = false
+            if (User.userInfo.latitude != null && User.userInfo.longitude != null) {
+                when (distance) {
+                    DistanceEnum.UNDER_1 -> {
+                        homeViewModel.fetchDistance1CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
+                            isRefreshing = false
+                        })
+                    }
+
+                    DistanceEnum.UNDER_5 -> {
+                        homeViewModel.fetchDistance5CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
+                            isRefreshing = false
+                        })
+                    }
+
+                    DistanceEnum.UNDER_10 -> {
+                        homeViewModel.fetchDistance10CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
+                            isRefreshing = false
+                        })
+                    }
+
+                    DistanceEnum.UNDER_20 -> {
+                        homeViewModel.fetchDistance20CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
+                            isRefreshing = false
+                        })
+                    }
+
+                    DistanceEnum.UNDER_50 -> {
+                        homeViewModel.fetchDistance50CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
+                            isRefreshing = false
+                        })
+                    }
+                }
             }
         }
     )
@@ -450,7 +565,7 @@ fun DistanceFeedList(
                 modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
                 items(distanceCardList) { item ->
-                    DistanceContentCard(item)
+                    DistanceContentCard(item, navController)
                 }
             }
             if (showMoveToTopButton) {
@@ -596,9 +711,10 @@ fun LatestContentCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeedCard) {
+fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeedCard, navController: NavController) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -610,7 +726,10 @@ fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeed
             .fillMaxWidth()
             .aspectRatio(1 / 0.9f)
             .padding(start = 20.dp, end = 20.dp, top = 10.dp),
-        shape = RoundedCornerShape(40.dp)
+        shape = RoundedCornerShape(40.dp),
+        onClick = {
+            navController.navigate("${PostNav.Detail.screenRoute}/${item.id}")
+        }
     ) {
         Box(
             modifier = Modifier
@@ -674,9 +793,10 @@ fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeed
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceFeedCard) {
+fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceFeedCard, navController: NavController) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -688,7 +808,10 @@ fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceFeedCar
             .fillMaxWidth()
             .aspectRatio(1 / 0.9f)
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
-        shape = RoundedCornerShape(40.dp)
+        shape = RoundedCornerShape(40.dp),
+        onClick = {
+            navController.navigate("${PostNav.Detail.screenRoute}/${item.id}")
+        }
     ) {
         Box(
             modifier = Modifier
