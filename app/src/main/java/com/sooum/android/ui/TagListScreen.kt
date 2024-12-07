@@ -55,7 +55,9 @@ fun TagListScreen(navController: NavController, tagId: String) {
     var isFavorite by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        tagViewModel.getTagSummary(tagId)
+        tagViewModel.getTagSummary(tagId, onResult = {
+            isFavorite = it
+        })
         tagViewModel.getTagFeedList(tagId, User.userInfo.latitude, User.userInfo.longitude, null)
     }
     Column(
