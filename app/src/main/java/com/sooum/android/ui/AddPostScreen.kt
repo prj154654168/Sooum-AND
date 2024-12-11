@@ -93,6 +93,8 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
@@ -236,6 +238,10 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
             scaffoldState.bottomSheetState.show()
         }
     }
+
+    val fontFamily = FontFamily(
+        Font(R.font.handwrite)
+    )
 
     BottomSheetScaffold(
         topBar = {
@@ -575,13 +581,14 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                         ) {
                             androidx.compose.material3.Text(
                                 text = "손글씨체",
-                                fontSize = 16.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (fontType == FontEnum.SCHOOL_SAFE_CHALKBOARD_ERASER) {
                                     Color.White
                                 } else {
                                     colorResource(R.color.gray01)
-                                }
+                                },
+                                fontFamily = fontFamily
                             )
                         }
                     }
