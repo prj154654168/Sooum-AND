@@ -45,6 +45,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomSheetValue
@@ -96,6 +97,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -164,6 +166,8 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
     var tagTextField by remember { mutableStateOf("") }
 
     val tagList by remember { mutableStateOf(mutableListOf<String>()) }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
@@ -857,7 +861,19 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                         )
                                     }
                                 },
-                                singleLine = true
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        if (tagTextField.isNotBlank()) {
+                                            tagList.add(0, tagTextField)
+                                            tagTextField = ""
+                                        }
+                                        keyboardController?.hide()
+                                    }
+                                ),
                             )
                             Spacer(modifier = Modifier.height(13.dp))
                             if (tagHintList.isNotEmpty()) {
