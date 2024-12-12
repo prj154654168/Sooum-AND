@@ -900,8 +900,3 @@ fun BlockDialog(
         }
     }
 }
-
-enum class ScrollDirection {
-    UP,
-    DOWN
-}

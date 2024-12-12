@@ -56,6 +56,7 @@ class MainViewModel : ViewModel() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun login(android_id: String, context: Context) {
+        Log.e("android_id",android_id)
         viewModelScope.launch {
             try {
                 val a = retrofitInstance.getRsaKey()
@@ -73,14 +74,12 @@ class MainViewModel : ViewModel() {
                     token = b.body()!!.token
                     token?.let {
                         SooumApplication().saveVariable(
-
                             "accessToken",
                             it.accessToken
                         )
                         SooumApplication().saveVariable(
-
                             "refreshToken",
-                            it.accessToken
+                            it.refreshToken
                         )
                     }
                 } else {

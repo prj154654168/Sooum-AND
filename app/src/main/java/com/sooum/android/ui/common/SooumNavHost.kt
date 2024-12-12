@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.DetailScreen
+import com.sooum.android.ui.DifFollowerScreen
+import com.sooum.android.ui.DifFollowingScreen
 import com.sooum.android.ui.FollowScreen
 import com.sooum.android.ui.FollowingScreen
 import com.sooum.android.ui.HomeScreen
@@ -71,6 +73,17 @@ fun SoonumNavHost(
             val memberId = backStackEntry.arguments?.getString("memberId")
             DifProfileScreen(navController, memberId)
         }
+
+        composable(route = "${PostNav.DifFollower.screenRoute}/{profileOwnerPk}") { backStackEntry ->
+            val profileOwnerPk = backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
+            DifFollowerScreen(navController, profileOwnerPk)
+        }
+
+        composable(route = "${PostNav.DifFollowing.screenRoute}/{profileOwnerPk}") { backStackEntry ->
+            val profileOwnerPk = backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
+            DifFollowingScreen(navController, profileOwnerPk)
+        }
+
         composable(route = "${PostNav.Report.screenRoute}/{cardId}") { backStackEntry ->
             val cardId = backStackEntry.arguments?.getString("cardId").toString()
             ReportScreen(navController, cardId)
