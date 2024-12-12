@@ -732,7 +732,7 @@ fun TagItem(item: Tag) {
         color = Gray3
     ) {
         Text(
-            text = item.content,
+            text = "#${item.content}",
             fontSize = 14.sp,
             color = Gray1,
             modifier = Modifier

@@ -118,7 +118,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(46.dp)
+                    .height(60.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
