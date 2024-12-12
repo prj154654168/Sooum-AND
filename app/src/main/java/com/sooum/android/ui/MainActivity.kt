@@ -1,32 +1,42 @@
 package com.sooum.android.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,13 +45,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
@@ -49,12 +63,16 @@ import com.sooum.android.ui.common.SoonumBottomNavigation
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.common.SoonumNavHost
 import com.sooum.android.ui.theme.SoonumTheme
+import com.sooum.android.ui.viewmodel.LogInViewModel
+import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val mainViewModel : MainViewModel by viewModels()
         setContent {
             val navController = rememberNavController()
 
@@ -63,14 +81,15 @@ class MainActivity : ComponentActivity() {
                 startDestination = "splash"
             ) {
                 composable("splash") {
-                    SplashScreen(navController)
+                    SplashScreen(navController,mainViewModel)
                 }
                 composable("main") {
-                    Main()
+                    Main(mainViewModel)
                 }
             }
         }
     }
+
 }
 
 /*
@@ -85,8 +104,47 @@ class MainActivity : ComponentActivity() {
 
 만약 위치 권한이 없을 때, 거리별 탭으로 들어가면 아래 만든 커스텀 다이얼로그 띄우고 취소 누르면 그냥 dismiss, 설정 누르면 위치 권한 dialog 띄우기
  */
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
+    val android_id = Settings.Secure.getString(
+        LocalContext.current.getContentResolver(),
+        Settings.Secure.ANDROID_ID
+    )
+    // val viewModel: LogInViewModel = viewModel()
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        // 서버 호출 (예시로 delay로 가정)
+        mainViewModel.login(android_id, context)
+    }
+    val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // 권한이 허용된 경우 위치를 가져옵니다.
+            fetchSingleLocation(context, fusedLocationProviderClient, onLocationReceived = { location ->
+                User.userInfo.latitude = location?.latitude
+                User.userInfo.longitude = location?.longitude
+                navController.navigate("main") {
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    } // 백 스택 비우기
+                    launchSingleTop = true // 중복된 화면 생성 방지
+                }
+            })
+        }
+        else {
+            navController.navigate("main") {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                } // 백 스택 비우기
+                launchSingleTop = true // 중복된 화면 생성 방지
+            }
+        }
+    }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -102,10 +160,38 @@ fun SplashScreen(navController: NavController) {
             tint = Color.White
         )
     }
-    GetUserLocation { location ->
-        User.userInfo.latitude = location?.latitude
-        User.userInfo.longitude = location?.longitude
-        navController.navigate("main")
+
+
+//    GetUserLocation { location ->
+//        User.userInfo.latitude = location?.latitude
+//        User.userInfo.longitude = location?.longitude
+//        navController.navigate("main")
+//    }
+
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+}
+
+private fun fetchSingleLocation(context: Context, fusedLocationProviderClient: FusedLocationProviderClient, onLocationReceived: (Location?) -> Unit) {
+    if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        fusedLocationProviderClient.getCurrentLocation(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            null // Optional CancellationToken, null로 설정 가능
+        ).addOnSuccessListener { location ->
+            if (location != null) {
+                onLocationReceived(location)
+                Log.d("123", "위도: ${location.latitude}, 경도: ${location.longitude}")
+            }
+        }.addOnFailureListener { exception ->
+            onLocationReceived(null)
+            Log.e("123", "위치를 가져오는 중 오류 발생: ${exception.message}")
+        }
+    } else {
+        onLocationReceived(null)
+        Toast.makeText(context, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+
     }
 }
 
@@ -164,7 +250,7 @@ fun GetUserLocation(onLocationReceived: (Location?) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Main() {
+fun Main(mainViewModel: MainViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -178,6 +264,9 @@ fun Main() {
             Scaffold(
                 bottomBar = {
                     if (SoonumNav.isMainRoute(currentRoute) == 1) {
+                        SoonumBottomNavigation(navController)
+                    }
+                    if (SoonumNav.isMainRoute(currentRoute) == 4) {
                         SoonumBottomNavigation(navController)
                     }
                 },
@@ -215,18 +304,18 @@ fun Main() {
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding))
 
-                SoonumNavHost(
-                    navController = navController,
-                    startDestination = LogInNav.LogIn.screenRoute
-                )
+                if (mainViewModel.login == 1) {
+                    SoonumNavHost(
+                        navController = navController,
+                        startDestination = SoonumNav.Home.screenRoute
+                    )
+                }else{
+                    SoonumNavHost(
+                        navController = navController,
+                        startDestination = LogInNav.LogIn.screenRoute
+                    )
+                }
             }
         }
-
     }
-}
-
-
-@Composable
-fun TagScreen() {
-    Text(text = "Tag")
 }

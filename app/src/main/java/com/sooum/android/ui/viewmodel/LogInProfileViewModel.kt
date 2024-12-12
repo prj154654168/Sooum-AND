@@ -25,7 +25,7 @@ class LogInProfileViewModel : ViewModel() {
 
     fun getImageUrl(byteArray: ByteArray) {
         viewModelScope.launch {
-            val urlResponse = cardAPIInstance.getImageUrl().body()
+            val urlResponse = cardAPIInstance.getProfileImageUrl().body()
             Log.e("response", urlResponse.toString())
 
             if (urlResponse != null) {
@@ -58,12 +58,18 @@ class LogInProfileViewModel : ViewModel() {
 
     }
 
-    fun profiles(nickname: String) {
+    fun profiles(nickname: String, mode: Int) {
         viewModelScope.launch {
             try {
-                val b = cardAPIInstance.profiles(profileBody(nickname, userImageUrl.toString()))
-                Log.e("convert", b.toString())
-                Log.e("signUpModel", profileBody(nickname, userImageUrl.toString()).toString())
+                if (mode == 1) {
+                    val b = cardAPIInstance.profiles(profileBody(nickname, userImageUrl.toString()))
+                    Log.e("convert", b.toString())
+                    Log.e("signUpModel", profileBody(nickname, userImageUrl.toString()).toString())
+                } else {
+                    val b = cardAPIInstance.profiles(profileBody(nickname, null))
+                    Log.e("convert", b.toString())
+                    Log.e("signUpModel", profileBody(nickname, userImageUrl.toString()).toString())
+                }
             } catch (E: Exception) {
                 println(E)
             }

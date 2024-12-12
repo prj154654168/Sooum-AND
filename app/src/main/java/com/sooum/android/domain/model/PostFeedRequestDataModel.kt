@@ -13,5 +13,5 @@ data class PostFeedRequestDataModel (
     val font: FontEnum,
     val imgType: ImgTypeEnum,
     val imgName: String,
-    val feedTags: List<String>
+    val feedTags: List<String>? = null
 )

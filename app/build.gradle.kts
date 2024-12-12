@@ -13,9 +13,8 @@ android {
         applicationId = "com.sooum.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "2"
-
+        versionCode = 5
+        versionName = "2.12"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -87,6 +86,7 @@ dependencies {
     //viewmodel livedata(추후에 변경할듯)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.compose.runtime:runtime-livedata:1.3.2")
+    implementation ("androidx.activity:activity-ktx:1.1.0")
 
     //GPS
     implementation("com.google.android.gms:play-services-location:21.3.0")
@@ -111,4 +111,7 @@ dependencies {
     // OkHttp 및 HttpLoggingInterceptor
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
+
+    //haze
+    implementation("dev.chrisbanes.haze:haze:1.0.2")
 }

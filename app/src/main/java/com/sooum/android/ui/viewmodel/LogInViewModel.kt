@@ -63,7 +63,6 @@ class LogInViewModel : ViewModel() {
                 key = a.body()!!.publicKey
                 encryptedDeviceId = convert(android_id)
                 SooumApplication().saveVariable(
-
                     "encryptedDeviceId",
                     encryptedDeviceId
                 )

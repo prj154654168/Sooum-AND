@@ -25,6 +25,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.ReportViewModel
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,7 +63,24 @@ fun ReportScreen(
     if (showDialog) {
         ReportDialog(navController) { showDialog = false }
     }
-
+    var showDialog2 by remember { mutableStateOf(false) }
+    if (showDialog2) {
+        ReportDialog2(navController) { showDialog2 = false }
+    }
+    var isReady by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        // 2초 동안 대기
+        delay(2000)
+        isReady = true
+    }
+    LaunchedEffect(reportViewModel.httpCode) {
+        if (reportViewModel.httpCode == 200) {
+            showDialog = true
+        }
+        if (reportViewModel.httpCode == 400) {
+            showDialog2 = true
+        }
+    }
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -160,11 +179,19 @@ fun ReportScreen(
 
 
             }
+
             Button(
                 enabled = selectedOption != null,
                 onClick = {
-                    reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
-                    showDialog = true
+                    if (isReady) {
+                        reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
+//                        if (reportViewModel.httpCode != 400) {
+//                            showDialog = true
+//                        } else {
+//                            showDialog2 = true
+//                        }
+                        //navController.popBackStack()
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,6 +207,7 @@ fun ReportScreen(
     }
 
 }
+
 
 @Composable
 fun ReportButton(
@@ -263,6 +291,67 @@ fun ReportDialog(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "신고 내용을 확인한 후 조치할 예정이에요",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(R.color.gray01)
+                )
+                Spacer(modifier = Modifier.height(22.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            showDialog()
+                            navController.popBackStack()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary_color)),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(
+                            text = "확인",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReportDialog2(
+    navController: NavHostController,
+    showDialog: () -> Unit,
+) {
+    Dialog(onDismissRequest = {
+
+    }) {
+        Card(
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    top = 24.dp,
+                    bottom = 14.dp,
+                    start = 14.dp,
+                    end = 14.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "신고가 처리 중이에요",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorResource(R.color.black)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "이전에 신고가 접수되어 처리 중이에요",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = colorResource(R.color.gray01)

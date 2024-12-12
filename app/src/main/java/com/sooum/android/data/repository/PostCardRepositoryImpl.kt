@@ -56,7 +56,7 @@ class PostCardRepositoryImpl @Inject constructor(
         font: FontEnum,
         imgType: ImgTypeEnum,
         imgName: String,
-        feedTags: List<String>,
+        feedTags: List<String>?,
     ): Status {
         val response = cardApi.postFeedCard(
 

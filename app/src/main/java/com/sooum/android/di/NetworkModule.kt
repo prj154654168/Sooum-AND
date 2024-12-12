@@ -6,6 +6,7 @@ import com.sooum.android.Constants.BASE_URL
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.AuthInterceptor
 import com.sooum.android.data.remote.CardApi
+import com.sooum.android.data.remote.ProfileApi
 import com.sooum.android.data.remote.ReportApi
 import com.sooum.android.data.remote.TagAPI
 import dagger.Module
@@ -59,5 +60,11 @@ object NetworkModule {
     @Provides
     fun getTagApiInstance(retrofit: Retrofit) : TagAPI {
         return retrofit.create(TagAPI::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun getProfileApiInstance(retrofit: Retrofit) : ProfileApi {
+        return retrofit.create(ProfileApi::class.java)
     }
 }
