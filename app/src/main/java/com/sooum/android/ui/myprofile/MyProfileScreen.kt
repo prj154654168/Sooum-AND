@@ -76,7 +76,7 @@ fun MyProfileScreen(navController: NavHostController) {
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "TOTAL ${data.totalVisitorCnt} TODAY ${data.currentDayVisitors}",
-                            fontSize = 16.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
                             color = colorResource(R.color.gray400),
                             lineHeight = 16.8.sp

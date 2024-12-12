@@ -37,13 +37,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.viewmodel.UserDeleteViewModel
 
 @Composable
 fun UserDeleteScreen(navController: NavHostController) {
 
     val viewModel: UserDeleteViewModel = hiltViewModel()
-    val activity = LocalContext.current as? Activity
     var isChecked by remember { mutableStateOf(false) }
 
     Box(
@@ -93,7 +93,9 @@ fun UserDeleteScreen(navController: NavHostController) {
                 text = "몇가지 안내가 있어요",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 20.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 20.dp)
             )
 
             Box(
@@ -136,7 +138,13 @@ fun UserDeleteScreen(navController: NavHostController) {
         }
         Button(
             onClick = {
-                viewModel.deleteUser(activity)//TODO 이래도 되나??
+                navController.navigate(LogInNav.LogIn.screenRoute) {
+                    viewModel.deleteUser()
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    } // 백 스택 비우기
+                    launchSingleTop = true // 중복된 화면 생성 방지
+                }
             },
             modifier = Modifier
                 .padding(16.dp)

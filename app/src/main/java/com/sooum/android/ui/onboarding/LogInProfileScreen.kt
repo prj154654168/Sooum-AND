@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +48,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.Utils
@@ -64,6 +63,7 @@ fun LogInProfileScreen(navController: NavHostController) {
     val context = LocalContext.current
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
+
     val imageCropLauncher =
         rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
             if (result.isSuccessful) {
@@ -87,21 +87,30 @@ fun LogInProfileScreen(navController: NavHostController) {
                         byteArrayOutputStream
                     )
                     val byteArray = byteArrayOutputStream.toByteArray()
-                    viewModel.getImageUrl(byteArray)
+                    viewModel.imgByteArray = byteArray
+                    //viewModel.getImageUrl(byteArray)
                 }
 
             } else {
                 Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
             }
         }
-
+    if (viewModel.isLoading == 1) {
+        navController.navigate(SoonumNav.Home.screenRoute) {
+            popUpTo(navController.graph.id) {
+                inclusive = true
+            } // 백 스택 비우기
+            launchSingleTop = true // 중복된 화면 생성 방지
+        }
+        viewModel.isLoading = 2
+    }
 
 
     Scaffold(topBar = {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowForward,
+                    Icons.Default.ArrowBack,
                     contentDescription = "뒤로가기",
                 )
             }
@@ -139,6 +148,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     )
                                     imageCropLauncher.launch(cropOptions)
                                 }
+                                .size(128.dp)
                                 .align(Alignment.Center),
                         )
                     } else {
@@ -156,8 +166,9 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     )
                                     imageCropLauncher.launch(cropOptions)
                                 }
-                                .clip(CircleShape)
-                                .aspectRatio(1f),
+                                .size(128.dp)
+                                .aspectRatio(1f)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -183,14 +194,9 @@ fun LogInProfileScreen(navController: NavHostController) {
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     onClick = {
                         viewModel.profiles(
-                            SooumApplication().getVariable("nickName").toString(),1
+                            SooumApplication().getVariable("nickName").toString(), 1
                         )
-                        navController.navigate(SoonumNav.Home.screenRoute) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = true
-                            } // 백 스택 비우기
-                            launchSingleTop = true // 중복된 화면 생성 방지
-                        }
+
                     }) {
                     Text(text = "확인")
                 }
@@ -200,7 +206,9 @@ fun LogInProfileScreen(navController: NavHostController) {
                         .padding(20.dp)
                         .clickable {
                             viewModel.profiles(
-                                SooumApplication().getVariable("nickName").toString(),2
+                                SooumApplication()
+                                    .getVariable("nickName")
+                                    .toString(), 2
                             )
                             navController.navigate(SoonumNav.Home.screenRoute) {
                                 popUpTo(navController.graph.id) {

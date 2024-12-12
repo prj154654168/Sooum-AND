@@ -87,13 +87,24 @@ fun ModifyProfileScreen(navController: NavHostController) {
                         byteArrayOutputStream
                     )
                     val byteArray = byteArrayOutputStream.toByteArray()
-                    viewModel.getImageUrl(byteArray)
+                    viewModel.imgByteArray = byteArray
                 }
 
             } else {
                 Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
             }
         }
+
+
+    if (viewModel.isLoading == 1) {
+        navController.navigate(SoonumNav.Profile.screenRoute) {
+            popUpTo(navController.graph.id) {
+                inclusive = true
+            } // 백 스택 비우기
+            launchSingleTop = true // 중복된 화면 생성 방지
+        }
+        viewModel.isLoading = 2
+    }
 
     Box(
         modifier = Modifier
@@ -107,7 +118,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(46.dp)
+                    .height(60.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
@@ -125,7 +136,8 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     lineHeight = 24.sp,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
                         .padding(20.dp)
                 )
             }
@@ -187,7 +199,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
             OutlinedTextField(
                 value = nicknameTextField,
                 onValueChange = {
-                    if (nicknameTextField.length < 8) {
+                    if (it.length <= 8) {
                         nicknameTextField = it
                     }
                 },
@@ -211,7 +223,6 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     cursorColor = colorResource(R.color.primary_color),
                     unfocusedContainerColor = colorResource(R.color.gray50),
                     focusedContainerColor = Color.White
-
                 ),
                 textStyle = TextStyle(
                     fontSize = 16.sp,
@@ -272,11 +283,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                                 if (selectedImageBitmap == null) 2 else 1
                             )
                         }
-                        navController.navigate(SoonumNav.Profile.screenRoute){
-                            popUpTo(SoonumNav.Home.screenRoute) { inclusive = false } // 홈 화면 제외
-                            launchSingleTop = true // 현재 화면이 백스택에 중복되지 않도록
 
-                        }
                     },
                 color = if (nicknameTextField.isNotEmpty()) colorResource(R.color.blue300) else colorResource(
                     id = R.color.gray500

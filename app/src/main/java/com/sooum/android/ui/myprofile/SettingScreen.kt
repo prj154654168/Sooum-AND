@@ -1,5 +1,6 @@
 package com.sooum.android.ui.myprofile
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,8 +8,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -77,11 +81,29 @@ fun SettingScreen(navController: NavHostController) {
                     color = Color.Gray,
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
-
                 Switch(
                     checked = isChecked,
-                    onCheckedChange = { isChecked = it },
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    onCheckedChange = {
+                        isChecked = it
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        uncheckedThumbColor = Color.White,
+                        checkedTrackColor = colorResource(R.color.primary_color),
+                        uncheckedTrackColor = colorResource(R.color.gray03),
+                        uncheckedBorderColor = Color.Transparent,
+                        checkedBorderColor = Color.Transparent
+                    ),
+                    thumbContent = {
+                        Canvas(modifier = Modifier.size(20.dp)) {
+                            drawCircle(color = Color.White)
+                        }
+                    },
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(24.dp)
+                        .padding(end = 10.dp)
+                        .align(Alignment.CenterEnd)
                 )
             }
             SettingRow("작성된 덧글 히스토리") {
