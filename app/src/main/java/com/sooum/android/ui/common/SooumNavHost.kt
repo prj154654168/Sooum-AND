@@ -10,7 +10,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.DetailScreen
+import com.sooum.android.ui.FollowScreen
+import com.sooum.android.ui.FollowingScreen
 import com.sooum.android.ui.HomeScreen
+import com.sooum.android.ui.DifProfileScreen
 import com.sooum.android.ui.myprofile.ModifyProfileScreen
 import com.sooum.android.ui.myprofile.MyProfileScreen
 import com.sooum.android.ui.ReportScreen
@@ -64,6 +67,10 @@ fun SoonumNavHost(
             val cardId = backStackEntry.arguments?.getString("cardId")
             DetailScreen(navController, cardId)
         }
+        composable(route = "${PostNav.DifProfile.screenRoute}/{memberId}") { backStackEntry ->
+            val memberId = backStackEntry.arguments?.getString("memberId")
+            DifProfileScreen(navController, memberId)
+        }
         composable(route = "${PostNav.Report.screenRoute}/{cardId}") { backStackEntry ->
             val cardId = backStackEntry.arguments?.getString("cardId").toString()
             ReportScreen(navController, cardId)
@@ -101,6 +108,12 @@ fun SoonumNavHost(
         }
         composable(route = MyProfile.EnterUserCode.screenRoute) {
             EnterUserCodeScreen(navController)
+        }
+        composable(route = MyProfile.Follower.screenRoute) {
+            FollowScreen(navController)
+        }
+        composable(route = MyProfile.Following.screenRoute) {
+            FollowingScreen(navController)
         }
         composable(route = "${TagNav.TagList.screenRoute}/{tagId}") { backStackEntry ->
             val tagId = backStackEntry.arguments?.getString("tagId").toString()

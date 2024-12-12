@@ -17,6 +17,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,18 +47,39 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
-import com.sooum.android.domain.model.FollowerDataModel
+import com.sooum.android.domain.model.FollowingDataModel
+import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.SoonumNav
-import com.sooum.android.ui.viewmodel.FollowerViewModel
+import com.sooum.android.ui.theme.Gray3
+import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.viewmodel.FollowingViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun FollowScreen(navController: NavHostController) {
-    val viewModel: FollowerViewModel = hiltViewModel()
+fun FollowingScreen(navController: NavHostController) {
+
     BackHandler {
         navController.navigate(SoonumNav.Profile.screenRoute) {
             popUpTo(SoonumNav.Profile.screenRoute) { inclusive = true }
         }
     }
+    val viewModel: FollowingViewModel = hiltViewModel()
+
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            coroutineScope.launch {
+                viewModel.getFollowing()
+                isRefreshing = false
+            }
+        }
+    )
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -71,7 +98,7 @@ fun FollowScreen(navController: NavHostController) {
                     .clickable { navController.popBackStack() }
             )
             Text(
-                text = "팔로워 (${viewModel.followerList.value.size})",
+                text = "팔로잉 (${viewModel.followingList.value.size})",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,
                 lineHeight = 24.sp,
@@ -79,18 +106,28 @@ fun FollowScreen(navController: NavHostController) {
                 modifier = Modifier.align(Alignment.TopCenter)
             )
         }
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(viewModel.followerList.value) { index ->
-                FollowItem(index, viewModel)
+        Box(Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState)
+            ) {
+                items(viewModel.followingList.value) { index ->
+                    FollowingItem(index, viewModel)
+                }
             }
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Primary
+            )
         }
     }
 }
 
 @Composable
-fun FollowItem(item: FollowerDataModel.FollowerInfo, viewModel: FollowerViewModel) {
+fun FollowingItem(item: FollowingDataModel.FollowingInfo, viewModel: FollowingViewModel) {
 
     var isFollow by remember { mutableStateOf(item.isFollowing) }
 
@@ -110,7 +147,7 @@ fun FollowItem(item: FollowerDataModel.FollowerInfo, viewModel: FollowerViewMode
             } else {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(item.backgroundImgUrl)
+                        .data(item.backgroundImgUrl.href)
                         .build(),
                     contentDescription = "카드 이미지",
                     modifier = Modifier
@@ -130,35 +167,47 @@ fun FollowItem(item: FollowerDataModel.FollowerInfo, viewModel: FollowerViewMode
                 color = colorResource(R.color.gray700)
             )
         }
-        Surface(
-            shape = RoundedCornerShape(71.dp),
-            color = if (!isFollow) colorResource(R.color.blue300) else colorResource(R.color.gray200),
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 20.dp)
-                .clickable {
-                    isFollow = if (!isFollow) {
+        if (!isFollow) {
+            Surface(
+                shape = RoundedCornerShape(71.dp),
+                color = colorResource(R.color.blue300),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 20.dp)
+                    .clickable {
                         viewModel.postFollow(item.id.toLong())
-                        !isFollow
-                    } else {
-                        viewModel.deleteFollow(item.id.toLong())
-                        !isFollow
+                        isFollow = !isFollow
                     }
-                }
-        ) {
-            Text(
-                text = if (!isFollow) "팔로우" else "팔로잉",
-                fontWeight = FontWeight.Medium,
-                fontSize = 12.sp,
-                lineHeight = 16.8.sp,
-                color = if (!isFollow) Color.White else Color.Gray,
-                modifier = Modifier.padding(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 4.5.dp,
-                    bottom = 4.5.dp
+            ) {
+                Text(
+                    text = "팔로우",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    lineHeight = 16.8.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        top = 4.5.dp,
+                        bottom = 4.5.dp
+                    )
                 )
+            }
+        } else {
+            Text(
+                text = "팔로우 취소",
+                color = Gray3,
+                fontSize = 12.sp,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .clickable {
+                        viewModel.deleteFollow(item.id.toLong())
+                        isFollow = !isFollow
+                    }
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 20.dp)
             )
         }
+
     }
 }

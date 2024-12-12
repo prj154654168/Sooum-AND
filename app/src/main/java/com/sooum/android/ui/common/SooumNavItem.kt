@@ -28,6 +28,9 @@ object NavigationRouteName {
     const val USER_DELETE = "계정 탈퇴"
     const val USER_CODE_MAKE = "계정 코드 발급"
     const val USER_CODE_ENTER = "계정 코드 입력"
+    const val FOLLOWER = "팔로워"
+    const val FOLLOWING = "팔로잉"
+    const val DIF_PROFILE = "다른 프로필"
 }
 
 sealed class SoonumNav(
@@ -48,7 +51,7 @@ sealed class SoonumNav(
             return when (route) {
                 MAIN_HOME -> 1
                 ADD_POST, REPORT -> 3
-                TAG->4
+                TAG, PROFILE ->4
                 else -> 2
             }//top bar 추후 수정 필요
         }
@@ -60,6 +63,8 @@ sealed class PostNav(
 ) {
     data object Detail : PostNav(NavigationRouteName.DETAIL)
     data object Report : PostNav(NavigationRouteName.REPORT)
+    data object DifProfile : PostNav(NavigationRouteName.DIF_PROFILE)
+
 }
 
 sealed class LogInNav(
@@ -85,6 +90,10 @@ sealed class MyProfile(
     data object MakeUserCode : LogInNav(NavigationRouteName.USER_CODE_MAKE)
 
     data object EnterUserCode : LogInNav(NavigationRouteName.USER_CODE_ENTER)
+
+    data object Follower : LogInNav(NavigationRouteName.FOLLOWER)
+
+    data object Following : LogInNav(NavigationRouteName.FOLLOWING)
 }
 
 sealed class TagNav(

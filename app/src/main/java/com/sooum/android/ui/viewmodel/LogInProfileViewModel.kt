@@ -25,7 +25,7 @@ class LogInProfileViewModel : ViewModel() {
 
     fun getImageUrl(byteArray: ByteArray) {
         viewModelScope.launch {
-            val urlResponse = cardAPIInstance.getImageUrl().body()
+            val urlResponse = cardAPIInstance.getProfileImageUrl().body()
             Log.e("response", urlResponse.toString())
 
             if (urlResponse != null) {

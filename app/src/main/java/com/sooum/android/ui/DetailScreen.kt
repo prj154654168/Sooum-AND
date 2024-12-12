@@ -8,8 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +19,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,10 +52,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -64,6 +67,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
@@ -75,7 +80,6 @@ import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -88,13 +92,17 @@ fun DetailScreen(
 ) {
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude
-    cardId?.let {
-        Log.e("latitude", latitude.toString())
-        Log.e("latitude", longitude.toString())
-        viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
-        viewModel.getDetailCardLikeCommentCount(it.toLong())
-        viewModel.getDetailCommentCard(it.toLong(), latitude!!, longitude!!)
+    LaunchedEffect(Unit) {
+        // 서버 호출 (예시로 delay로 가정)
+        cardId?.let {
+            Log.e("latitude", latitude.toString())
+            Log.e("latitude", longitude.toString())
+            viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
+            viewModel.getDetailCardLikeCommentCount(it.toLong())
+            viewModel.getDetailCommentCard(it.toLong(), latitude!!, longitude!!)
+        }
     }
+
 
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -193,35 +201,30 @@ fun DetailScreen(
             isRefreshing = true
             coroutineScope.launch {
                 cardId?.let {
-                    //viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
-                    //viewModel.getDetailCardLikeCommentCount(it.toLong())
+                    viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
+                    viewModel.getDetailCardLikeCommentCount(it.toLong())
                 }
                 isRefreshing = false
             }
 
         }
     )
-    var dragProgress by remember { mutableStateOf(0f) }
+
     if (data != null) {
         Scaffold(topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_profile_logo),
-                            contentDescription = "앱 로고",
-                            modifier = Modifier
-                                .width(32.dp)
-                                .height(32.dp)
-                                .padding(end = 8.dp)
-                        )
-                        Text(
-                            text = data.member.nickname,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "home",
+                            colorFilter = ColorFilter.tint(colorResource(R.color.black))
                         )
                     }
-
                 },
                 actions = {
                     IconButton(onClick = {
@@ -273,7 +276,7 @@ fun DetailScreen(
 //                            },
 //                        )
 //                    }
-                .pullRefresh(pullRefreshState)
+                    .pullRefresh(pullRefreshState)
             ) {
 
                 Column(
@@ -422,7 +425,6 @@ fun DetailScreen(
                                     overflow = TextOverflow.Ellipsis,
                                     lineHeight = 28.8.sp,
                                 )
-
                             }
                             Box(
                                 modifier = Modifier
@@ -433,10 +435,50 @@ fun DetailScreen(
                             )
                             Box(
                                 modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .padding(end = 26.dp, bottom = 24.dp)
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter)
+                                    .padding(start = 26.dp, end = 26.dp, bottom = 24.dp)
                             ) {
+                                Row(modifier = Modifier.align(Alignment.BottomStart)) {
+                                    if (data.member.profileImgUrl == null) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.ic_profile_logo),
+                                            contentDescription = "앱 로고",
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clickable {
+                                                    navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
+                                                }
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(data.member.profileImgUrl.href)
+                                                .build(),
+                                            contentDescription = "카드 이미지",
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clickable {
+                                                    navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
+                                                }
+                                                .clip(CircleShape)
+                                                .aspectRatio(1f),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+
+                                    Text(
+                                        text = data.member.nickname,
+                                        fontSize = 10.sp,
+                                        color = Color.White,
+                                        fontWeight = FontWeight(600),
+                                        modifier = Modifier
+                                            .align(Alignment.CenterVertically)
+                                            .padding(start = 8.dp)
+                                    )
+                                }
                                 Row(
+                                    modifier = Modifier.align(Alignment.BottomEnd),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     if (data.distance != 0.0) {

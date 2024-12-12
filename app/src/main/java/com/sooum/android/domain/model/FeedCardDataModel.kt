@@ -42,7 +42,10 @@ data class Links(
 data class Member(
     val id: String,
     val nickname: String,
-    val profileImgUrl: Any,
+    val profileImgUrl: ProfileImgUrl?,
+)
+data class ProfileImgUrl(
+    val href: String,
 )
 
 data class Status(

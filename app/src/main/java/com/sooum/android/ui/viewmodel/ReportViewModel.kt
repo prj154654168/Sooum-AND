@@ -19,8 +19,9 @@ class ReportViewModel @Inject constructor(private val postReportUserUseCase: Rep
     fun reportUser(cardId: Long, reportTypeEnum: ReportTypeEnum) {
         viewModelScope.launch {
             try {
+                Log.e("postReportUserUseCase",httpCode.toString())
                 httpCode = postReportUserUseCase(cardId, reportTypeEnum).code()
-                Log.e("httpCode",httpCode.toString())
+                Log.e("postReportUserUseCase",httpCode.toString())
             } catch (E: Exception) {
                 println(E)
             }

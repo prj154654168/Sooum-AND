@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -106,6 +107,7 @@ fun MyProfileScreen(navController: NavHostController) {
                             contentDescription = "카드 이미지",
                             modifier = Modifier
                                 .clip(CircleShape)
+                                .size(128.dp)
                                 .aspectRatio(1f)
                                 .align(Alignment.Center),
                             contentScale = ContentScale.Crop,
@@ -121,7 +123,9 @@ fun MyProfileScreen(navController: NavHostController) {
                     }
                 }//이미지
                 Row(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Column(
@@ -146,7 +150,11 @@ fun MyProfileScreen(navController: NavHostController) {
                     }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.width(48.dp)
+                        modifier = Modifier
+                            .width(48.dp)
+                            .clickable {
+                                navController.navigate(MyProfile.Following.screenRoute)
+                            }
                     ) {
                         Text(
                             data.followingCnt,
@@ -166,7 +174,11 @@ fun MyProfileScreen(navController: NavHostController) {
                     }
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.width(48.dp)
+                        modifier = Modifier
+                            .width(48.dp)
+                            .clickable {
+                                navController.navigate(MyProfile.Follower.screenRoute)
+                            }
                     ) {
                         Text(
                             data.followerCnt,

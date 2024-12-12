@@ -73,6 +73,14 @@ fun ReportScreen(
         delay(2000)
         isReady = true
     }
+    LaunchedEffect(reportViewModel.httpCode) {
+        if (reportViewModel.httpCode == 200) {
+            showDialog = true
+        }
+        if (reportViewModel.httpCode == 400) {
+            showDialog2 = true
+        }
+    }
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -171,17 +179,18 @@ fun ReportScreen(
 
 
             }
+
             Button(
                 enabled = selectedOption != null,
                 onClick = {
                     if (isReady) {
                         reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
-                        if (reportViewModel.httpCode != 400) {
-                            showDialog = true
-                        } else {
-                            showDialog2 = true
-                        }
-                        navController.popBackStack()
+//                        if (reportViewModel.httpCode != 400) {
+//                            showDialog = true
+//                        } else {
+//                            showDialog2 = true
+//                        }
+                        //navController.popBackStack()
                     }
                 },
                 modifier = Modifier
@@ -198,6 +207,7 @@ fun ReportScreen(
     }
 
 }
+
 
 @Composable
 fun ReportButton(
