@@ -45,6 +45,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.BottomSheetValue
@@ -93,7 +94,10 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -162,6 +166,8 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
     var tagTextField by remember { mutableStateOf("") }
 
     val tagList by remember { mutableStateOf(mutableListOf<String>()) }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
@@ -575,13 +581,16 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                         ) {
                             androidx.compose.material3.Text(
                                 text = "손글씨체",
-                                fontSize = 16.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (fontType == FontEnum.SCHOOL_SAFE_CHALKBOARD_ERASER) {
                                     Color.White
                                 } else {
                                     colorResource(R.color.gray01)
-                                }
+                                },
+                                fontFamily = FontFamily(
+                                    Font(R.font.handwrite)
+                                )
                             )
                         }
                     }
@@ -728,7 +737,7 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
 
                         .padding(start = 20.dp, end = 20.dp)
                 ) {
-                    ContentCard(addPostViewModel, imgType, addPostViewModel.selectedImageForDefault, selectedImageForGallery, content, onContentChanged = { content = it })
+                    ContentCard(addPostViewModel, imgType, addPostViewModel.selectedImageForDefault, selectedImageForGallery, content, onContentChanged = { content = it }, fontEnum = fontType)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
@@ -852,7 +861,19 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                         )
                                     }
                                 },
-                                singleLine = true
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        if (tagTextField.isNotBlank()) {
+                                            tagList.add(0, tagTextField)
+                                            tagTextField = ""
+                                        }
+                                        keyboardController?.hide()
+                                    }
+                                ),
                             )
                             Spacer(modifier = Modifier.height(13.dp))
                             if (tagHintList.isNotEmpty()) {
@@ -1128,7 +1149,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, selectedImageForDefault: String?, selectedImageForGallery: Bitmap?, content: String, onContentChanged: (String) -> Unit) {
+fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, selectedImageForDefault: String?, selectedImageForGallery: Bitmap?, content: String, onContentChanged: (String) -> Unit, fontEnum: FontEnum) {
     val scrollState = rememberScrollState()
     Card(
         modifier = Modifier
@@ -1161,10 +1182,21 @@ fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, select
                     .align(Alignment.Center)
                     .verticalScroll(scrollState),
                 textStyle = TextStyle(color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = if (fontEnum == FontEnum.PRETENDARD) {
+                        16.sp
+                    } else {
+                        18.sp
+                    },
                     fontWeight = FontWeight.SemiBold,
                     lineHeight = 24.sp,
-                    textDecoration = null),
+                    textDecoration = null,
+                    fontFamily = if (fontEnum == FontEnum.PRETENDARD) {
+                        FontFamily.Default
+                    } else {
+                        FontFamily(
+                            Font(R.font.handwrite)
+                        )
+                    }),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
             ) {
                 // 기본 텍스트가 없으면 빈칸으로 표시
@@ -1172,9 +1204,20 @@ fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, select
                     Text(
                         text = "입력하세요",
                         color = Color.White,
-                        fontSize = 16.sp,
+                        fontSize = if (fontEnum == FontEnum.PRETENDARD) {
+                            16.sp
+                        } else {
+                            18.sp
+                        },
                         lineHeight = 24.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = if (fontEnum == FontEnum.PRETENDARD) {
+                            FontFamily.Default
+                        } else {
+                            FontFamily(
+                                Font(R.font.handwrite)
+                            )
+                        }
                     )
                 } else {
                     it()
