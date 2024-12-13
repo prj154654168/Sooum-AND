@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -80,9 +79,45 @@ fun NickNameScreen(navController: NavHostController) {
                     modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
                 )
 
-                CustomBasicTextField(
-                    text = text,
-                    onTextChange = { newText -> text = newText }
+                BasicTextField(
+                    value = text,
+                    onValueChange = { newText ->
+                        // 텍스트 길이 제한
+                        if (newText.length <= 8) {
+                            text = newText
+                        }
+                    },
+                    modifier = Modifier
+                        .height(60.dp)
+                        .fillMaxWidth(),
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Start
+                    ),
+                    cursorBrush = SolidColor(Color.Black),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(color = Gray50, shape = RoundedCornerShape(20.dp))
+                                .padding(all = 16.dp)
+                            , contentAlignment = Alignment.CenterStart
+                        ) {
+                            innerTextField()  // TextField의 텍스트를 표시
+                            IconButton(
+                                onClick = { text = "" },
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear text",
+                                    tint = Color.Gray
+                                )
+                            }
+                        }
+                    }
                 )
                 Box(modifier = Modifier.fillMaxWidth()) {
                     if (text.isEmpty()) {
@@ -105,7 +140,6 @@ fun NickNameScreen(navController: NavHostController) {
                         )
                     )
                 }
-
 
             }
             Button(
@@ -141,7 +175,8 @@ fun CustomBasicTextField(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth().align(Alignment.CenterStart)
+                .fillMaxWidth()
+                .align(Alignment.CenterStart)
         ) {
             // BasicTextField
             BasicTextField(
@@ -153,7 +188,7 @@ fun CustomBasicTextField(
                     }
                 },
                 modifier = Modifier
-                    .padding(vertical = 10.dp)
+                    .height(60.dp)
                     .fillMaxWidth(),
                 singleLine = true,
                 textStyle = TextStyle(

@@ -42,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -59,7 +60,7 @@ import java.io.ByteArrayOutputStream
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogInProfileScreen(navController: NavHostController) {
-    val viewModel: LogInProfileViewModel = viewModel()
+    val viewModel: LogInProfileViewModel = hiltViewModel()
     val context = LocalContext.current
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
@@ -78,12 +79,14 @@ fun LogInProfileScreen(navController: NavHostController) {
                         ImageDecoder.decodeBitmap(source)
                     }
 
+                    // 리사이징
+                    //selectedImageBitmap = selectedImageBitmap?.let { resizeBitmap(it, 800, 800) }
                     selectedImageForGallery = selectedImageBitmap
 
                     val byteArrayOutputStream = ByteArrayOutputStream()
                     selectedImageBitmap?.compress(
                         Bitmap.CompressFormat.JPEG,
-                        100,
+                        50,
                         byteArrayOutputStream
                     )
                     val byteArray = byteArrayOutputStream.toByteArray()
@@ -225,4 +228,18 @@ fun LogInProfileScreen(navController: NavHostController) {
 
         }
     }
+}
+private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+    val width = bitmap.width
+    val height = bitmap.height
+
+    val scaleFactor = minOf(
+        maxWidth.toFloat() / width.toFloat(),
+        maxHeight.toFloat() / height.toFloat()
+    )
+
+    val scaledWidth = (width * scaleFactor).toInt()
+    val scaledHeight = (height * scaleFactor).toInt()
+
+    return Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
 }

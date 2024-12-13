@@ -1,5 +1,6 @@
 package com.sooum.android.data.repository
 
+import android.util.Log
 import com.sooum.android.data.remote.ProfileApi
 import com.sooum.android.domain.model.CodeDataModel
 import com.sooum.android.domain.model.DeleteUserBody
@@ -106,7 +107,7 @@ class MyProfileRepositoryImpl @Inject constructor(private val profileApi: Profil
         }
     }
 
-    override suspend fun deleteUser(deleteUserBody : DeleteUserBody) {
+    override suspend fun deleteUser(deleteUserBody: DeleteUserBody) {
         val response = profileApi.deleteUser(deleteUserBody)
     }
 
@@ -190,11 +191,26 @@ class MyProfileRepositoryImpl @Inject constructor(private val profileApi: Profil
 
     override suspend fun postFollower(followerBody: FollowerBody) {
         val response = profileApi.postFollower(followerBody)
+        if (response.isSuccessful) {
+            if (response.code() == 204) {
+                Log.d("API Response", "요청이 성공적으로 처리되었습니다. 반환값 없음.")
+            }
+        } else {
+            val errorMessage = response.message() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
     }
 
     override suspend fun deleteFollower(toMemberId: Long) {
         val response = profileApi.deleteFollower(toMemberId)
+        if (response.isSuccessful) {
+            if (response.code() == 204) {
+                Log.d("API Response", "요청이 성공적으로 처리되었습니다. 반환값 없음.")
+            }
+        } else {
+            val errorMessage = response.message() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+
     }
-
-
 }

@@ -26,6 +26,7 @@ import com.sooum.android.ui.myprofile.EnterUserCodeScreen
 import com.sooum.android.ui.myprofile.MakeUserCodeScreen
 import com.sooum.android.ui.myprofile.MyCommentHistoryScreen
 import com.sooum.android.ui.myprofile.NoticeScreen
+import com.sooum.android.ui.myprofile.ProfileAgreeScreen
 import com.sooum.android.ui.myprofile.UserDeleteScreen
 import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.onboarding.LogInProfileScreen
@@ -127,6 +128,9 @@ fun SoonumNavHost(
         }
         composable(route = MyProfile.Following.screenRoute) {
             FollowingScreen(navController)
+        }
+        composable(route = MyProfile.ProfileAgree.screenRoute) {
+            ProfileAgreeScreen(navController)
         }
         composable(route = "${TagNav.TagList.screenRoute}/{tagId}") { backStackEntry ->
             val tagId = backStackEntry.arguments?.getString("tagId").toString()

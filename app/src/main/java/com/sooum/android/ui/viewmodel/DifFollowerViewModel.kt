@@ -8,9 +8,10 @@ import com.sooum.android.domain.model.FollowerDataModel
 import com.sooum.android.domain.usecase.profile.DeleteFollowUseCase
 import com.sooum.android.domain.usecase.profile.DifFollowerUseCase
 import com.sooum.android.domain.usecase.profile.PostFollowUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
+@HiltViewModel
 class DifFollowerViewModel @Inject constructor(
     private val difFollowerUseCase: DifFollowerUseCase,
     private val postFollowUseCase: PostFollowUseCase,

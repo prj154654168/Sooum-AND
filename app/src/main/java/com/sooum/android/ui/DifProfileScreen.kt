@@ -50,6 +50,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.ui.common.PostNav
+import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.theme.Gray5
 import com.sooum.android.ui.viewmodel.DifProfileViewModel
 
@@ -94,7 +95,22 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                         modifier = Modifier
                             .padding(start = 20.dp, top = 22.dp, bottom = 22.dp)
                             .align(Alignment.TopStart)
-                            .clickable { navController.popBackStack() }
+                            .clickable {
+                                if (viewModel.isBlock.value) {
+                                    navController.navigate(SoonumNav.Home.screenRoute) {
+                                        // 모든 Back Stack을 비우고 "destination_screen"으로 이동
+                                        popUpTo(navController.graph.id) {
+                                            inclusive =
+                                                true // "startDestinationId"까지 포함하여 모든 화면을 제거
+                                        }
+                                        launchSingleTop = true // 이미 존재하는 화면은 새로 시작하지 않음
+                                    }
+                                } else {
+                                    navController.popBackStack()
+                                }
+
+
+                            }
                     )
                     Column(
                         modifier = Modifier
@@ -187,7 +203,11 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                         }
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.width(48.dp)
+                            modifier = Modifier
+                                .width(48.dp)
+                                .clickable {
+                                    navController.navigate("${PostNav.DifFollowing.screenRoute}/${memberId}")
+                                }
                         ) {
                             Text(
                                 data.followingCnt,
@@ -207,7 +227,11 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                         }
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.width(48.dp)
+                            modifier = Modifier
+                                .width(48.dp)
+                                .clickable {
+                                    navController.navigate("${PostNav.DifFollower.screenRoute}/${memberId}")
+                                }
                         ) {
                             Text(
                                 data.followerCnt,
@@ -271,11 +295,9 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                             .clickable {
                                 if (!isFollow) {
                                     viewModel.postFollow(memberId.toLong())
-                                    viewModel.getDifProfile(memberId.toLong())
                                     isFollow = !isFollow
                                 } else {
                                     viewModel.deleteFollow(memberId.toLong())
-                                    viewModel.getDifProfile(memberId.toLong())
                                     isFollow = !isFollow
                                 }
                             }

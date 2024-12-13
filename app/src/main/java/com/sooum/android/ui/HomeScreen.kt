@@ -912,9 +912,24 @@ fun calculateRemainingTime(inputTime: String): String {
     }
 }
 @RequiresApi(Build.VERSION_CODES.O)
+fun parseFlexibleTime(input: String): LocalTime {
+    // 입력값을 ':'으로 분리
+    val parts = input.split(":")
+
+    // 시, 분, 초를 각각 두 자리로 정규화
+    val normalizedTime = when (parts.size) {
+        3 -> "${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:${parts[2].padStart(2, '0')}"
+        2 -> "${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:00"
+        else -> throw IllegalArgumentException("Invalid time format: $input")
+    }
+
+    // 정규화된 시간 파싱
+    return LocalTime.parse(normalizedTime, DateTimeFormatter.ofPattern("HH:mm:ss"))
+}
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PungTime(time: String) {
-    var currentTime by remember { mutableStateOf(LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss"))) }
+    var currentTime by remember { mutableStateOf(parseFlexibleTime(time)) }
     val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 
     LaunchedEffect(currentTime) {

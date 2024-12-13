@@ -100,6 +100,7 @@ fun UserDeleteScreen(navController: NavHostController) {
 
             Box(
                 modifier = Modifier
+                    .padding(20.dp)
                     .fillMaxWidth()
                     .background(
                         color = Color(0xFFF9F9F9), // HEX 색상 #F9F9F9
@@ -107,9 +108,9 @@ fun UserDeleteScreen(navController: NavHostController) {
                     )
                     .padding(20.dp)
             ) {
-                Column(Modifier.padding(20.dp)) {
-                    Text(text = "- 지금까지 작성한 카드와 정보들이 모두 삭제될 예정이에요", color = Color(0xFF6E6E6E))
-                    Text(text = "- 재가입은 탈퇴 일자를 기준으로 일주일이후 가능해요", color = Color(0xFF6E6E6E))
+                Column(Modifier.padding(15.dp)) {
+                    Text(text = "• 지금까지 작성한 카드와 정보들이 모두 삭제될 예정이에요", color = Color(0xFF6E6E6E))
+                    Text(text = "• 재가입은 탈퇴 일자를 기준으로 일주일이후 가능해요", color = Color(0xFF6E6E6E))
                 }
 
             }

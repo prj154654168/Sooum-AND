@@ -18,6 +18,7 @@ object NavigationRouteName {
     const val REPORT = "신고하기"
     const val LON_IN = "로그인"
     const val AGREE = "약관동의"
+    const val PROFILE_AGREE = "이용약관 및 개인정보 처리 방침"
     const val NICKNAME = "닉네임"
     const val LOG_IN_PROFILE = "로그인 사진"
     const val PROFILE_MODIFY = "프로필 수정"
@@ -99,6 +100,8 @@ sealed class MyProfile(
     data object Follower : LogInNav(NavigationRouteName.FOLLOWER)
 
     data object Following : LogInNav(NavigationRouteName.FOLLOWING)
+
+    data object ProfileAgree : LogInNav(NavigationRouteName.PROFILE_AGREE)
 }
 
 sealed class TagNav(

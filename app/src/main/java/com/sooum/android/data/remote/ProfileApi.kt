@@ -74,9 +74,9 @@ interface ProfileApi {
     suspend fun getDifFollowing(@Path("profileOnwerPk") profileOwnerPk: Long): Response<FollowingDataModel>
 
     @POST("/followers")
-    suspend fun postFollower(@Body followerBody: FollowerBody)
+    suspend fun postFollower(@Body followerBody: FollowerBody) : Response<Any>
 
     @DELETE("/followers/{toMemberId}")
-    suspend fun deleteFollower(@Path("toMemberId") toMemberId: Long)
+    suspend fun deleteFollower(@Path("toMemberId") toMemberId: Long) : Response<Any>
 
 }

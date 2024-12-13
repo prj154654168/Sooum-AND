@@ -1,5 +1,8 @@
 package com.sooum.android.ui.myprofile
 
+import android.os.Build
+import android.provider.Settings
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -36,10 +41,18 @@ import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.viewmodel.EnterUserCodeViewModel
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EnterUserCodeScreen(navController: NavHostController) {
-
+    val android_id = Settings.Secure.getString(
+        LocalContext.current.getContentResolver(),
+        Settings.Secure.ANDROID_ID
+    )
     val viewModel: EnterUserCodeViewModel = hiltViewModel()
+
+    LaunchedEffect(Unit) {
+        viewModel.getEncryptedDeviceId(android_id)
+    }
 
     var code by remember { mutableStateOf("") }
     Box(

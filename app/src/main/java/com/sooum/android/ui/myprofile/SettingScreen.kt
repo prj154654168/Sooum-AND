@@ -1,5 +1,7 @@
 package com.sooum.android.ui.myprofile
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,11 +32,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.MyProfile
 
 @Composable
 fun SettingScreen(navController: NavHostController) {
     var isChecked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,7 +123,7 @@ fun SettingScreen(navController: NavHostController) {
                 navController.navigate(MyProfile.EnterUserCode.screenRoute)
             }
             SettingRow("이용약관 및 개인정보 처리 방침") {
-
+                navController.navigate(MyProfile.ProfileAgree.screenRoute)
             }
 
             Box(
@@ -145,10 +150,23 @@ fun SettingScreen(navController: NavHostController) {
                 navController.navigate(MyProfile.Notice.screenRoute)
             }
             SettingRow("1:1 문의하기") {
-
+                val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:sooum1004@gmail.com") // 이메일 주소
+                    putExtra(Intent.EXTRA_SUBJECT, "[1:1 문의하기]")
+                    putExtra(Intent.EXTRA_TEXT, SooumApplication().getVariable("refreshToken")) // 이메일 본문 (옵션)
+                }
+                if (emailIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(emailIntent)
+                }
             }
             SettingRow("제안하기") {
-
+                val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("mailto:sooum1004@gmail.com") // 이메일 주소
+                    putExtra(Intent.EXTRA_SUBJECT, "[제안하기]")
+                }
+                if (emailIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(emailIntent)
+                }
             }
         }
     }

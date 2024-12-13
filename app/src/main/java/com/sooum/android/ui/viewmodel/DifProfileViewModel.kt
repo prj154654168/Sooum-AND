@@ -51,6 +51,7 @@ class DifProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 postFollowUseCase(FollowerBody(userId))
+                difProfile.value = difProfileUseCase(userId)
             } catch (E: Exception) {
                 println(E)
             }
@@ -61,6 +62,7 @@ class DifProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 deleteFollowUseCase(userId)
+                difProfile.value = difProfileUseCase(userId)
             } catch (E: Exception) {
                 println(E)
             }

@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.profileBody
+import com.sooum.android.domain.usecase.profile.MyProfileUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,12 +21,34 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
 import java.io.IOException
+import javax.inject.Inject
 
-class LogInProfileViewModel : ViewModel() {
+@HiltViewModel
+class LogInProfileViewModel @Inject constructor(
+    private val myProfileUseCase: MyProfileUseCase,
+) :
+    ViewModel() {
     val cardAPIInstance = SooumApplication().instance.create(CardApi::class.java)
     var userImageUrl by mutableStateOf<String?>(null)
     var imgByteArray by mutableStateOf<ByteArray>(ByteArray(0))
     var isLoading by mutableIntStateOf(0)
+
+    var myProfileNickName = mutableStateOf<String>("")
+    var myProfileImgUrl = mutableStateOf<String>("")
+
+    fun getMyProfile() {
+        viewModelScope.launch {
+            try {
+                val response = myProfileUseCase()
+                myProfileNickName.value = response.nickname
+                myProfileImgUrl.value =
+                    if (response.profileImg != null) response.profileImg.href else ""
+            } catch (E: Exception) {
+                println(E)
+            }
+        }
+    }
+
 
     fun profiles(nickname: String, mode: Int) {
         viewModelScope.launch {
