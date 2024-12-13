@@ -1,8 +1,9 @@
 package com.sooum.android.ui.viewmodel
 
-import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sooum.android.SooumApplication
+import com.sooum.android.domain.model.DeleteUserBody
 import com.sooum.android.domain.usecase.profile.DeleteUserUserCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -14,10 +15,18 @@ class UserDeleteViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    fun deleteUser(activity: Activity?) {
+    fun deleteUser() {
         viewModelScope.launch {
-            deleteUserUserCase()
-            activity?.finish()
+            try {
+                deleteUserUserCase(
+                    DeleteUserBody(
+                        SooumApplication().getVariable("accessToken"),
+                        SooumApplication().getVariable("refreshToken")
+                    )
+                )
+            }catch (E:Exception){
+                println(E)
+            }
         }
     }
 }

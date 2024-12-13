@@ -37,13 +37,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.viewmodel.UserDeleteViewModel
 
 @Composable
 fun UserDeleteScreen(navController: NavHostController) {
 
     val viewModel: UserDeleteViewModel = hiltViewModel()
-    val activity = LocalContext.current as? Activity
     var isChecked by remember { mutableStateOf(false) }
 
     Box(
@@ -93,11 +93,14 @@ fun UserDeleteScreen(navController: NavHostController) {
                 text = "몇가지 안내가 있어요",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 20.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 20.dp)
             )
 
             Box(
                 modifier = Modifier
+                    .padding(20.dp)
                     .fillMaxWidth()
                     .background(
                         color = Color(0xFFF9F9F9), // HEX 색상 #F9F9F9
@@ -105,9 +108,9 @@ fun UserDeleteScreen(navController: NavHostController) {
                     )
                     .padding(20.dp)
             ) {
-                Column(Modifier.padding(20.dp)) {
-                    Text(text = "- 지금까지 작성한 카드와 정보들이 모두 삭제될 예정이에요", color = Color(0xFF6E6E6E))
-                    Text(text = "- 재가입은 탈퇴 일자를 기준으로 일주일이후 가능해요", color = Color(0xFF6E6E6E))
+                Column(Modifier.padding(15.dp)) {
+                    Text(text = "• 지금까지 작성한 카드와 정보들이 모두 삭제될 예정이에요", color = Color(0xFF6E6E6E))
+                    Text(text = "• 재가입은 탈퇴 일자를 기준으로 일주일이후 가능해요", color = Color(0xFF6E6E6E))
                 }
 
             }
@@ -136,7 +139,13 @@ fun UserDeleteScreen(navController: NavHostController) {
         }
         Button(
             onClick = {
-                viewModel.deleteUser(activity)//TODO 이래도 되나??
+                navController.navigate(LogInNav.LogIn.screenRoute) {
+                    viewModel.deleteUser()
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    } // 백 스택 비우기
+                    launchSingleTop = true // 중복된 화면 생성 방지
+                }
             },
             modifier = Modifier
                 .padding(16.dp)

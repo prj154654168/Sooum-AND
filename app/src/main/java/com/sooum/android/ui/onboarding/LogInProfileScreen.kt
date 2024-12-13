@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,13 +42,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.Utils
@@ -60,10 +60,11 @@ import java.io.ByteArrayOutputStream
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogInProfileScreen(navController: NavHostController) {
-    val viewModel: LogInProfileViewModel = viewModel()
+    val viewModel: LogInProfileViewModel = hiltViewModel()
     val context = LocalContext.current
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
+
     val imageCropLauncher =
         rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
             if (result.isSuccessful) {
@@ -78,30 +79,41 @@ fun LogInProfileScreen(navController: NavHostController) {
                         ImageDecoder.decodeBitmap(source)
                     }
 
+                    // 리사이징
+                    //selectedImageBitmap = selectedImageBitmap?.let { resizeBitmap(it, 800, 800) }
                     selectedImageForGallery = selectedImageBitmap
 
                     val byteArrayOutputStream = ByteArrayOutputStream()
                     selectedImageBitmap?.compress(
                         Bitmap.CompressFormat.JPEG,
-                        100,
+                        50,
                         byteArrayOutputStream
                     )
                     val byteArray = byteArrayOutputStream.toByteArray()
-                    viewModel.getImageUrl(byteArray)
+                    viewModel.imgByteArray = byteArray
+                    //viewModel.getImageUrl(byteArray)
                 }
 
             } else {
                 Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
             }
         }
-
+    if (viewModel.isLoading == 1) {
+        navController.navigate(SoonumNav.Home.screenRoute) {
+            popUpTo(navController.graph.id) {
+                inclusive = true
+            } // 백 스택 비우기
+            launchSingleTop = true // 중복된 화면 생성 방지
+        }
+        viewModel.isLoading = 2
+    }
 
 
     Scaffold(topBar = {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowForward,
+                    Icons.Default.ArrowBack,
                     contentDescription = "뒤로가기",
                 )
             }
@@ -139,6 +151,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     )
                                     imageCropLauncher.launch(cropOptions)
                                 }
+                                .size(128.dp)
                                 .align(Alignment.Center),
                         )
                     } else {
@@ -156,8 +169,9 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     )
                                     imageCropLauncher.launch(cropOptions)
                                 }
-                                .clip(CircleShape)
-                                .aspectRatio(1f),
+                                .size(128.dp)
+                                .aspectRatio(1f)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -183,14 +197,9 @@ fun LogInProfileScreen(navController: NavHostController) {
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     onClick = {
                         viewModel.profiles(
-                            SooumApplication().getVariable("nickName").toString(),1
+                            SooumApplication().getVariable("nickName").toString(), 1
                         )
-                        navController.navigate(SoonumNav.Home.screenRoute) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = true
-                            } // 백 스택 비우기
-                            launchSingleTop = true // 중복된 화면 생성 방지
-                        }
+
                     }) {
                     Text(text = "확인")
                 }
@@ -200,7 +209,9 @@ fun LogInProfileScreen(navController: NavHostController) {
                         .padding(20.dp)
                         .clickable {
                             viewModel.profiles(
-                                SooumApplication().getVariable("nickName").toString(),2
+                                SooumApplication()
+                                    .getVariable("nickName")
+                                    .toString(), 2
                             )
                             navController.navigate(SoonumNav.Home.screenRoute) {
                                 popUpTo(navController.graph.id) {
@@ -217,4 +228,18 @@ fun LogInProfileScreen(navController: NavHostController) {
 
         }
     }
+}
+private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
+    val width = bitmap.width
+    val height = bitmap.height
+
+    val scaleFactor = minOf(
+        maxWidth.toFloat() / width.toFloat(),
+        maxHeight.toFloat() / height.toFloat()
+    )
+
+    val scaledWidth = (width * scaleFactor).toInt()
+    val scaledHeight = (height * scaleFactor).toInt()
+
+    return Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true)
 }

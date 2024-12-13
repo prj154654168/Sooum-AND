@@ -18,6 +18,7 @@ class AuthInterceptor() : Interceptor {
         val modifiedRequest = accessToken?.let {
             originalRequest.newBuilder()
                 .addHeader("Authorization", "Bearer $it")
+//                .addHeader("Authorization", "Bearer ${Constants.ACCESS_TOKEN}")
                 .build()
         } ?: originalRequest
         val initialResponse = chain.proceed(modifiedRequest)

@@ -32,6 +32,8 @@ class DifProfileViewModel @Inject constructor(
 
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
 
+    var isBlock = mutableStateOf<Boolean>(false)
+
 
     fun getDifProfile(memberId: Long) {
         viewModelScope.launch {
@@ -49,6 +51,7 @@ class DifProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 postFollowUseCase(FollowerBody(userId))
+                difProfile.value = difProfileUseCase(userId)
             } catch (E: Exception) {
                 println(E)
             }
@@ -59,19 +62,22 @@ class DifProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 deleteFollowUseCase(userId)
+                difProfile.value = difProfileUseCase(userId)
             } catch (E: Exception) {
                 println(E)
             }
         }
     }
 
-    fun userBlock(userId: Long) {
+    fun userBlock(memberId: Long) {
         viewModelScope.launch {
             try {
-                retrofitInstance.userBlocks(BlockBody(userId))
+                retrofitInstance.userBlocks(BlockBody(memberId))
+                isBlock.value = true
             } catch (E: Exception) {
                 println(E)
             }
+
         }
     }
 
@@ -79,6 +85,7 @@ class DifProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 retrofitInstance.deleteUserBlocks(userId)
+                isBlock.value = false
             } catch (E: Exception) {
                 println(E)
             }

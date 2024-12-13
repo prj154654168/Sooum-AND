@@ -18,6 +18,7 @@ object NavigationRouteName {
     const val REPORT = "신고하기"
     const val LON_IN = "로그인"
     const val AGREE = "약관동의"
+    const val PROFILE_AGREE = "이용약관 및 개인정보 처리 방침"
     const val NICKNAME = "닉네임"
     const val LOG_IN_PROFILE = "로그인 사진"
     const val PROFILE_MODIFY = "프로필 수정"
@@ -30,7 +31,9 @@ object NavigationRouteName {
     const val USER_CODE_ENTER = "계정 코드 입력"
     const val FOLLOWER = "팔로워"
     const val FOLLOWING = "팔로잉"
-    const val DIF_PROFILE = "다른 프로필"
+    const val DIF_FOLLOWER = "남의 팔로워"
+    const val DIF_FOLLOWING = "남의 팔로잉"
+    const val DIF_PROFILE = "남의 프로필"
 }
 
 sealed class SoonumNav(
@@ -51,7 +54,7 @@ sealed class SoonumNav(
             return when (route) {
                 MAIN_HOME -> 1
                 ADD_POST, REPORT -> 3
-                TAG, PROFILE ->4
+                TAG, PROFILE -> 4
                 else -> 2
             }//top bar 추후 수정 필요
         }
@@ -64,6 +67,9 @@ sealed class PostNav(
     data object Detail : PostNav(NavigationRouteName.DETAIL)
     data object Report : PostNav(NavigationRouteName.REPORT)
     data object DifProfile : PostNav(NavigationRouteName.DIF_PROFILE)
+
+    data object DifFollower : PostNav(NavigationRouteName.DIF_FOLLOWER)
+    data object DifFollowing : PostNav(NavigationRouteName.DIF_FOLLOWING)
 
 }
 
@@ -94,6 +100,8 @@ sealed class MyProfile(
     data object Follower : LogInNav(NavigationRouteName.FOLLOWER)
 
     data object Following : LogInNav(NavigationRouteName.FOLLOWING)
+
+    data object ProfileAgree : LogInNav(NavigationRouteName.PROFILE_AGREE)
 }
 
 sealed class TagNav(

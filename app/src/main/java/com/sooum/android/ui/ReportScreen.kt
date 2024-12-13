@@ -73,13 +73,22 @@ fun ReportScreen(
         delay(2000)
         isReady = true
     }
-    LaunchedEffect(reportViewModel.httpCode) {
-        if (reportViewModel.httpCode == 200) {
+//    LaunchedEffect(reportViewModel.httpCode) {
+//        if (reportViewModel.httpCode == 200) {
+//            showDialog = true
+//        }
+//        if (reportViewModel.httpCode == 400) {
+//            showDialog2 = true
+//        }
+//    }
+    if (reportViewModel.isLoading == 1) {
+        if (reportViewModel.httpCode == 201) {
             showDialog = true
         }
         if (reportViewModel.httpCode == 400) {
             showDialog2 = true
         }
+        reportViewModel.isLoading = 0
     }
 
     Scaffold(topBar = {
@@ -185,12 +194,7 @@ fun ReportScreen(
                 onClick = {
                     if (isReady) {
                         reportViewModel.reportUser(cardId.toLong(), reportTypeEnum)
-//                        if (reportViewModel.httpCode != 400) {
-//                            showDialog = true
-//                        } else {
-//                            showDialog2 = true
-//                        }
-                        //navController.popBackStack()
+
                     }
                 },
                 modifier = Modifier

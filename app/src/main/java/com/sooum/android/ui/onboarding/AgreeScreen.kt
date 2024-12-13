@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -72,7 +73,7 @@ fun AgreeScreen(navController: NavHostController) {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowForward,
+                    Icons.Default.ArrowBack,
                     contentDescription = "뒤로가기",
                 )
             }
@@ -185,22 +186,12 @@ fun AgreeScreen(navController: NavHostController) {
                                 "ANDROID",
                                 SooumApplication().getVariable("encryptedDeviceId")
                                     .toString(),
-                                "string",
+                                SooumApplication().getVariable("fcmToken"),
                                 false
                             ),
                             policy = Policy(firstChecked, secondChecked, thirdChecked)
                         )
                     )
-                    viewModel.token?.let { it1 ->
-                        SooumApplication().saveVariable(
-                            "accessToken",
-                            it1.accessToken
-                        )
-                        SooumApplication().saveVariable(
-                            "refreshToken",
-                            it1.refreshToken
-                        )
-                    }
 
                     navController.navigate(LogInNav.NickName.screenRoute)
                 }) {

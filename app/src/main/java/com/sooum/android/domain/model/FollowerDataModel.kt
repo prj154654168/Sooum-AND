@@ -12,28 +12,29 @@ data class FollowerDataModel(
     data class FollowerInfo(
         val id: String,
         val nickname: String,
-        val backgroundImgUrl: String?,
+        val backgroundImgUrl: BackgroundImgUrl?,
         val following: Boolean,
         val _links: ProfileLinks,
         val isFollowing: Boolean
     )
-    {
-        data class ProfileLinks(
-            val profile: Profile
-        )
+    data class BackgroundImgUrl(
+        val href: String,
+    )
+    data class ProfileLinks(
+        val profile: Profile
+    )
 
-        data class Profile(
-            val href: String
-        )
+    data class Profile(
+        val href: String
+    )
 
-        data class Links(
-            val next: Next
-        )
+    data class Links(
+        val next: Next
+    )
 
-        data class Next(
-            val href: String
-        )
-    }
+    data class Next(
+        val href: String
+    )
 }
 
 

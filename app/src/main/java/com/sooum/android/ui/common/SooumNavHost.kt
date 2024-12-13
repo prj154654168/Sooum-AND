@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.DetailScreen
+import com.sooum.android.ui.DifFollowerScreen
+import com.sooum.android.ui.DifFollowingScreen
 import com.sooum.android.ui.FollowScreen
 import com.sooum.android.ui.FollowingScreen
 import com.sooum.android.ui.HomeScreen
@@ -24,6 +26,7 @@ import com.sooum.android.ui.myprofile.EnterUserCodeScreen
 import com.sooum.android.ui.myprofile.MakeUserCodeScreen
 import com.sooum.android.ui.myprofile.MyCommentHistoryScreen
 import com.sooum.android.ui.myprofile.NoticeScreen
+import com.sooum.android.ui.myprofile.ProfileAgreeScreen
 import com.sooum.android.ui.myprofile.UserDeleteScreen
 import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.onboarding.LogInProfileScreen
@@ -71,6 +74,17 @@ fun SoonumNavHost(
             val memberId = backStackEntry.arguments?.getString("memberId")
             DifProfileScreen(navController, memberId)
         }
+
+        composable(route = "${PostNav.DifFollower.screenRoute}/{profileOwnerPk}") { backStackEntry ->
+            val profileOwnerPk = backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
+            DifFollowerScreen(navController, profileOwnerPk)
+        }
+
+        composable(route = "${PostNav.DifFollowing.screenRoute}/{profileOwnerPk}") { backStackEntry ->
+            val profileOwnerPk = backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
+            DifFollowingScreen(navController, profileOwnerPk)
+        }
+
         composable(route = "${PostNav.Report.screenRoute}/{cardId}") { backStackEntry ->
             val cardId = backStackEntry.arguments?.getString("cardId").toString()
             ReportScreen(navController, cardId)
@@ -114,6 +128,9 @@ fun SoonumNavHost(
         }
         composable(route = MyProfile.Following.screenRoute) {
             FollowingScreen(navController)
+        }
+        composable(route = MyProfile.ProfileAgree.screenRoute) {
+            ProfileAgreeScreen(navController)
         }
         composable(route = "${TagNav.TagList.screenRoute}/{tagId}") { backStackEntry ->
             val tagId = backStackEntry.arguments?.getString("tagId").toString()

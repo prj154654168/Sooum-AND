@@ -447,7 +447,11 @@ fun DetailScreen(
                                             modifier = Modifier
                                                 .size(32.dp)
                                                 .clickable {
-                                                    navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
+                                                    if(data.isOwnCard){
+                                                        navController.navigate(SoonumNav.Profile.screenRoute)
+                                                    }else{
+                                                        navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
+                                                    }
                                                 }
                                         )
                                     } else {
@@ -459,7 +463,11 @@ fun DetailScreen(
                                             modifier = Modifier
                                                 .size(32.dp)
                                                 .clickable {
-                                                    navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
+                                                    if(data.isOwnCard){
+                                                        navController.navigate(SoonumNav.Profile.screenRoute)
+                                                    }else{
+                                                        navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
+                                                    }
                                                 }
                                                 .clip(CircleShape)
                                                 .aspectRatio(1f),
@@ -732,7 +740,7 @@ fun TagItem(item: Tag) {
         color = Gray3
     ) {
         Text(
-            text = item.content,
+            text = "#${item.content}",
             fontSize = 14.sp,
             color = Gray1,
             modifier = Modifier
@@ -851,7 +859,7 @@ fun BlockDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "해당 사용자의 모든 카들르 모두 볼수 없어요",
+                    text = "해당 사용자의 모든 카드를 모두 볼 수 없어요",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = colorResource(R.color.gray01)
@@ -899,9 +907,4 @@ fun BlockDialog(
             }
         }
     }
-}
-
-enum class ScrollDirection {
-    UP,
-    DOWN
 }

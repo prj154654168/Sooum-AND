@@ -4,6 +4,7 @@ package com.sooum.android.data.repository
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.remote.ReportApi
 import com.sooum.android.domain.model.PostCommentCardRequestDataModel
+import com.sooum.android.domain.model.ReportTypeBody
 import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.repository.DetailRepository
 import com.sooum.android.enums.ReportTypeEnum
@@ -17,9 +18,9 @@ class DetailRepositoryImpl @Inject constructor(
     DetailRepository {
     override suspend fun postUserReport(
         cardId: Long,
-        reportTypeEnum: ReportTypeEnum,
+        reportTypeBody: ReportTypeBody,
     ): Response<Status> {
-        return reportApi.cardReport(cardId, reportTypeEnum)
+        return reportApi.cardReport(cardId, reportTypeBody)
     }
 
     override suspend fun postCommentCard(

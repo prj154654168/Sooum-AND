@@ -12,13 +12,14 @@ import kotlinx.coroutines.launch
 
 class AgreeViewModel : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
-    var token: Token? = null
     fun signUp(signUpModel: signUpModel) {
         viewModelScope.launch {
             try {
                 val b = retrofitInstance.signUp(signUpModel).body()
+
                 if (b != null) {
-                    token = b.token
+                    SooumApplication().saveVariable("accessToken",b.token.accessToken)
+                    SooumApplication().saveVariable("refreshToken",b.token.refreshToken)
                 }
                 Log.e("signUpModel", b.toString())
                 Log.e("signUpModel", signUpModel.toString())

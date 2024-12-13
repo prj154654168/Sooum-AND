@@ -1,6 +1,8 @@
 package com.sooum.android.data.remote
 
+import com.sooum.android.Constants
 import com.sooum.android.domain.model.CodeDataModel
+import com.sooum.android.domain.model.DeleteUserBody
 import com.sooum.android.domain.model.DifProfileDataModel
 import com.sooum.android.domain.model.FollowerBody
 import com.sooum.android.domain.model.FollowerDataModel
@@ -14,6 +16,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -45,8 +48,9 @@ interface ProfileApi {
     suspend fun getNotice(
     ): Response<NoticeDataModel>
 
-    @DELETE("/members")
-    suspend fun deleteUser()
+    //@DELETE("/members",hasBody = true)
+    @HTTP(method = "DELETE", path = "${Constants.BASE_URL}/members", hasBody = true)
+    suspend fun deleteUser(@Body deleteUserBody: DeleteUserBody)
 
     @GET("/settings/transfer")
     suspend fun getCode(): Response<CodeDataModel>
@@ -60,13 +64,19 @@ interface ProfileApi {
     @GET("/profiles/follower")
     suspend fun getFollower(): Response<FollowerDataModel>
 
+    @GET("/profiles/{profileOnwerPk}/follower")
+    suspend fun getDifFollower(@Path("profileOnwerPk") profileOwnerPk: Long): Response<FollowerDataModel>
+
     @GET("/profiles/following")
     suspend fun getFollowing(): Response<FollowingDataModel>
 
+    @GET("/profiles/{profileOnwerPk}/following")
+    suspend fun getDifFollowing(@Path("profileOnwerPk") profileOwnerPk: Long): Response<FollowingDataModel>
+
     @POST("/followers")
-    suspend fun postFollower(@Body followerBody: FollowerBody)
+    suspend fun postFollower(@Body followerBody: FollowerBody) : Response<Any>
 
     @DELETE("/followers/{toMemberId}")
-    suspend fun deleteFollower(@Path("toMemberId") toMemberId: Long)
+    suspend fun deleteFollower(@Path("toMemberId") toMemberId: Long) : Response<Any>
 
 }

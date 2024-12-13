@@ -110,7 +110,7 @@ fun FollowItem(item: FollowerDataModel.FollowerInfo, viewModel: FollowerViewMode
             } else {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(item.backgroundImgUrl)
+                        .data(item.backgroundImgUrl.href)
                         .build(),
                     contentDescription = "카드 이미지",
                     modifier = Modifier

@@ -30,13 +30,22 @@ class MyProfileViewModel @Inject constructor(
 
     fun getMyProfile() {
         viewModelScope.launch {
-            myProfile.value = myProfileUseCase()
+            try {
+                myProfile.value = myProfileUseCase()
+            }catch (E:Exception){
+                println(E)
+            }
+
         }
     }
 
     fun getMyFeedCard() {
         viewModelScope.launch {
-            myFeedCard.value = myFeedCardUseCase()
+            try {
+                myFeedCard.value = myFeedCardUseCase()
+            }catch (E:Exception){
+                println(E)
+            }
         }
     }
 }

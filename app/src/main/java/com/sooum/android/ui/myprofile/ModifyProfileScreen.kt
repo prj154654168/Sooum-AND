@@ -26,6 +26,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -53,14 +54,15 @@ import com.sooum.android.R
 import com.sooum.android.Utils
 import com.sooum.android.ui.common.SoonumNav
 import com.sooum.android.ui.viewmodel.LogInProfileViewModel
+import kotlinx.coroutines.delay
 import java.io.ByteArrayOutputStream
 
 
 @Composable
 fun ModifyProfileScreen(navController: NavHostController) {
-    var nicknameTextField by remember { mutableStateOf("") }
 
-    val viewModel: LogInProfileViewModel = viewModel()
+
+    val viewModel: LogInProfileViewModel = hiltViewModel()
     val context = LocalContext.current
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
@@ -83,18 +85,34 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     val byteArrayOutputStream = ByteArrayOutputStream()
                     selectedImageBitmap?.compress(
                         Bitmap.CompressFormat.JPEG,
-                        100,
+                        50,
                         byteArrayOutputStream
                     )
                     val byteArray = byteArrayOutputStream.toByteArray()
-                    viewModel.getImageUrl(byteArray)
+                    viewModel.imgByteArray = byteArray
                 }
 
             } else {
                 Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
             }
         }
+    var nicknameTextField by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        viewModel.getMyProfile()
+        delay(500L)
+        nicknameTextField = viewModel.myProfileNickName.value
+    }
 
+
+    if (viewModel.isLoading == 1) {
+        navController.navigate(SoonumNav.Profile.screenRoute) {
+            popUpTo(navController.graph.id) {
+                inclusive = true
+            } // 백 스택 비우기
+            launchSingleTop = true // 중복된 화면 생성 방지
+        }
+        viewModel.isLoading = 2
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -107,7 +125,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(46.dp)
+                    .height(60.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
@@ -118,14 +136,15 @@ fun ModifyProfileScreen(navController: NavHostController) {
                         .clickable {
                             navController.popBackStack()
                         }
-                        .padding(20.dp)
+                        .padding(10.dp)
                 )
                 Text(
                     text = "프로필 수정",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     lineHeight = 24.sp,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier
+                        .align(Alignment.Center)
                         .padding(20.dp)
                 )
             }
@@ -135,19 +154,40 @@ fun ModifyProfileScreen(navController: NavHostController) {
             ) {
                 Box(modifier = Modifier.align(Alignment.Center)) {
                     if (selectedImageBitmap == null) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_sooum_logo),
-                            contentDescription = "Background Image",
-                            modifier = Modifier
-                                .clickable {
-                                    val cropOptions = CropImageContractOptions(
-                                        null,
-                                        Utils.cropOption
-                                    )
-                                    imageCropLauncher.launch(cropOptions)
-                                }
-                                .align(Alignment.Center),
-                        )
+                        if (viewModel.myProfileImgUrl.value == "") {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_sooum_logo),
+                                contentDescription = "Background Image",
+                                modifier = Modifier
+                                    .clickable {
+                                        val cropOptions = CropImageContractOptions(
+                                            null,
+                                            Utils.cropOption
+                                        )
+                                        imageCropLauncher.launch(cropOptions)
+                                    }
+                                    .align(Alignment.Center),
+                            )
+                        } else {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(viewModel.myProfileImgUrl.value)
+                                    .build(),
+                                contentDescription = "카드 이미지",
+                                modifier = Modifier
+                                    .clickable {
+                                        val cropOptions = CropImageContractOptions(
+                                            null,
+                                            Utils.cropOption
+                                        )
+                                        imageCropLauncher.launch(cropOptions)
+                                    }
+                                    .clip(CircleShape)
+                                    .size(128.dp)
+                                    .aspectRatio(1f),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     } else {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -184,10 +224,11 @@ fun ModifyProfileScreen(navController: NavHostController) {
                 color = colorResource(R.color.gray700)
             )
             Spacer(modifier = Modifier.height(12.dp))
+
             OutlinedTextField(
                 value = nicknameTextField,
                 onValueChange = {
-                    if (nicknameTextField.length < 8) {
+                    if (it.length <= 8) {
                         nicknameTextField = it
                     }
                 },
@@ -202,6 +243,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     )
                 },
                 modifier = Modifier
+                    .height(60.dp)
                     .fillMaxWidth(),
 //                        .border(width = 1.dp, color = colorResource(R.color.gray02), shape = RoundedCornerShape(12.dp))
                 shape = RoundedCornerShape(12.dp),
@@ -211,7 +253,6 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     cursorColor = colorResource(R.color.primary_color),
                     unfocusedContainerColor = colorResource(R.color.gray50),
                     focusedContainerColor = Color.White
-
                 ),
                 textStyle = TextStyle(
                     fontSize = 16.sp,
@@ -272,11 +313,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                                 if (selectedImageBitmap == null) 2 else 1
                             )
                         }
-                        navController.navigate(SoonumNav.Profile.screenRoute){
-                            popUpTo(SoonumNav.Home.screenRoute) { inclusive = false } // 홈 화면 제외
-                            launchSingleTop = true // 현재 화면이 백스택에 중복되지 않도록
 
-                        }
                     },
                 color = if (nicknameTextField.isNotEmpty()) colorResource(R.color.blue300) else colorResource(
                     id = R.color.gray500
@@ -300,4 +337,6 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(26.dp))
         }
     }
+
+
 }

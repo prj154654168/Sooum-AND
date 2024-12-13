@@ -69,27 +69,28 @@ fun MyCommentHistoryScreen(navController: NavHostController) {
                         .align(Alignment.Center)
                         .padding(15.dp)
                 )
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3)
-                ) {
-                    items(viewModel.myCommentCard.value.size) { index ->
-                        Box(
-                            modifier = Modifier.aspectRatio(1f)
-                        ) {
-                            ImageLoaderForUrl(viewModel.myCommentCard.value[index].backgroundImgUrl.href)
-                            Text(
-                                text = viewModel.myCommentCard.value[index].content,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 12.sp,
-                                lineHeight = 21.6.sp,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(10.dp),
-                                maxLines = 4,
-                                overflow = TextOverflow.Ellipsis,
-                                color = Color.White
-                            )
-                        }
+
+            }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3)
+            ) {
+                items(viewModel.myCommentCard.value.size) { index ->
+                    Box(
+                        modifier = Modifier.aspectRatio(1f)
+                    ) {
+                        ImageLoaderForUrl(viewModel.myCommentCard.value[index].backgroundImgUrl.href)
+                        Text(
+                            text = viewModel.myCommentCard.value[index].content,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 12.sp,
+                            lineHeight = 21.6.sp,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(10.dp),
+                            maxLines = 4,
+                            overflow = TextOverflow.Ellipsis,
+                            color = Color.White
+                        )
                     }
                 }
             }
