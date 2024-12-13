@@ -200,7 +200,6 @@ fun TagScreen(navController: NavController) {
             }
             composable("SearchTagScreen") {
                 SearchTagScreen(tagViewModel, navController)
-                //여기부터 다시
             }
         }
     }
