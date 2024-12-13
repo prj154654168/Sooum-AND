@@ -419,6 +419,7 @@ fun LatestFeedList(
                 modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
                 items(latestCardList) { item ->
+                    Log.d("123", item.toString())
                     LatestContentCard(item, navController)
                 }
             }
@@ -664,8 +665,10 @@ fun LatestContentCard(
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    if (item.isStory) {
-                        PungTime("14 : 00 : 00")
+                    if (item.storyExpirationTime != null) {
+                        if (calculateRemainingTime(item.storyExpirationTime) != "시간이 이미 지났습니다.") {
+                            PungTime(calculateRemainingTime(item.storyExpirationTime))
+                        }
                     }
                 }
             }
@@ -746,8 +749,10 @@ fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeed
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    if (item.isStory) {
-                        PungTime("14 : 00 : 00")
+                    if (item.storyExpiredTime != null) {
+                        if (calculateRemainingTime(item.storyExpiredTime) != "시간이 이미 지났습니다.") {
+                            PungTime(calculateRemainingTime(item.storyExpiredTime))
+                        }
                     }
                 }
             }
@@ -828,8 +833,10 @@ fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceFeedCar
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    if (item.isStory) {
-                        PungTime("14 : 00 : 00")
+                    if (item.storyExpirationTime != null) {
+                        if (calculateRemainingTime(item.storyExpirationTime) != "시간이 이미 지났습니다.") {
+                            PungTime(calculateRemainingTime(item.storyExpirationTime))
+                        }
                     }
                 }
             }
@@ -905,17 +912,22 @@ fun calculateRemainingTime(inputTime: String): String {
     } else {
         // 남은 시간 계산
         val days = duration.toDays()
-        val hours = duration.toHours() % 24
-        val minutes = duration.toMinutes() % 60
-        val seconds = duration.seconds % 60
-        "$hours:$minutes:$seconds"
+        val hours = parseNumber(duration.toHours() % 24)
+        val minutes = parseNumber(duration.toMinutes() % 60)
+        val seconds = parseNumber(duration.seconds % 60)
+        "$hours : $minutes : $seconds"
     }
+}
+
+fun parseNumber(number: Long) : String {
+    return if (number < 10) "0${number}"
+    else number.toString()
 }
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PungTime(time: String) {
-    var currentTime by remember { mutableStateOf(LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss"))) }
-    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+    var currentTime by remember { mutableStateOf(LocalTime.parse(time, DateTimeFormatter.ofPattern("HH : mm : ss"))) }
+    val formatter = DateTimeFormatter.ofPattern("HH : mm : ss")
 
     LaunchedEffect(currentTime) {
         while (currentTime > LocalTime.MIN) { // 00:00:00이 될 때까지 실행

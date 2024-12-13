@@ -25,7 +25,6 @@ data class SortedByLatestDataModel(
             val id: Long,
             val isCommentWritten: Boolean,
             val isLiked: Boolean,
-            val isStory: Boolean,
             val likeCnt: Int,
             val storyExpirationTime: String?
         ) {
