@@ -23,7 +23,6 @@ data class SortedByPopularityDataModel(
             val commentCnt: Int,
             @SerializedName("_links")
             val _links: Links,
-            val isStory: Boolean,
             val isLiked: Boolean,
             val isCommentWritten: Boolean
         ) {
