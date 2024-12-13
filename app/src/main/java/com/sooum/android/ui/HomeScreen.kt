@@ -101,7 +101,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import javax.annotation.meta.When
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -190,11 +189,13 @@ fun HomeScreen(navController: NavHostController) {
                     homeViewModel.fetchLatestCardList(latitude, longitude) {}
                 }
             }
+
             HomeSelectEnum.POPULARITY -> {
                 if (homeViewModel.popularityCardList.isEmpty()) {
                     homeViewModel.fetchPopularityCardList(latitude, longitude) {}
                 }
             }
+
             HomeSelectEnum.DISTANCE -> {
 //                if (latitude != null && longitude != null) {
 //                    homeViewModel.apply {
@@ -229,21 +230,25 @@ fun HomeScreen(navController: NavHostController) {
                         homeViewModel.fetchDistance1CardList(latitude!!, longitude!!) {}
                     }
                 }
+
                 DistanceEnum.UNDER_5 -> {
                     if (homeViewModel.distance5CardList.isEmpty()) {
                         homeViewModel.fetchDistance5CardList(latitude!!, longitude!!) {}
                     }
                 }
+
                 DistanceEnum.UNDER_10 -> {
                     if (homeViewModel.distance10CardList.isEmpty()) {
                         homeViewModel.fetchDistance10CardList(latitude!!, longitude!!) {}
                     }
                 }
+
                 DistanceEnum.UNDER_20 -> {
                     if (homeViewModel.distance20CardList.isEmpty()) {
                         homeViewModel.fetchDistance20CardList(latitude!!, longitude!!) {}
                     }
                 }
+
                 DistanceEnum.UNDER_50 -> {
                     if (homeViewModel.distance50CardList.isEmpty()) {
                         homeViewModel.fetchDistance50CardList(latitude!!, longitude!!) {}
@@ -311,29 +316,80 @@ fun HomeScreen(navController: NavHostController) {
 
             when (selected) {
                 HomeSelectEnum.LATEST -> {
-                    LatestFeedList(latestScrollState, homeViewModel.latestCardList, showMoveToTopButtonForLatest, navController, homeViewModel)
+                    LatestFeedList(
+                        latestScrollState,
+                        homeViewModel.latestCardList,
+                        showMoveToTopButtonForLatest,
+                        navController,
+                        homeViewModel
+                    )
                 }
 
                 HomeSelectEnum.POPULARITY -> {
-                    PopularityFeedList(popularityScrollState, homeViewModel.popularityCardList, showMoveToTopButtonForPopularity, homeViewModel, navController)
+                    PopularityFeedList(
+                        popularityScrollState,
+                        homeViewModel.popularityCardList,
+                        showMoveToTopButtonForPopularity,
+                        homeViewModel,
+                        navController
+                    )
                 }
 
                 HomeSelectEnum.DISTANCE -> {
                     when (distance) {
                         DistanceEnum.UNDER_1 -> {
-                            DistanceFeedList(distanceScrollState, homeViewModel.distance1CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                            DistanceFeedList(
+                                distanceScrollState,
+                                homeViewModel.distance1CardList,
+                                showMoveToTopButtonForDistance,
+                                homeViewModel,
+                                distance,
+                                navController
+                            )
                         }
+
                         DistanceEnum.UNDER_5 -> {
-                            DistanceFeedList(distanceScrollState, homeViewModel.distance5CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                            DistanceFeedList(
+                                distanceScrollState,
+                                homeViewModel.distance5CardList,
+                                showMoveToTopButtonForDistance,
+                                homeViewModel,
+                                distance,
+                                navController
+                            )
                         }
+
                         DistanceEnum.UNDER_10 -> {
-                            DistanceFeedList(distanceScrollState, homeViewModel.distance10CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                            DistanceFeedList(
+                                distanceScrollState,
+                                homeViewModel.distance10CardList,
+                                showMoveToTopButtonForDistance,
+                                homeViewModel,
+                                distance,
+                                navController
+                            )
                         }
+
                         DistanceEnum.UNDER_20 -> {
-                            DistanceFeedList(distanceScrollState, homeViewModel.distance20CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                            DistanceFeedList(
+                                distanceScrollState,
+                                homeViewModel.distance20CardList,
+                                showMoveToTopButtonForDistance,
+                                homeViewModel,
+                                distance,
+                                navController
+                            )
                         }
+
                         DistanceEnum.UNDER_50 -> {
-                            DistanceFeedList(distanceScrollState, homeViewModel.distance50CardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
+                            DistanceFeedList(
+                                distanceScrollState,
+                                homeViewModel.distance50CardList,
+                                showMoveToTopButtonForDistance,
+                                homeViewModel,
+                                distance,
+                                navController
+                            )
                         }
                     }
 //                    DistanceFeedList(distanceScrollState, distanceCardList, showMoveToTopButtonForDistance, homeViewModel, distance, navController)
@@ -390,7 +446,7 @@ fun LatestFeedList(
     latestCardList: List<SortedByLatestDataModel.Embedded.LatestFeedCard>,
     showMoveToTopButton: Boolean,
     navController: NavHostController,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
 ) {
 //   기존 lazyColumn 때 사용했던 pullRefresh 로직, 임시 보관
     val coroutineScope = rememberCoroutineScope()
@@ -401,9 +457,12 @@ fun LatestFeedList(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            homeViewModel.fetchLatestCardList(User.userInfo.latitude, User.userInfo.longitude, onFetchFinished = {
-                isRefreshing = false
-            })
+            homeViewModel.fetchLatestCardList(
+                User.userInfo.latitude,
+                User.userInfo.longitude,
+                onFetchFinished = {
+                    isRefreshing = false
+                })
         }
     )
 
@@ -419,6 +478,7 @@ fun LatestFeedList(
                 modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
                 items(latestCardList) { item ->
+                    Log.d("123", item.toString())
                     LatestContentCard(item, navController)
                 }
             }
@@ -448,7 +508,7 @@ fun PopularityFeedList(
     popularityCardList: List<SortedByPopularityDataModel.Embedded.PopularFeedCard>,
     showMoveToTopButton: Boolean,
     homeViewModel: HomeViewModel,
-    navController: NavController
+    navController: NavController,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -458,9 +518,12 @@ fun PopularityFeedList(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            homeViewModel.fetchPopularityCardList(User.userInfo.latitude, User.userInfo.longitude, onFetchFinished = {
-                isRefreshing = false
-            })
+            homeViewModel.fetchPopularityCardList(
+                User.userInfo.latitude,
+                User.userInfo.longitude,
+                onFetchFinished = {
+                    isRefreshing = false
+                })
         }
     )
 
@@ -507,7 +570,7 @@ fun DistanceFeedList(
     showMoveToTopButton: Boolean,
     homeViewModel: HomeViewModel,
     distance: DistanceEnum,
-    navController: NavController
+    navController: NavController,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -520,33 +583,48 @@ fun DistanceFeedList(
             if (User.userInfo.latitude != null && User.userInfo.longitude != null) {
                 when (distance) {
                     DistanceEnum.UNDER_1 -> {
-                        homeViewModel.fetchDistance1CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
-                            isRefreshing = false
-                        })
+                        homeViewModel.fetchDistance1CardList(
+                            User.userInfo.latitude!!,
+                            User.userInfo.longitude!!,
+                            onFetchFinished = {
+                                isRefreshing = false
+                            })
                     }
 
                     DistanceEnum.UNDER_5 -> {
-                        homeViewModel.fetchDistance5CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
-                            isRefreshing = false
-                        })
+                        homeViewModel.fetchDistance5CardList(
+                            User.userInfo.latitude!!,
+                            User.userInfo.longitude!!,
+                            onFetchFinished = {
+                                isRefreshing = false
+                            })
                     }
 
                     DistanceEnum.UNDER_10 -> {
-                        homeViewModel.fetchDistance10CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
-                            isRefreshing = false
-                        })
+                        homeViewModel.fetchDistance10CardList(
+                            User.userInfo.latitude!!,
+                            User.userInfo.longitude!!,
+                            onFetchFinished = {
+                                isRefreshing = false
+                            })
                     }
 
                     DistanceEnum.UNDER_20 -> {
-                        homeViewModel.fetchDistance20CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
-                            isRefreshing = false
-                        })
+                        homeViewModel.fetchDistance20CardList(
+                            User.userInfo.latitude!!,
+                            User.userInfo.longitude!!,
+                            onFetchFinished = {
+                                isRefreshing = false
+                            })
                     }
 
                     DistanceEnum.UNDER_50 -> {
-                        homeViewModel.fetchDistance50CardList(User.userInfo.latitude!!, User.userInfo.longitude!!, onFetchFinished = {
-                            isRefreshing = false
-                        })
+                        homeViewModel.fetchDistance50CardList(
+                            User.userInfo.latitude!!,
+                            User.userInfo.longitude!!,
+                            onFetchFinished = {
+                                isRefreshing = false
+                            })
                     }
                 }
             }
@@ -664,8 +742,10 @@ fun LatestContentCard(
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    if (item.isStory) {
-                        PungTime("14 : 00 : 00")
+                    if (item.storyExpirationTime != null) {
+                        if (calculateRemainingTime(item.storyExpirationTime) != "시간이 이미 지났습니다.") {
+                            PungTime(calculateRemainingTime(item.storyExpirationTime))
+                        }
                     }
                 }
             }
@@ -714,7 +794,10 @@ fun LatestContentCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeedCard, navController: NavController) {
+fun PopularityContentCard(
+    item: SortedByPopularityDataModel.Embedded.PopularFeedCard,
+    navController: NavController,
+) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -746,8 +829,10 @@ fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeed
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    if (item.isStory) {
-                        PungTime("14 : 00 : 00")
+                    if (item.storyExpiredTime != null) {
+                        if (calculateRemainingTime(item.storyExpiredTime) != "시간이 이미 지났습니다.") {
+                            PungTime(calculateRemainingTime(item.storyExpiredTime))
+                        }
                     }
                 }
             }
@@ -796,7 +881,10 @@ fun PopularityContentCard(item: SortedByPopularityDataModel.Embedded.PopularFeed
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceFeedCard, navController: NavController) {
+fun DistanceContentCard(
+    item: SortedByDistanceDataModel.Embedded.DistanceFeedCard,
+    navController: NavController,
+) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -828,8 +916,10 @@ fun DistanceContentCard(item: SortedByDistanceDataModel.Embedded.DistanceFeedCar
                     modifier = Modifier
                         .align(Alignment.Center)
                 ) {
-                    if (item.isStory) {
-                        PungTime("14 : 00 : 00")
+                    if (item.storyExpirationTime != null) {
+                        if (calculateRemainingTime(item.storyExpirationTime) != "시간이 이미 지났습니다.") {
+                            PungTime(calculateRemainingTime(item.storyExpirationTime))
+                        }
                     }
                 }
             }
@@ -886,6 +976,7 @@ fun ImageLoader(url: String) {
         contentScale = ContentScale.Crop
     )
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun calculateRemainingTime(inputTime: String): String {
     // 입력 시간의 형식 정의
@@ -905,32 +996,31 @@ fun calculateRemainingTime(inputTime: String): String {
     } else {
         // 남은 시간 계산
         val days = duration.toDays()
-        val hours = duration.toHours() % 24
-        val minutes = duration.toMinutes() % 60
-        val seconds = duration.seconds % 60
-        "$hours:$minutes:$seconds"
+        val hours = parseNumber(duration.toHours() % 24)
+        val minutes = parseNumber(duration.toMinutes() % 60)
+        val seconds = parseNumber(duration.seconds % 60)
+        "$hours : $minutes : $seconds"
     }
 }
-@RequiresApi(Build.VERSION_CODES.O)
-fun parseFlexibleTime(input: String): LocalTime {
-    // 입력값을 ':'으로 분리
-    val parts = input.split(":")
 
-    // 시, 분, 초를 각각 두 자리로 정규화
-    val normalizedTime = when (parts.size) {
-        3 -> "${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:${parts[2].padStart(2, '0')}"
-        2 -> "${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}:00"
-        else -> throw IllegalArgumentException("Invalid time format: $input")
-    }
-
-    // 정규화된 시간 파싱
-    return LocalTime.parse(normalizedTime, DateTimeFormatter.ofPattern("HH:mm:ss"))
+fun parseNumber(number: Long): String {
+    return if (number < 10) "0${number}"
+    else number.toString()
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PungTime(time: String) {
-    var currentTime by remember { mutableStateOf(parseFlexibleTime(time)) }
-    val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+
+    var currentTime by remember {
+        mutableStateOf(
+            LocalTime.parse(
+                time,
+                DateTimeFormatter.ofPattern("HH : mm : ss")
+            )
+        )
+    }
+    val formatter = DateTimeFormatter.ofPattern("HH : mm : ss")
 
     LaunchedEffect(currentTime) {
         while (currentTime > LocalTime.MIN) { // 00:00:00이 될 때까지 실행
