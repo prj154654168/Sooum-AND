@@ -36,18 +36,18 @@ object NavigationRouteName {
     const val DIF_PROFILE = "남의 프로필"
 }
 
-sealed class SoonumNav(
+sealed class SooumNav(
     @StringRes val title: Int,
     @DrawableRes val icon: Int,
     val screenRoute: String,
 ) {
-    data object Home : SoonumNav(R.string.main_home, R.drawable.ic_home, MAIN_HOME)
+    data object Home : SooumNav(R.string.main_home, R.drawable.ic_home, MAIN_HOME)
     data object AddPost :
-        SoonumNav(R.string.add_post, R.drawable.ic_add_post, ADD_POST)
+        SooumNav(R.string.add_post, R.drawable.ic_add_post, ADD_POST)
 
-    data object Tag : SoonumNav(R.string.tag, R.drawable.ic_nav_tag, TAG)
+    data object Tag : SooumNav(R.string.tag, R.drawable.ic_nav_tag, TAG)
     data object Profile :
-        SoonumNav(R.string.profile, R.drawable.ic_profile, PROFILE)
+        SooumNav(R.string.profile, R.drawable.ic_profile, PROFILE)
 
     companion object {
         fun isMainRoute(route: String?): Int {

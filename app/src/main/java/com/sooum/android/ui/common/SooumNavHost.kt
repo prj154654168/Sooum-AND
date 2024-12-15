@@ -34,7 +34,7 @@ import com.sooum.android.ui.onboarding.LogInScreen
 import com.sooum.android.ui.onboarding.NickNameScreen
 
 @Composable
-fun SoonumNavHost(
+fun SooumNavHost(
     navController: NavHostController,
     startDestination: String,
 ) {
@@ -43,27 +43,31 @@ fun SoonumNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable(route = SoonumNav.Home.screenRoute) {
+        composable(route = SooumNav.Home.screenRoute) {
             HomeScreen(navController)
         }
 
-        composable(route = SoonumNav.AddPost.screenRoute) {
+        composable(route = SooumNav.AddPost.screenRoute) {
             AddPostScreen(navController)
         }
 
         composable(
-            route = "addCommentCard/{cardId}",
-            arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+            route = "addCommentCard/{cardId}/{storyExpirationTime}",
+            arguments = listOf(
+                navArgument("cardId") {type = NavType.StringType},
+                navArgument("storyExpirationTime") {type = NavType.StringType}
+            )
         )
         { backStackEntry ->
             val cardId = backStackEntry.arguments?.getString("cardId")
-            AddPostScreen(navController, cardId)
+            val storyExpirationTime = backStackEntry.arguments?.getString("storyExpirationTime")
+            AddPostScreen(navController, cardId, storyExpirationTime)
         }
 
-        composable(route = SoonumNav.Tag.screenRoute) {
+        composable(route = SooumNav.Tag.screenRoute) {
             TagScreen(navController)
         }
-        composable(route = SoonumNav.Profile.screenRoute) {
+        composable(route = SooumNav.Profile.screenRoute) {
             MyProfileScreen(navController)
         }
         composable(route = "${PostNav.Detail.screenRoute}/{cardId}") { backStackEntry ->

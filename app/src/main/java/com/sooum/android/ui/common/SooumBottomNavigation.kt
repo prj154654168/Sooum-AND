@@ -33,12 +33,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
 @Composable
-fun SoonumBottomNavigation(navController: NavHostController) {
+fun SooumBottomNavigation(navController: NavHostController) {
     val bottomNavigationItems = listOf(
-        SoonumNav.Home,
-        SoonumNav.AddPost,
-        SoonumNav.Tag,
-        SoonumNav.Profile,
+        SooumNav.Home,
+        SooumNav.AddPost,
+        SooumNav.Tag,
+        SooumNav.Profile,
     )
     NavigationBar(
         modifier = Modifier

@@ -42,15 +42,15 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.domain.model.FollowerDataModel
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.viewmodel.FollowerViewModel
 
 @Composable
 fun FollowScreen(navController: NavHostController) {
     val viewModel: FollowerViewModel = hiltViewModel()
     BackHandler {
-        navController.navigate(SoonumNav.Profile.screenRoute) {
-            popUpTo(SoonumNav.Profile.screenRoute) { inclusive = true }
+        navController.navigate(SooumNav.Profile.screenRoute) {
+            popUpTo(SooumNav.Profile.screenRoute) { inclusive = true }
         }
     }
     Column(
