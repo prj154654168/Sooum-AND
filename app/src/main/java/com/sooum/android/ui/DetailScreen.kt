@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,6 +77,7 @@ import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
@@ -524,7 +526,9 @@ fun DetailScreen(
                                 .padding(start = 20.dp, bottom = 10.dp),
                         ) {
                             items(data.tags) { item ->
-                                TagItem(item)
+                                TagItem(item, onClick = { tagId ->
+                                    navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
+                                })
                             }
                         }
                     }
@@ -733,9 +737,16 @@ fun DeatilCommentItem(
 }
 
 @Composable
-fun TagItem(item: Tag) {
+fun TagItem(item: Tag, onClick: (String) -> Unit) {
     Surface(
-        modifier = Modifier.padding(end = 10.dp),
+        modifier = Modifier
+            .padding(end = 10.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                onClick(item.id)
+            },
         shape = RoundedCornerShape(4.dp),
         color = Gray3
     ) {
