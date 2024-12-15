@@ -76,7 +76,7 @@ import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
 import com.sooum.android.ui.common.PostNav
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
@@ -230,7 +230,7 @@ fun DetailScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate(SoonumNav.Home.screenRoute) {
+                        navController.navigate(SooumNav.Home.screenRoute) {
                             // 모든 Back Stack을 비우고 "destination_screen"으로 이동
                             popUpTo(navController.graph.id) {
                                 inclusive = true // "startDestinationId"까지 포함하여 모든 화면을 제거
@@ -450,7 +450,7 @@ fun DetailScreen(
                                                 .size(32.dp)
                                                 .clickable {
                                                     if(data.isOwnCard){
-                                                        navController.navigate(SoonumNav.Profile.screenRoute)
+                                                        navController.navigate(SooumNav.Profile.screenRoute)
                                                     }else{
                                                         navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
                                                     }
@@ -466,7 +466,7 @@ fun DetailScreen(
                                                 .size(32.dp)
                                                 .clickable {
                                                     if(data.isOwnCard){
-                                                        navController.navigate(SoonumNav.Profile.screenRoute)
+                                                        navController.navigate(SooumNav.Profile.screenRoute)
                                                     }else{
                                                         navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
                                                     }
@@ -559,7 +559,7 @@ fun DetailScreen(
                                     .height(24.dp)
                                     .clickable(
                                     ) {
-                                        navController.navigate("addCommentCard/${cardId}")
+                                        navController.navigate("addCommentCard/${cardId}/${data.storyExpirationTime}")
                                     },
                                 painter = painterResource(R.drawable.ic_detail_comment),
                                 contentDescription = "댓글",

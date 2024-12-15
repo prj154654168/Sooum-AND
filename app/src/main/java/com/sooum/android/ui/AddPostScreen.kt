@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -99,22 +100,40 @@ import com.sooum.android.domain.model.PostCommentCardRequestDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.enums.FontEnum
 import com.sooum.android.enums.ImgTypeEnum
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
-
-    val isFeed = false
-    val parentIsStory = false   //이거 값 2개 navigate 할 때 전달 받아야함
-    Log.d("123", "${cardId}")
-    val parentId = cardId?.toLong()
-
+fun AddPostScreen(
+    navController: NavHostController,
+    cardId: String? = null,
+    storyExpirationTime: String? = null
+) {
     val addPostViewModel: AddPostViewModel = hiltViewModel()
+
+    val parentCardId = if (cardId == "null") null else cardId?.toLong()
+    val parentStoryExpirationTime = if (storyExpirationTime == "null") null else storyExpirationTime
+
+    if (parentStoryExpirationTime == null) {
+        Log.d("123", "진짜null")
+    } else if(parentStoryExpirationTime == "null") {
+        Log.d("123", "string null임;")
+    }
+    else {
+        Log.d("123", "다른값임")
+    }
+    /*
+    피드 글 작성 시 : cardId, storyExpirationTime : null
+    댓글 카드 작성 시
+    1. 부모 카드가 펑카드 : cardId, storyExpirationTime : 있음
+    2. 부모 카드가 일반 카드  :cardId 있음 storyExpirationTime 없음
+     */
+    Log.d("123", "cardId : ${cardId}, storyExpirationTime : ${storyExpirationTime}")
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(skipHiddenState = false)
@@ -196,7 +215,11 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                     selectedImageForGallery = selectedImageBitmap
 
                     val byteArrayOutputStream = ByteArrayOutputStream()
-                    selectedImageBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+                    selectedImageBitmap?.compress(
+                        Bitmap.CompressFormat.JPEG,
+                        100,
+                        byteArrayOutputStream
+                    )
                     val byteArray = byteArrayOutputStream.toByteArray()
                     addPostViewModel.getImageUrl(byteArray)
                 }
@@ -214,8 +237,7 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
     LaunchedEffect(keyboardState) {
         if (keyboardState) {
             scaffoldState.bottomSheetState.hide()
-        }
-        else {
+        } else {
             scaffoldState.bottomSheetState.show()
         }
     }
@@ -234,7 +256,12 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                 color = colorResource(R.color.blue200),
                             ) {
                                 Text(
-                                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 4.dp, bottom = 4.dp),
+                                    modifier = Modifier.padding(
+                                        start = 10.dp,
+                                        end = 10.dp,
+                                        top = 4.dp,
+                                        bottom = 4.dp
+                                    ),
                                     text = "시간제한 카드",
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp,
@@ -264,7 +291,7 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                 indication = null,
                                 enabled = if (content.isEmpty()) false else true
                             ) {
-                                if (parentId == null) {
+                                if (parentCardId == null) {
                                     addPostViewModel.postFeedCard(
                                         distanceChecked,
                                         if (distanceChecked) User.userInfo.latitude
@@ -282,25 +309,25 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                         else null,
                                         onStatusChanged = {
                                             if (it == 201) {
-                                                navController.navigate(SoonumNav.Home.screenRoute)
+                                                navController.navigate(SooumNav.Home.screenRoute)
                                             }
                                         }
                                     )
-                                }
-                                else {
-                                    addPostViewModel.postCommentCard(cardId = parentId,
+                                } else {
+                                    addPostViewModel.postCommentCard(cardId = parentCardId,
                                         commentCardRequest = PostCommentCardRequestDataModel(
-                                        isDistanceShared = distanceChecked,
-                                        latitude = if (distanceChecked) User.userInfo.latitude else null,
-                                        longitude = if (distanceChecked) User.userInfo.longitude else null,
-                                        content = content,
-                                        font = fontType,
-                                        imgType = imgType,
-                                        imgName = if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName else addPostViewModel.userImageUrl!!,
-                                        commentTags = tagList),
+                                            isDistanceShared = distanceChecked,
+                                            latitude = if (distanceChecked) User.userInfo.latitude else null,
+                                            longitude = if (distanceChecked) User.userInfo.longitude else null,
+                                            content = content,
+                                            font = fontType,
+                                            imgType = imgType,
+                                            imgName = if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName else addPostViewModel.userImageUrl!!,
+                                            commentTags = tagList
+                                        ),
                                         onStatusChanged = {
                                             if (it == 201) {
-                                                navController.navigate(SoonumNav.Home.screenRoute)
+                                                navController.navigate(SooumNav.Home.screenRoute)
                                             }
                                         }
                                     )
@@ -309,7 +336,9 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                         text = "작성하기",
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
-                        color = if (content.isEmpty()) colorResource(R.color.gray700) else  colorResource(R.color.blue300)
+                        color = if (content.isEmpty()) colorResource(R.color.gray700) else colorResource(
+                            R.color.blue300
+                        )
                     )
                 }
             )
@@ -430,8 +459,10 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                             interactionSource = remember { MutableInteractionSource() }
                                         ) {
                                             selectedImage = imageIndex
-                                            addPostViewModel.selectedImageForDefault = addPostViewModel.defaultImageList[imageIndex].url.href
-                                            addPostViewModel.selectedImageName = addPostViewModel.defaultImageList[imageIndex].imgName
+                                            addPostViewModel.selectedImageForDefault =
+                                                addPostViewModel.defaultImageList[imageIndex].url.href
+                                            addPostViewModel.selectedImageName =
+                                                addPostViewModel.defaultImageList[imageIndex].imgName
                                         }
                                     ) {
                                         AsyncImage(
@@ -482,12 +513,13 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop// 원하는 Modifier 추가
                                     )
-                                }
-                                else {
+                                } else {
                                     Icon(
                                         painter = painterResource(R.drawable.ic_add),
                                         contentDescription = null,
-                                        modifier = Modifier.size(24.dp).align(Alignment.Center),
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .align(Alignment.Center),
                                         tint = colorResource(R.color.gray500)
                                     )
                                 }
@@ -705,7 +737,8 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                 .imePadding()
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .verticalScroll(scrollState2)
             ) {
                 Column(
@@ -714,12 +747,28 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
 
                         .padding(start = 20.dp, end = 20.dp)
                 ) {
-                    ContentCard(addPostViewModel, imgType, addPostViewModel.selectedImageForDefault, selectedImageForGallery, content, onContentChanged = { content = it }, fontEnum = fontType)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    ContentCard(
+                        addPostViewModel,
+                        imgType,
+                        addPostViewModel.selectedImageForDefault,
+                        selectedImageForGallery,
+                        content,
+                        onContentChanged = { content = it },
+                        fontEnum = fontType
+                    )
+                    Spacer(
+                        modifier = Modifier.height(
+                            if (parentStoryExpirationTime != null) {
+                                12.dp
+                            } else {
+                                30.dp
+                            }
+                        )
+                    )
                 }
-
-                if (!storyChecked) {
-                    if (!parentIsStory) {
+                if (cardId == null) {
+                    Log.d("123","cardId가 null 일 때, 피드 카드임")
+                    if (!storyChecked) {
                         if (tagList.isNotEmpty()) {
                             Row(
                                 modifier = Modifier
@@ -869,7 +918,10 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         tagHintList.forEach { tagHint ->
-                                            TagHintChip(tagHint = tagHint.content, tagHint.count) { tag ->
+                                            TagHintChip(
+                                                tagHint = tagHint.content,
+                                                tagHint.count
+                                            ) { tag ->
                                                 tagList.add(0, tag)
                                                 tagTextField = ""
                                                 tagHintList = emptyList()
@@ -880,35 +932,192 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                             }
                         }
                     }
-                    else {
-                        Box(
+                } else {
+                    Log.d("123","cardId가 null이 아님, 댓글 카드임")
+                    if (parentStoryExpirationTime == null) {
+                        Log.d("123","storyExpirationTime null 일 때, 부모 카드가 일반 카드임")
+                        if (tagList.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState())
+                            ) {
+                                tagList.forEachIndexed { index, tag ->
+                                    Spacer(
+                                        modifier = if (index == 0) {
+                                            Modifier.width(20.dp)
+                                        } else {
+                                            Modifier.width(12.dp)
+                                        }
+                                    )
+                                    Surface(
+                                        modifier = Modifier.clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {
+                                            tagList.remove(tag)
+                                        },
+                                        color = colorResource(R.color.gray05),
+                                        shape = RoundedCornerShape(4.dp),
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.padding(
+                                                start = 16.dp,
+                                                end = 16.dp,
+                                                top = 4.dp,
+                                                bottom = 4.dp
+                                            ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.ic_tag_cancel),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp),
+                                                    tint = colorResource(R.color.gray400)
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                androidx.compose.material3.Text(
+                                                    text = "#${tag}",
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = colorResource(R.color.gray02)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    if (index == tagList.lastIndex) {
+                                        Spacer(modifier = Modifier.width(20.dp))
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .padding(start = 20.dp, end = 20.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth().align(Alignment.Center)
-                            ) {
-                                Surface(
-                                    color = colorResource(R.color.blue300),
-                                    shape = RoundedCornerShape(12.dp),
-                                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 2.5.dp, bottom = 2.5.dp)
+                            androidx.compose.material3.OutlinedTextField(
+                                value = tagTextField,
+                                onValueChange = {
+                                    tagTextField = it
+                                    if (isCompleteHangul(tagTextField)) {
+                                        addPostViewModel.getRelatedTag(
+                                            tagTextField,
+                                            5
+                                        ) //int값에 뭐가 들어가야되는지 모르겠음
+                                        Log.d("tag", "api호출")
+                                    }
+                                },
+                                placeholder = {
+                                    Text(
+                                        text = "#태그를 입력해주세요!",
+                                        fontSize = 16.sp,
+                                        color = colorResource(R.color.gray02),
+                                        fontWeight = FontWeight.Medium,
+                                        textDecoration = TextDecoration.None
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+//                        .border(width = 1.dp, color = colorResource(R.color.gray02), shape = RoundedCornerShape(12.dp))
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = colorResource(R.color.primary_color),
+                                    unfocusedBorderColor = colorResource(R.color.gray02),
+                                    cursorColor = colorResource(R.color.primary_color)
+                                ),
+                                textStyle = TextStyle(
+                                    fontSize = 16.sp,
+                                    color = colorResource(R.color.gray02),
+                                    fontWeight = FontWeight.Medium,
+                                    textDecoration = TextDecoration.None
+                                ),
+                                trailingIcon = {
+                                    if (tagTextField.isNotBlank()) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_add),
+                                            contentDescription = "Add Post",
+                                            tint = colorResource(R.color.gray02),
+                                            modifier = Modifier.clickable(
+                                                interactionSource = remember { MutableInteractionSource() },
+                                                indication = null
+                                            ) {
+                                                tagList.add(0, tagTextField)
+                                                tagTextField = ""
+                                            }
+
+                                        )
+                                    }
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        if (tagTextField.isNotBlank()) {
+                                            tagList.add(0, tagTextField)
+                                            tagTextField = ""
+                                        }
+                                        keyboardController?.hide()
+                                    }
+                                ),
+                            )
+                            Spacer(modifier = Modifier.height(13.dp))
+                            if (tagHintList.isNotEmpty()) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "14 : 00 : 00",
-                                        fontSize = 14.sp,
+                                        text = "#관련태그",
                                         fontWeight = FontWeight.Medium,
-                                        color = colorResource(R.color.gray_white),
-                                        lineHeight = 19.6.sp
+                                        fontSize = 15.sp
                                     )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    FlowRow(
+                                        mainAxisSpacing = 8.dp,
+                                        crossAxisSpacing = 8.dp,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        tagHintList.forEach { tagHint ->
+                                            TagHintChip(
+                                                tagHint = tagHint.content,
+                                                tagHint.count
+                                            ) { tag ->
+                                                tagList.add(0, tag)
+                                                tagTextField = ""
+                                                tagHintList = emptyList()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        Log.d("123", "부모 카드가 펑 카드임")
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (calculateRemainingTime(parentStoryExpirationTime) != "시간이 이미 지났습니다.") {
+                                    PungTime(calculateRemainingTime(parentStoryExpirationTime))
                                 }
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = "이후에 카드가 삭제될 예정이에요",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = colorResource(R.color.gray700),
-                                    lineHeight = 19.6.sp
+                                    lineHeight = 19.6.sp,
+                                    color = colorResource(R.color.gray700)
                                 )
                             }
                         }
@@ -916,147 +1125,7 @@ fun AddPostScreen(navController: NavHostController, cardId: String? = null) {
                 }
             }
         }
-//        Column(Modifier.padding(20.dp)) {
-//            Card(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .aspectRatio(1 / 0.9f)
-//                    .padding(bottom = 10.dp),
-//                shape = RoundedCornerShape(40.dp),
-//            ) {
-//                Box(
-//                    modifier = Modifier
-//                        .fillMaxSize()
-//                ) {
-//                    ImageLoader("https://search.pstatic.net/sunny/?src=https%3A%2F%2Fus.123rf.com%2F450wm%2Fvantuz%2Fvantuz1506%2Fvantuz150600251%2F41134623-%25EB%2593%25B1%25EB%25B6%2588%25EC%259D%2580-%25EC%2596%25B4%25EB%2591%2590%25EC%259A%25B4-%25EB%25B0%25B0%25EA%25B2%25BD%25EC%259D%2584-%25EC%25A1%25B0%25EB%25AA%2585%25ED%2595%259C%25EB%258B%25A4-%25EB%25B2%25A1%25ED%2584%25B0-%25EC%259D%25B4%25EB%25AF%25B8%25EC%25A7%2580%25EC%259E%2585%25EB%258B%2588%25EB%258B%25A4-.jpg%3Fver%3D6&type=sc960_832")
-//                    BasicTextField(
-//                        value = content,
-//                        onValueChange = {
-//                            if (it.length <= 1000) {
-//                                content = it
-//                            }
-//                        },
-//                        modifier = Modifier
-////                            .fillMaxWidth(0.75f)
-////                            .fillMaxHeight(0.72f)
-//                            .padding(40.dp)
-//                            .align(Alignment.Center)
-//
-//                            .verticalScroll(scrollState),
-//                        textStyle = TextStyle(
-//                            color = Color.White,
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.Bold,
-//                            textDecoration = TextDecoration.None,
-//                            lineHeight = 28.8.sp),
-//                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
-//                    ) {
-//                        // 기본 텍스트가 없으면 빈칸으로 표시
-//                        if (content.isEmpty()) {
-//                            Text(
-//                                text = "입력하세요...",
-//                                color = Color.White,
-//                                style = TextStyle(color = Color.White)
-//                            )
-//                        } else {
-//                            it()
-//                        }
-//                    }
-//
-//                    Text(
-//                        modifier = Modifier
-//                            .align(Alignment.BottomCenter)
-//                            .padding(bottom = 12.dp),
-//                        text = "${content.length} / 1000",
-//                        color = Color.White,
-//                        fontSize = 14.sp
-//                    )
-//                }
-//            }
-//            var tagText by remember { mutableStateOf("") }
-//            var tags by remember { mutableStateOf(listOf<String>()) }
-//            val tagHint: List<Pair<String, Int>> = listOf(
-//                "UX기획" to 6,
-//                "UX리서처" to 4,
-//                "UIUX를 공부하는 효율적인 방법" to 3,
-//                "UI디자인이에요" to 2,
-//                "UI가독성" to 1
-//            )
-//            if (tags.isNotEmpty()) {
-//                LazyRow(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(bottom = 10.dp)
-//                ) {
-//                    items(tags) { tag ->
-//                        TagChip(tag = tag) {
-//                            tags = tags.filterNot { it == tag }
-//                        }
-//                    }
-//                }
-//            }
-//            Row(modifier = Modifier.fillMaxWidth()) {
-//                OutlinedTextField(
-//                    value = tagText,
-//                    onValueChange = { tagText = it },
-//                    placeholder = { Text(text = "태그를 입력해주세요",fontSize = 16.sp) },
-//                    colors = TextFieldDefaults.outlinedTextFieldColors(
-//                        focusedBorderColor = Primary,
-//                        unfocusedBorderColor = Color.Gray,
-//                        cursorColor = Primary
-//                    ),
-//                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .height(56.dp)
-//                        .padding(end = 8.dp),
-//                    trailingIcon = {
-//                        if (tagText.isNotBlank()) {
-//                            IconButton(onClick = {
-//                                tags = tags + tagText
-//                                tagText = ""
-//                            }) {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.ic_add),
-//                                    contentDescription = "Add Tag"
-//                                )
-//                            }
-//                        } else {
-//                            Spacer(modifier = Modifier.size(24.dp))
-//                        }
-//                    },
-//                    keyboardOptions = KeyboardOptions.Default.copy(
-//                        imeAction = ImeAction.Done
-//                    ),
-//                    keyboardActions = KeyboardActions(
-//                        onDone = {
-//                            if (tagText.isNotBlank()) {
-//                                tags = tags + tagText
-//                                tagText = ""
-//                            }
-//                        }
-//                    )
-//                )
-//
-//            }
-//
-//            Spacer(modifier = Modifier.height(16.dp))
-//
-//            if (tagText != "") {
-//                Text("#관련 태그")
-//                FlowRow(
-//                    mainAxisSpacing = 8.dp,
-//                    crossAxisSpacing = 8.dp,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    tagHint.forEach { tagHint ->
-//                        TagHintChip(tagHint = tagHint.first, tagHint.second)
-//                    }
-//                }
-//            }
-//        }
     }
-
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -1084,10 +1153,13 @@ fun TagChip(tag: String, onDelete: () -> Unit) {
     }
 
 }
+
 fun uriToBitmap(context: Context, uri: Uri): Bitmap {
     val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-    return BitmapFactory.decodeStream(inputStream) ?: throw IllegalArgumentException("Cannot decode URI: $uri")
+    return BitmapFactory.decodeStream(inputStream)
+        ?: throw IllegalArgumentException("Cannot decode URI: $uri")
 }
+
 @Composable
 fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
     Row(
@@ -1126,7 +1198,15 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, selectedImageForDefault: String?, selectedImageForGallery: Bitmap?, content: String, onContentChanged: (String) -> Unit, fontEnum: FontEnum) {
+fun ContentCard(
+    addPostViewModel: AddPostViewModel,
+    imgType: ImgTypeEnum,
+    selectedImageForDefault: String?,
+    selectedImageForGallery: Bitmap?,
+    content: String,
+    onContentChanged: (String) -> Unit,
+    fontEnum: FontEnum
+) {
     val scrollState = rememberScrollState()
     Card(
         modifier = Modifier
@@ -1158,7 +1238,8 @@ fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, select
                     .padding(40.dp)
                     .align(Alignment.Center)
                     .verticalScroll(scrollState),
-                textStyle = TextStyle(color = Color.White,
+                textStyle = TextStyle(
+                    color = Color.White,
                     fontSize = if (fontEnum == FontEnum.PRETENDARD) {
                         16.sp
                     } else {
@@ -1173,7 +1254,8 @@ fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, select
                         FontFamily(
                             Font(R.font.handwrite)
                         )
-                    }),
+                    }
+                ),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
             ) {
                 // 기본 텍스트가 없으면 빈칸으로 표시
@@ -1210,92 +1292,6 @@ fun ContentCard(addPostViewModel: AddPostViewModel, imgType: ImgTypeEnum, select
                 fontWeight = FontWeight.SemiBold
             )
         }
-//    val gradientBrush = Brush.verticalGradient(
-//        colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
-//        startY = 0f,
-//        endY = 60f // 그라데이션의 높이를 60dp로 설정
-//    )
-//
-//    var text by remember { mutableStateOf("") }
-//    val scrollState = rememberScrollState()
-//    var textCount by remember { mutableStateOf(0) }
-//
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .aspectRatio(1 / 0.9f),
-//        shape = RoundedCornerShape(40.dp),
-//        onClick = { }
-//    ) {
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//        ) {
-//            ImageLoader("")
-//            Box(
-//                contentAlignment = Alignment.Center,
-//                modifier = Modifier
-//                    .fillMaxWidth(0.75f)
-//                    .fillMaxHeight(0.72f)
-//            ) {
-//                Row(modifier = Modifier.fillMaxSize()) {
-//                    Box(modifier = Modifier
-//                        .weight(1f)
-//                        .verticalScroll(scrollState)) {
-//                        TextField(
-//                            value = text,
-//                            onValueChange = { newText -> text = newText },
-//                            label = { androidx.compose.material3.Text("Enter text") },
-//                            modifier = Modifier.fillMaxWidth()
-//                        )
-//                    }
-//                }
-//            }
-//            androidx.compose.material3.Text(
-//                text = "${textCount}/1000자",
-//                fontWeight = FontWeight.SemiBold,
-//                fontSize = 14.sp
-//            )
-//        }
-
-//            Box(
-//                modifier = Modifier
-//                    .background(
-//                        Color.Black.copy(alpha = 0.7f),
-//                        shape = RoundedCornerShape(24.dp)
-//                    )
-//                    .fillMaxWidth(0.75f)
-//                    .align(Alignment.Center)
-//                    .padding(4.dp)
-//            ) {
-//                Text(
-//                    modifier = Modifier
-//                        .align(Alignment.Center)
-//                        .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
-//                    text = item.content,
-//                    color = Color.White,
-//                    fontSize = 16.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    maxLines = 4,
-//                    overflow = TextOverflow.Ellipsis,
-//                    lineHeight = 28.8.sp,
-//                )
-//            }
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(60.dp)
-//                    .background(gradientBrush)
-//                    .align(Alignment.BottomCenter)
-//            )
-//            Box(
-//                modifier = Modifier
-//                    .align(Alignment.BottomEnd)
-//                    .padding(end = 26.dp, bottom = 24.dp)
-//            ) {
-//                LatestCardInfo(item)
-//            }
-//        }
     }
 }
 
@@ -1321,12 +1317,14 @@ private fun isCompleteHangul(text: String): Boolean {
 }
 
 @Composable
-fun keyboardAsState() : State<Boolean> {
+fun keyboardAsState(): State<Boolean> {
     val keyboardState = remember { mutableStateOf(false) }
     val view = LocalView.current
     DisposableEffect(view) {
         val listener = ViewTreeObserver.OnGlobalLayoutListener {
-            keyboardState.value = ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) ?: true
+            keyboardState.value =
+                ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime())
+                    ?: true
         }
         view.viewTreeObserver.addOnGlobalLayoutListener(listener)
         onDispose {
@@ -1342,7 +1340,7 @@ fun ImageLoaderForUrl(url: String?) {
         model = ImageRequest.Builder(LocalContext.current)
             .data(url)
             .build(),
-        contentDescription = "카드 이미지",
+        contentDescription = "url 형식 이미지",
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
     )
@@ -1354,7 +1352,7 @@ fun ImageLoaderForBitmap(bitmap: Bitmap?) {
         model = ImageRequest.Builder(LocalContext.current)
             .data(bitmap)
             .build(),
-        contentDescription = "카드 이미지",
+        contentDescription = "bitmap 형식 이미지",
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
     )
