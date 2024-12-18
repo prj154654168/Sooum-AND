@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -52,7 +51,7 @@ import com.canhub.cropper.CropImageContractOptions
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.Utils
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.LogInProfileViewModel
 import java.io.ByteArrayOutputStream
@@ -99,7 +98,7 @@ fun LogInProfileScreen(navController: NavHostController) {
             }
         }
     if (viewModel.isLoading == 1) {
-        navController.navigate(SoonumNav.Home.screenRoute) {
+        navController.navigate(SooumNav.Home.screenRoute) {
             popUpTo(navController.graph.id) {
                 inclusive = true
             } // 백 스택 비우기
@@ -213,7 +212,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     .getVariable("nickName")
                                     .toString(), 2
                             )
-                            navController.navigate(SoonumNav.Home.screenRoute) {
+                            navController.navigate(SooumNav.Home.screenRoute) {
                                 popUpTo(navController.graph.id) {
                                     inclusive = true
                                 } // 백 스택 비우기

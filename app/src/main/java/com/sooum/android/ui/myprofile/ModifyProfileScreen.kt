@@ -52,7 +52,7 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.sooum.android.R
 import com.sooum.android.Utils
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.viewmodel.LogInProfileViewModel
 import kotlinx.coroutines.delay
 import java.io.ByteArrayOutputStream
@@ -105,7 +105,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
 
 
     if (viewModel.isLoading == 1) {
-        navController.navigate(SoonumNav.Profile.screenRoute) {
+        navController.navigate(SooumNav.Profile.screenRoute) {
             popUpTo(navController.graph.id) {
                 inclusive = true
             } // 백 스택 비우기

@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -75,7 +76,8 @@ import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
 import com.sooum.android.ui.common.PostNav
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
+import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
@@ -228,7 +230,7 @@ fun DetailScreen(
                 },
                 actions = {
                     IconButton(onClick = {
-                        navController.navigate(SoonumNav.Home.screenRoute) {
+                        navController.navigate(SooumNav.Home.screenRoute) {
                             // 모든 Back Stack을 비우고 "destination_screen"으로 이동
                             popUpTo(navController.graph.id) {
                                 inclusive = true // "startDestinationId"까지 포함하여 모든 화면을 제거
@@ -448,7 +450,7 @@ fun DetailScreen(
                                                 .size(32.dp)
                                                 .clickable {
                                                     if(data.isOwnCard){
-                                                        navController.navigate(SoonumNav.Profile.screenRoute)
+                                                        navController.navigate(SooumNav.Profile.screenRoute)
                                                     }else{
                                                         navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
                                                     }
@@ -464,7 +466,7 @@ fun DetailScreen(
                                                 .size(32.dp)
                                                 .clickable {
                                                     if(data.isOwnCard){
-                                                        navController.navigate(SoonumNav.Profile.screenRoute)
+                                                        navController.navigate(SooumNav.Profile.screenRoute)
                                                     }else{
                                                         navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
                                                     }
@@ -524,7 +526,9 @@ fun DetailScreen(
                                 .padding(start = 20.dp, bottom = 10.dp),
                         ) {
                             items(data.tags) { item ->
-                                TagItem(item)
+                                TagItem(item, onClick = { tagId ->
+                                    navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
+                                })
                             }
                         }
                     }
@@ -555,7 +559,7 @@ fun DetailScreen(
                                     .height(24.dp)
                                     .clickable(
                                     ) {
-                                        navController.navigate("addCommentCard/${cardId}")
+                                        navController.navigate("addCommentCard/${cardId}/${data.storyExpirationTime}")
                                     },
                                 painter = painterResource(R.drawable.ic_detail_comment),
                                 contentDescription = "댓글",
@@ -733,9 +737,16 @@ fun DeatilCommentItem(
 }
 
 @Composable
-fun TagItem(item: Tag) {
+fun TagItem(item: Tag, onClick: (String) -> Unit) {
     Surface(
-        modifier = Modifier.padding(end = 10.dp),
+        modifier = Modifier
+            .padding(end = 10.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                onClick(item.id)
+            },
         shape = RoundedCornerShape(4.dp),
         color = Gray3
     ) {

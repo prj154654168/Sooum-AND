@@ -47,7 +47,6 @@ class AddPostViewModel @Inject constructor(
     var selectedImageName : String by mutableStateOf(null.toString())
 
     var relatedTagList = mutableStateListOf<RelatedTagDataModel.Embedded.RelatedTag>()
-        private set
 
     val cardAPIInstance = SooumApplication().instance.create(CardApi::class.java)
 

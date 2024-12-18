@@ -142,11 +142,27 @@ fun TagListScreen(navController: NavController, tagId: String) {
                     }
             )
         }
-        LazyColumn {
-            items(tagViewModel.tagFeedList.size) { index ->
-                TagContentCard(tagViewModel, index, onItemClick = { cardId ->
-                    navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
-                })
+        if (tagViewModel.tagFeedList.isEmpty()) {
+            if (tagViewModel.tagSummary?.cardCnt == 0) {
+                Box(modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center) {
+                    EmptyText()
+                }
+            }
+            else {
+                Box(modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center) {
+                    BlockText()
+                }
+            }
+        }
+        else {
+            LazyColumn {
+                items(tagViewModel.tagFeedList.size) { index ->
+                    TagContentCard(tagViewModel, index, onItemClick = { cardId ->
+                        navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
+                    })
+                }
             }
         }
     }
@@ -300,5 +316,51 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                 }
             }
         }
+    }
+}
+
+@Composable
+fun BlockText() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "조회할 수 있는 카드가 없어요",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 24.sp,
+            color = colorResource(R.color.gray_black)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "차단된 사용자의 카드는\n확인할 수 없어요",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 19.6.sp,
+            color = colorResource(R.color.gray500)
+        )
+    }
+}
+
+@Composable
+fun EmptyText() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "등록된 카드가 없어요",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 24.sp,
+            color = colorResource(R.color.gray_black)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "해당 태그를 사용한\n카드가 없어요",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 19.6.sp,
+            color = colorResource(R.color.gray500)
+        )
     }
 }
