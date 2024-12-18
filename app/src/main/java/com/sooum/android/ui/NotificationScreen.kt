@@ -43,7 +43,6 @@ import com.sooum.android.R
 import com.sooum.android.enums.TabEnum
 import kotlinx.coroutines.launch
 
-//틀은 구현 완료 했음. 내일 디테일한 부분 마저 봐야지
 @Composable
 fun NotificationScreen(navController: NavController) {
     val pagerState = rememberPagerState(pageCount = {3})
