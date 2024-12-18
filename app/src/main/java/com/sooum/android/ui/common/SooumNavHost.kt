@@ -16,6 +16,7 @@ import com.sooum.android.ui.FollowScreen
 import com.sooum.android.ui.FollowingScreen
 import com.sooum.android.ui.HomeScreen
 import com.sooum.android.ui.DifProfileScreen
+import com.sooum.android.ui.NotificationScreen
 import com.sooum.android.ui.myprofile.ModifyProfileScreen
 import com.sooum.android.ui.myprofile.MyProfileScreen
 import com.sooum.android.ui.ReportScreen
@@ -139,6 +140,9 @@ fun SooumNavHost(
         composable(route = "${TagNav.TagList.screenRoute}/{tagId}") { backStackEntry ->
             val tagId = backStackEntry.arguments?.getString("tagId").toString()
             TagListScreen(navController, tagId)
+        }
+        composable(route = NotificationNav.Notification.screenRoute) {
+            NotificationScreen(navController)
         }
     }
 }

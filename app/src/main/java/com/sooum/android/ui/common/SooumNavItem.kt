@@ -34,6 +34,7 @@ object NavigationRouteName {
     const val DIF_FOLLOWER = "남의 팔로워"
     const val DIF_FOLLOWING = "남의 팔로잉"
     const val DIF_PROFILE = "남의 프로필"
+    const val NOTIFICATION = "알림"
 }
 
 sealed class SooumNav(
@@ -108,4 +109,10 @@ sealed class TagNav(
     val screenRoute: String,
 ) {
     data object TagList : TagNav(NavigationRouteName.TAG_LIST)
+}
+
+sealed class NotificationNav(
+    val screenRoute: String
+) {
+    data object Notification : NotificationNav(NavigationRouteName.NOTIFICATION)
 }

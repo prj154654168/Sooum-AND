@@ -17,6 +17,8 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -54,9 +56,11 @@ import com.google.android.gms.location.Priority
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.SooumBottomNavigation
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
+import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.SoonumTheme
 import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -278,13 +282,21 @@ fun Main(mainViewModel: MainViewModel) {
                                 )
                             },
                             actions = {
-                                IconButton(onClick = {
-                                    /* 버튼 클릭 이벤트 */
-                                }) {
+                                IconButton(
+                                    onClick = {
+                                    navController.navigate(NotificationNav.Notification.screenRoute)
+                                    },
+//                                    modifier = Modifier.clickable(
+//                                        interactionSource = remember { MutableInteractionSource() },
+//                                        indication = null
+//                                    ) {
+//
+//                                    }
+                                ) {
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_alarm),
                                         contentDescription = "Alarm",
-                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
+                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01)),
                                     )
                                 }
                             },
