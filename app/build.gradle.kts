@@ -14,8 +14,8 @@ android {
         applicationId = "com.sooum.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
-        versionName = "2.13"
+        versionCode = 7
+        versionName = "2.131"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
