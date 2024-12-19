@@ -35,6 +35,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,6 +80,7 @@ import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
+import com.sooum.android.ui.theme.Gray100
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
@@ -449,9 +451,9 @@ fun DetailScreen(
                                             modifier = Modifier
                                                 .size(32.dp)
                                                 .clickable {
-                                                    if(data.isOwnCard){
+                                                    if (data.isOwnCard) {
                                                         navController.navigate(SooumNav.Profile.screenRoute)
-                                                    }else{
+                                                    } else {
                                                         navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
                                                     }
                                                 }
@@ -465,9 +467,9 @@ fun DetailScreen(
                                             modifier = Modifier
                                                 .size(32.dp)
                                                 .clickable {
-                                                    if(data.isOwnCard){
+                                                    if (data.isOwnCard) {
                                                         navController.navigate(SooumNav.Profile.screenRoute)
-                                                    }else{
+                                                    } else {
                                                         navController.navigate("${PostNav.DifProfile.screenRoute}/${data.member.id}")
                                                     }
                                                 }
@@ -543,10 +545,13 @@ fun DetailScreen(
 //            ){
 //                Row(modifier = Modifier.background(Color.Black)){}
 //            }
-
+                    Divider(
+                        color = Gray100,        // 선의 색상
+                        thickness = 2.dp           // 선의 두께
+                    )
                     Row(
                         modifier = Modifier
-                            .padding(start = 20.dp)
+                            .padding(start = 20.dp, top = 10.dp)
                             .align(Alignment.Start),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

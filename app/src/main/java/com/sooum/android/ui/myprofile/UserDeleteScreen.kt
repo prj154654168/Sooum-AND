@@ -1,6 +1,5 @@
 package com.sooum.android.ui.myprofile
 
-import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.UserDeleteViewModel
 
 @Composable
@@ -125,10 +124,11 @@ fun UserDeleteScreen(navController: NavHostController) {
                     onCheckedChange = { isChecked = it }, // 상태를 업데이트
                     colors = CheckboxDefaults.colors(
                         disabledCheckedColor = Color.Transparent,
-                        checkmarkColor = Color.Black // 체크 표시 색상
+                        checkmarkColor = Color.White, // 체크 표시 색상
+                        checkedColor = Primary
                     )
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = "위 안내사항을 모두 확인했습니다",
                     fontSize = 16.sp,
