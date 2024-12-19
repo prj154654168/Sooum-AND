@@ -42,6 +42,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.domain.model.FollowerDataModel
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.DifFollowerViewModel
 
 @Composable
@@ -80,14 +81,18 @@ fun DifFollowerScreen(navController: NavHostController, profileOwnerPk: Long) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(viewModel.followerList.value) { index ->
-                DifFollowItem(index, viewModel)
+                DifFollowItem(index, viewModel, navController)
             }
         }
     }
 }
 
 @Composable
-fun DifFollowItem(item: FollowerDataModel.FollowerInfo, viewModel: DifFollowerViewModel) {
+fun DifFollowItem(
+    item: FollowerDataModel.FollowerInfo,
+    viewModel: DifFollowerViewModel,
+    navController: NavHostController,
+) {
 
     var isFollow by remember { mutableStateOf(item.isFollowing) }
 
@@ -96,7 +101,11 @@ fun DifFollowItem(item: FollowerDataModel.FollowerInfo, viewModel: DifFollowerVi
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 20.dp, top = 14.dp, bottom = 14.dp)
+            modifier = Modifier
+                .padding(start = 20.dp, top = 14.dp, bottom = 14.dp)
+                .clickable {
+                    navController.navigate("${PostNav.DifProfile.screenRoute}/${item.id}")
+                }
         ) {
             if (item.backgroundImgUrl == null) {
                 Image(

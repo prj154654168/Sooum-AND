@@ -134,7 +134,7 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                     if (!viewModel.isBlock.value) {
                         Text(
                             modifier = Modifier
-                                .padding(top = 25.5.dp, end = 20.dp)
+                                .padding(top = 10.dp, end = 20.dp)
                                 .clickable {
                                     showBlockDialog = true
                                 },

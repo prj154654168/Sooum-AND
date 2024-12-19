@@ -42,6 +42,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.domain.model.FollowerDataModel
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.viewmodel.FollowerViewModel
 
@@ -83,14 +84,18 @@ fun FollowScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(viewModel.followerList.value) { index ->
-                FollowItem(index, viewModel)
+                FollowItem(index, viewModel,navController)
             }
         }
     }
 }
 
 @Composable
-fun FollowItem(item: FollowerDataModel.FollowerInfo, viewModel: FollowerViewModel) {
+fun FollowItem(
+    item: FollowerDataModel.FollowerInfo,
+    viewModel: FollowerViewModel,
+    navController: NavHostController
+) {
 
     var isFollow by remember { mutableStateOf(item.isFollowing) }
 
@@ -99,7 +104,11 @@ fun FollowItem(item: FollowerDataModel.FollowerInfo, viewModel: FollowerViewMode
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 20.dp, top = 14.dp, bottom = 14.dp)
+            modifier = Modifier
+                .padding(start = 20.dp, top = 14.dp, bottom = 14.dp)
+                .clickable {
+                    navController.navigate("${PostNav.DifProfile.screenRoute}/${item.id}")
+                }
         ) {
             if (item.backgroundImgUrl == null) {
                 Image(

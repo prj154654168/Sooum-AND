@@ -44,6 +44,7 @@ import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.enums.ReportTypeEnum
 import com.sooum.android.ui.theme.Gray1
+import com.sooum.android.ui.theme.Gray300
 import com.sooum.android.ui.theme.Gray4
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.ReportViewModel
@@ -202,8 +203,10 @@ fun ReportScreen(
                     .height(50.dp)
                     .align(Alignment.BottomCenter),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary
-                )
+                    containerColor = Primary,
+                    disabledContainerColor = Gray300
+                ),
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Text(text = "신고하기", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
@@ -225,7 +228,11 @@ fun ReportButton(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, Gray4, RoundedCornerShape(12.dp))
+            .border(
+                1.dp,
+                if (selectedOption != index) Gray4 else Primary,
+                RoundedCornerShape(12.dp)
+            )
             .padding(bottom = 10.dp)
             .clip(
                 shape = RoundedCornerShape(
@@ -348,14 +355,14 @@ fun ReportDialog2(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "신고가 처리 중이에요",
+                    text = "이미 신고를 한 카드에요",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = colorResource(R.color.black)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "이전에 신고가 접수되어 처리 중이에요",
+                    text = "이전 신고가 접수되어 처리 중이에요",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = colorResource(R.color.gray01)
