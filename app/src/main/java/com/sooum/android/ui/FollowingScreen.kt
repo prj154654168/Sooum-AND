@@ -48,8 +48,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.domain.model.FollowingDataModel
-import com.sooum.android.ui.common.MyProfile
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.FollowingViewModel
@@ -60,8 +59,8 @@ import kotlinx.coroutines.launch
 fun FollowingScreen(navController: NavHostController) {
 
     BackHandler {
-        navController.navigate(SoonumNav.Profile.screenRoute) {
-            popUpTo(SoonumNav.Profile.screenRoute) { inclusive = true }
+        navController.navigate(SooumNav.Profile.screenRoute) {
+            popUpTo(SooumNav.Profile.screenRoute) { inclusive = true }
         }
     }
     val viewModel: FollowingViewModel = hiltViewModel()

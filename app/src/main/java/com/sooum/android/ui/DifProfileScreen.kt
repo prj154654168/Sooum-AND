@@ -53,7 +53,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.ui.common.PostNav
-import com.sooum.android.ui.common.SoonumNav
+import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Gray5
 import com.sooum.android.ui.viewmodel.DifProfileViewModel
 
@@ -116,7 +116,7 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                             .padding(20.dp)
                             .clickable {
                                 if (viewModel.isBlock.value) {
-                                    navController.navigate(SoonumNav.Home.screenRoute) {
+                                    navController.navigate(SooumNav.Home.screenRoute) {
                                         // 모든 Back Stack을 비우고 "destination_screen"으로 이동
                                         popUpTo(navController.graph.id) {
                                             inclusive =

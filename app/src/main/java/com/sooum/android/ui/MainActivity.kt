@@ -19,15 +19,13 @@ import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,7 +47,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -61,11 +58,12 @@ import com.google.android.gms.location.Priority
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
-import com.sooum.android.ui.common.SoonumBottomNavigation
-import com.sooum.android.ui.common.SoonumNav
-import com.sooum.android.ui.common.SoonumNavHost
+import com.sooum.android.ui.common.NotificationNav
+import com.sooum.android.ui.common.SooumBottomNavigation
+import com.sooum.android.ui.common.SooumNav
+import com.sooum.android.ui.common.SooumNavHost
+import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.SoonumTheme
-import com.sooum.android.ui.viewmodel.LogInViewModel
 import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -277,16 +275,16 @@ fun Main(mainViewModel: MainViewModel) {
         ) {
             Scaffold(
                 bottomBar = {
-                    if (SoonumNav.isMainRoute(currentRoute) == 1) {
-                        SoonumBottomNavigation(navController)
+                    if (SooumNav.isMainRoute(currentRoute) == 1) {
+                        SooumBottomNavigation(navController)
                     }
-                    if (SoonumNav.isMainRoute(currentRoute) == 4) {
-                        SoonumBottomNavigation(navController)
+                    if (SooumNav.isMainRoute(currentRoute) == 4) {
+                        SooumBottomNavigation(navController)
                     }
                 },
 
                 topBar = {//top bar 추후 수정 필요
-                    if (SoonumNav.isMainRoute(currentRoute) == 1) {
+                    if (SooumNav.isMainRoute(currentRoute) == 1) {
                         TopAppBar(
                             title = {
                                 Image(
@@ -298,13 +296,21 @@ fun Main(mainViewModel: MainViewModel) {
                                 )
                             },
                             actions = {
-                                IconButton(onClick = {
-                                    /* 버튼 클릭 이벤트 */
-                                }) {
+                                IconButton(
+                                    onClick = {
+                                    navController.navigate(NotificationNav.Notification.screenRoute)
+                                    },
+//                                    modifier = Modifier.clickable(
+//                                        interactionSource = remember { MutableInteractionSource() },
+//                                        indication = null
+//                                    ) {
+//
+//                                    }
+                                ) {
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_alarm),
                                         contentDescription = "Alarm",
-                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01))
+                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01)),
                                     )
                                 }
                             },
@@ -319,12 +325,12 @@ fun Main(mainViewModel: MainViewModel) {
                 Box(modifier = Modifier.padding(innerPadding))
 
                 if (mainViewModel.login == 1) {
-                    SoonumNavHost(
+                    SooumNavHost(
                         navController = navController,
-                        startDestination = SoonumNav.Home.screenRoute
+                        startDestination = SooumNav.Home.screenRoute
                     )
                 }else{
-                    SoonumNavHost(
+                    SooumNavHost(
                         navController = navController,
                         startDestination = LogInNav.LogIn.screenRoute
                     )
