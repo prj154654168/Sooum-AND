@@ -12,6 +12,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -709,11 +710,10 @@ fun AddPostScreen(
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.ic_tag_cancel),
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_tag_cancle),
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = colorResource(R.color.gray400)
+                                                    modifier = Modifier.size(16.dp)
                                                 )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 androidx.compose.material3.Text(
@@ -875,11 +875,10 @@ fun AddPostScreen(
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.ic_tag_cancel),
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_tag_cancle),
                                                     contentDescription = null,
-                                                    modifier = Modifier.size(16.dp),
-                                                    tint = colorResource(R.color.gray400)
+                                                    modifier = Modifier.size(16.dp)
                                                 )
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 androidx.compose.material3.Text(
