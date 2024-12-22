@@ -165,7 +165,7 @@ fun TagScreen(navController: NavController) {
                     focusedBorderColor = colorResource(R.color.primary_color),
                     unfocusedBorderColor = Color.Transparent,
                     cursorColor = colorResource(R.color.primary_color),
-                    unfocusedContainerColor = colorResource(R.color.gray50),
+                    unfocusedContainerColor = colorResource(R.color.android_gray50),
                     focusedContainerColor = Color.White
 
                 ),
