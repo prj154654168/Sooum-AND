@@ -35,6 +35,7 @@ object NavigationRouteName {
     const val DIF_FOLLOWING = "남의 팔로잉"
     const val DIF_PROFILE = "남의 프로필"
     const val NOTIFICATION = "알림"
+    const val NOTION_PAGE = "노션 페이지"
 }
 
 sealed class SooumNav(
@@ -87,22 +88,24 @@ sealed class LogInNav(
 sealed class MyProfile(
     val screenRoute: String,
 ) {
-    data object ProfileModify : LogInNav(NavigationRouteName.PROFILE_MODIFY)
-    data object Setting : LogInNav(NavigationRouteName.SETTING)
+    data object ProfileModify : MyProfile(NavigationRouteName.PROFILE_MODIFY)
+    data object Setting : MyProfile(NavigationRouteName.SETTING)
 
-    data object MyCommentHistory : LogInNav(NavigationRouteName.COMMENT_HISTORY)
-    data object Notice : LogInNav(NavigationRouteName.NOTICE)
-    data object UserDelete : LogInNav(NavigationRouteName.USER_DELETE)
+    data object MyCommentHistory : MyProfile(NavigationRouteName.COMMENT_HISTORY)
+    data object Notice : MyProfile(NavigationRouteName.NOTICE)
+    data object UserDelete : MyProfile(NavigationRouteName.USER_DELETE)
 
-    data object MakeUserCode : LogInNav(NavigationRouteName.USER_CODE_MAKE)
+    data object MakeUserCode : MyProfile(NavigationRouteName.USER_CODE_MAKE)
 
-    data object EnterUserCode : LogInNav(NavigationRouteName.USER_CODE_ENTER)
+    data object EnterUserCode : MyProfile(NavigationRouteName.USER_CODE_ENTER)
 
-    data object Follower : LogInNav(NavigationRouteName.FOLLOWER)
+    data object Follower : MyProfile(NavigationRouteName.FOLLOWER)
 
-    data object Following : LogInNav(NavigationRouteName.FOLLOWING)
+    data object Following : MyProfile(NavigationRouteName.FOLLOWING)
 
-    data object ProfileAgree : LogInNav(NavigationRouteName.PROFILE_AGREE)
+    data object ProfileAgree : MyProfile(NavigationRouteName.PROFILE_AGREE)
+
+    data object NotionPage : MyProfile(NavigationRouteName.NOTION_PAGE)
 }
 
 sealed class TagNav(

@@ -55,6 +55,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.firebase.messaging.FirebaseMessaging
 import com.sooum.android.R
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
@@ -125,9 +126,19 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
     )
     // val viewModel: LogInViewModel = viewModel()
     val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
         mainViewModel.login(android_id, context)
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.e("task.result", token.toString())
+                mainViewModel.updateFcm(token)
+            } else {
+                Log.e("Firebase", "Failed to get token")
+            }
+        }
     }
     val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val permissionLauncher = rememberLauncherForActivityResult(

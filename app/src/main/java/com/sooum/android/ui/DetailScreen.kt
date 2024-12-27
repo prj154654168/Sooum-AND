@@ -76,6 +76,7 @@ import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
+import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
@@ -365,7 +366,37 @@ fun DetailScreen(
                                             shape = RoundedCornerShape(16.dp) // 테두리 모양을 Card의 shape에 맞춤
                                         ),
                                     shape = RoundedCornerShape(40.dp),
-                                    onClick = { navController.popBackStack() }
+                                    onClick = {
+                                        var flag = 0
+                                        navController.backQueue.forEach { backStackEntry ->
+                                            Log.d(
+                                                "BackStack",
+                                                "Destination: ${backStackEntry.destination.route}"
+                                            )
+                                        }
+                                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                                            ?.let {
+                                                flag=1
+                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
+//                                                {
+//                                                    popUpTo("${PostNav.Detail.screenRoute}/{cardId}") {
+//                                                        inclusive = true
+//                                                    }
+//
+//                                                }
+                                            }
+                                        Log.d("BackStack2", "2")
+                                        // 백스택 팝
+                                        if (flag == 0) {
+                                            navController.popBackStack()
+                                        }
+
+
+//                                        navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}"){
+//                                            popUpTo("${PostNav.Detail.screenRoute}/{cardId}") { inclusive = true } // ScreenB까지 제거
+//                                            launchSingleTop = true
+//                                        }
+                                    }
                                 ) {
                                     Box(
                                         modifier = Modifier
@@ -577,15 +608,44 @@ fun DetailScreen(
                             )
                         }
                     }
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(270.dp)
-                            .padding(top = 10.dp)
-                    ) {
-                        if (comment != null) {
-                            items(comment.embedded.commentCardsInfoList) { item ->
-                                DeatilCommentItem(item, navController)
+
+                    if (comment != null) {
+                        if (comment.embedded.commentCardsInfoList.size == 1) {
+                            DeatilCommentItem(
+                                comment.embedded.commentCardsInfoList[0],
+                                navController,
+                                Modifier
+                                    .size(240.dp)
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(top = 10.dp, bottom = 10.dp)
+                            )
+                        } else {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp)
+                                    .padding(top = 10.dp)
+                            ) {
+                                items(comment.embedded.commentCardsInfoList.size) { item ->
+                                    if (item == 0) {
+                                        DeatilCommentItem(
+                                            comment.embedded.commentCardsInfoList[item],
+                                            navController,
+                                            Modifier
+                                                .aspectRatio(1 / 0.9f)
+                                                .padding(start = 20.dp, bottom = 10.dp)
+                                        )
+                                    } else {
+                                        DeatilCommentItem(
+                                            comment.embedded.commentCardsInfoList[item],
+                                            navController,
+                                            Modifier
+                                                .aspectRatio(1 / 0.9f)
+                                                .padding(start = 8.dp, bottom = 10.dp)
+                                        )
+                                    }
+
+                                }
                             }
                         }
                     }
@@ -653,6 +713,7 @@ fun DetailLike(
 fun DeatilCommentItem(
     item: DetailCommentCardDataModel.CommentCardsInfo,
     navHostController: NavHostController,
+    modifier: Modifier,
 ) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
@@ -660,9 +721,7 @@ fun DeatilCommentItem(
         endY = 60f // 그라데이션의 높이를 60dp로 설정
     )
     Card(
-        modifier = Modifier
-            .aspectRatio(1 / 0.9f)
-            .padding(start = 10.dp, bottom = 10.dp),
+        modifier = modifier,
         shape = RoundedCornerShape(40.dp),
         onClick = { navHostController.navigate("${PostNav.Detail.screenRoute}/${item.id}") }
     ) {

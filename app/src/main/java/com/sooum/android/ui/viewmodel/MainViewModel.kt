@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.EncryptedDeviceId
+import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.Token
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
@@ -52,6 +53,12 @@ class MainViewModel : ViewModel() {
         val publicKey = base64ToRSAPublicKey(key.toString())
         // 문자열 암호화
         return encryptWithRSAPublicKey(android_id, publicKey)
+    }
+
+    fun updateFcm(fcmToken:String){
+        viewModelScope.launch {
+            retrofitInstance.updateFcm(FcmToken(fcmToken))
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -56,13 +56,11 @@ fun SettingScreen(navController: NavHostController) {
                 Icon(
                     painter = painterResource(R.drawable.ic_arrow_back),
                     contentDescription = null,
-                    tint = colorResource(R.color.gray_black),
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .clickable {
                             navController.popBackStack()
                         }
-                        .padding(10.dp)
                 )
                 Text(
                     text = "설정",
@@ -139,6 +137,7 @@ fun SettingScreen(navController: NavHostController) {
                 Icon(
                     painter = painterResource(R.drawable.ic_next),
                     contentDescription = null,
+                    tint = colorResource(R.color.gray400),
                     modifier = Modifier
                         .align(Alignment.CenterEnd)
                 )
@@ -189,6 +188,7 @@ fun SettingRow(text: String, function: () -> Unit) {
         Icon(
             painter = painterResource(R.drawable.ic_next),
             contentDescription = null,
+            tint = colorResource(R.color.gray400),
             modifier = Modifier
                 .align(Alignment.CenterEnd)
         )

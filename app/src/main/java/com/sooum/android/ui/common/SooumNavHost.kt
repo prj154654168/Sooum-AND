@@ -12,22 +12,23 @@ import com.sooum.android.ui.AddPostScreen
 import com.sooum.android.ui.DetailScreen
 import com.sooum.android.ui.DifFollowerScreen
 import com.sooum.android.ui.DifFollowingScreen
+import com.sooum.android.ui.DifProfileScreen
 import com.sooum.android.ui.FollowScreen
 import com.sooum.android.ui.FollowingScreen
 import com.sooum.android.ui.HomeScreen
-import com.sooum.android.ui.DifProfileScreen
 import com.sooum.android.ui.NotificationScreen
-import com.sooum.android.ui.myprofile.ModifyProfileScreen
-import com.sooum.android.ui.myprofile.MyProfileScreen
 import com.sooum.android.ui.ReportScreen
-import com.sooum.android.ui.myprofile.SettingScreen
 import com.sooum.android.ui.TagListScreen
 import com.sooum.android.ui.TagScreen
 import com.sooum.android.ui.myprofile.EnterUserCodeScreen
 import com.sooum.android.ui.myprofile.MakeUserCodeScreen
+import com.sooum.android.ui.myprofile.ModifyProfileScreen
 import com.sooum.android.ui.myprofile.MyCommentHistoryScreen
+import com.sooum.android.ui.myprofile.MyProfileScreen
 import com.sooum.android.ui.myprofile.NoticeScreen
+import com.sooum.android.ui.myprofile.NotionPageScreen
 import com.sooum.android.ui.myprofile.ProfileAgreeScreen
+import com.sooum.android.ui.myprofile.SettingScreen
 import com.sooum.android.ui.myprofile.UserDeleteScreen
 import com.sooum.android.ui.onboarding.AgreeScreen
 import com.sooum.android.ui.onboarding.LogInProfileScreen
@@ -55,8 +56,8 @@ fun SooumNavHost(
         composable(
             route = "addCommentCard/{cardId}/{storyExpirationTime}",
             arguments = listOf(
-                navArgument("cardId") {type = NavType.StringType},
-                navArgument("storyExpirationTime") {type = NavType.StringType}
+                navArgument("cardId") { type = NavType.StringType },
+                navArgument("storyExpirationTime") { type = NavType.StringType }
             )
         )
         { backStackEntry ->
@@ -81,12 +82,14 @@ fun SooumNavHost(
         }
 
         composable(route = "${PostNav.DifFollower.screenRoute}/{profileOwnerPk}") { backStackEntry ->
-            val profileOwnerPk = backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
+            val profileOwnerPk =
+                backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
             DifFollowerScreen(navController, profileOwnerPk)
         }
 
         composable(route = "${PostNav.DifFollowing.screenRoute}/{profileOwnerPk}") { backStackEntry ->
-            val profileOwnerPk = backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
+            val profileOwnerPk =
+                backStackEntry.arguments?.getString("profileOwnerPk").toString().toLong()
             DifFollowingScreen(navController, profileOwnerPk)
         }
 
@@ -143,6 +146,10 @@ fun SooumNavHost(
         }
         composable(route = NotificationNav.Notification.screenRoute) {
             NotificationScreen(navController)
+        }
+        composable(route = "${MyProfile.NotionPage.screenRoute}/{url}") { backStackEntry ->
+            val url = backStackEntry.arguments?.getString("url").toString()
+            NotionPageScreen(url)
         }
     }
 }

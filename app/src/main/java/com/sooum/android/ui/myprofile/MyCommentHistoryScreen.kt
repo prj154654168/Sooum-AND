@@ -3,7 +3,6 @@ package com.sooum.android.ui.myprofile
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,13 +26,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.ImageLoaderForUrl
-import com.sooum.android.ui.common.MyProfile
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.MyCommentHistoryViewModel
 
 @Composable
 fun MyCommentHistoryScreen(navController: NavHostController) {
 
-    val viewModel : MyCommentHistoryViewModel = hiltViewModel()
+    val viewModel: MyCommentHistoryViewModel = hiltViewModel()
 
 
     Box(
@@ -76,7 +75,11 @@ fun MyCommentHistoryScreen(navController: NavHostController) {
             ) {
                 items(viewModel.myCommentCard.value.size) { index ->
                     Box(
-                        modifier = Modifier.aspectRatio(1f)
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clickable {
+                                navController.navigate("${PostNav.Detail.screenRoute}/${viewModel.myCommentCard.value[index].id}")
+                            }
                     ) {
                         ImageLoaderForUrl(viewModel.myCommentCard.value[index].backgroundImgUrl.href)
                         Text(
