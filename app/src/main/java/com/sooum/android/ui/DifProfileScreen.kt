@@ -19,6 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,9 +60,11 @@ import com.sooum.android.R
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Gray5
+import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DifProfileViewModel
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun DifProfileScreen(navController: NavHostController, memberId: String?) {
     val viewModel: DifProfileViewModel = hiltViewModel()
@@ -73,6 +80,23 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
     val data = viewModel.difProfile.value
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp // 화면 너비 가져오기
     val boxWidth = screenWidth / 3
+
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            coroutineScope.launch {
+                memberId?.let {
+                    viewModel.getDifProfile(it.toLong())
+                    viewModel.getDifFeedCard(it.toLong())
+                }
+                isRefreshing = false
+            }
+        }
+    )
 
     if (data != null && memberId != null) {
         if (showBlockDialog) {
@@ -147,245 +171,264 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                 }
             )
         }) {
-            LazyColumn(
-                modifier = Modifier
+            Box(
+                Modifier
                     .fillMaxSize()
-                    .padding(it),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(it)
             ) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp)
-                    ) {
-                        if (data.profileImg != null) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(data.profileImg.href)
-                                    .build(),
-                                contentDescription = "카드 이미지",
-                                modifier = Modifier
-                                    .size(128.dp)
-                                    .padding(bottom = 22.dp)
-                                    .align(Alignment.CenterStart)
-                                    .clip(CircleShape)
-                                    .aspectRatio(1f),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                modifier = Modifier
-                                    .padding(bottom = 22.dp)
-                                    .align(Alignment.CenterStart),
-                                painter = painterResource(R.drawable.ic_sooum_logo),
-                                contentDescription = null
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.width(48.dp)
-                            ) {
-                                Text(
-                                    data.cardCnt,
-                                    fontSize = 18.sp,
-                                    lineHeight = 24.48.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorResource(R.color.gray700)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "카드",
-                                    fontSize = 10.sp,
-                                    lineHeight = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colorResource(R.color.gray500)
-                                )
-                            }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .width(48.dp)
-                                    .clickable {
-                                        navController.navigate("${PostNav.DifFollowing.screenRoute}/${memberId}")
-                                    }
-                            ) {
-                                Text(
-                                    data.followingCnt,
-                                    fontSize = 18.sp,
-                                    lineHeight = 24.48.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorResource(R.color.gray700)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "팔로잉",
-                                    fontSize = 10.sp,
-                                    lineHeight = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colorResource(R.color.gray500)
-                                )
-                            }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .width(48.dp)
-                                    .clickable {
-                                        navController.navigate("${PostNav.DifFollower.screenRoute}/${memberId}")
-                                    }
-                            ) {
-                                Text(
-                                    data.followerCnt,
-                                    fontSize = 18.sp,
-                                    lineHeight = 24.48.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = colorResource(R.color.gray700)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "팔로워",
-                                    fontSize = 10.sp,
-                                    lineHeight = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colorResource(R.color.gray500)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                item {
-                    if (viewModel.isBlock.value) {
+                LazyColumn(
+                    modifier = Modifier
+                        .pullRefresh(pullRefreshState),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    colorResource(R.color.primary_color)
-                                )
-                                .clickable {
-                                    viewModel.deleteUserBlock(memberId.toLong())
-                                }
+                                .padding(start = 20.dp, end = 20.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(top = 14.dp, bottom = 14.dp),
-                            ) {
-                                Text(
-                                    text = "차단 해제",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    lineHeight = 19.6.sp,
-                                    color =
-                                    Color.White
+                            if (data.profileImg != null) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(data.profileImg.href)
+                                        .build(),
+                                    contentDescription = "카드 이미지",
+                                    modifier = Modifier
+                                        .size(128.dp)
+                                        .align(Alignment.CenterStart)
+                                        .clip(CircleShape)
+                                        .aspectRatio(1f),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterStart),
+                                    painter = painterResource(R.drawable.ic_sooum_logo),
+                                    contentDescription = null
                                 )
                             }
-                        }
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    if (!isFollow)
-                                        colorResource(R.color.primary_color)
-                                    else
-                                        colorResource(R.color.gray200)
-                                )
-                                .clickable {
-                                    if (!isFollow) {
-                                        viewModel.postFollow(memberId.toLong())
-                                        isFollow = !isFollow
-                                    } else {
-                                        viewModel.deleteFollow(memberId.toLong())
-                                        isFollow = !isFollow
-                                    }
-                                }
-                        ) {
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(top = 14.dp, bottom = 14.dp),
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                if (!isFollow) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_add),
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(16.dp)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.width(48.dp)
+                                ) {
+                                    Text(
+                                        data.cardCnt,
+                                        fontSize = 18.sp,
+                                        lineHeight = 24.48.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = colorResource(R.color.gray700)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "카드",
+                                        fontSize = 10.sp,
+                                        lineHeight = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = colorResource(R.color.gray500)
                                     )
                                 }
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (!isFollow)
-                                        "팔로우하기"
-                                    else
-                                        "팔로우 중",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    lineHeight = 19.6.sp,
-                                    color = if (!isFollow)
-                                        Color.White
-                                    else
-                                        colorResource(id = R.color.gray700),
-                                )
-                            }
-                        }
-                    }
-                }
-
-
-                if (!viewModel.isBlock.value) {
-                    items(viewModel.difFeedCard.value.chunked(3)) { row ->
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            row.forEach { card ->
-                                Box(
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier
-                                        .size(boxWidth)
-                                        .aspectRatio(1f)
+                                        .width(48.dp)
                                         .clickable {
-                                            navController.navigate("${PostNav.Detail.screenRoute}/${card.id}")
+                                            navController.navigate("${PostNav.DifFollowing.screenRoute}/${memberId}")
                                         }
                                 ) {
-                                    ImageLoaderForUrl(card.backgroundImgUrl.href)
                                     Text(
-                                        text = card.content,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 12.sp,
-                                        lineHeight = 21.6.sp,
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .padding(10.dp),
-                                        maxLines = 4,
-                                        overflow = TextOverflow.Ellipsis,
-                                        color = Color.White
+                                        data.followingCnt,
+                                        fontSize = 18.sp,
+                                        lineHeight = 24.48.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = colorResource(R.color.gray700)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "팔로잉",
+                                        fontSize = 10.sp,
+                                        lineHeight = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = colorResource(R.color.gray500)
+                                    )
+                                }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .width(48.dp)
+                                        .clickable {
+                                            navController.navigate("${PostNav.DifFollower.screenRoute}/${memberId}")
+                                        }
+                                ) {
+                                    Text(
+                                        data.followerCnt,
+                                        fontSize = 18.sp,
+                                        lineHeight = 24.48.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = colorResource(R.color.gray700)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "팔로워",
+                                        fontSize = 10.sp,
+                                        lineHeight = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = colorResource(R.color.gray500)
                                     )
                                 }
                             }
+                        }
+                    }
 
+                    item {
+                        if (viewModel.isBlock.value) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        start = 20.dp,
+                                        end = 20.dp,
+                                        bottom = 20.dp,
+                                        top = 20.dp
+                                    )
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        colorResource(R.color.primary_color)
+                                    )
+                                    .clickable {
+                                        viewModel.deleteUserBlock(memberId.toLong())
+                                    }
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .padding(top = 14.dp, bottom = 14.dp),
+                                ) {
+                                    Text(
+                                        text = "차단 해제",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        lineHeight = 19.6.sp,
+                                        color =
+                                        Color.White
+                                    )
+                                }
+                            }
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        start = 20.dp,
+                                        end = 20.dp,
+                                        bottom = 20.dp,
+                                        top = 20.dp
+                                    )
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (!isFollow)
+                                            colorResource(R.color.primary_color)
+                                        else
+                                            colorResource(R.color.gray200)
+                                    )
+                                    .clickable {
+                                        if (!isFollow) {
+                                            viewModel.postFollow(memberId.toLong())
+                                            isFollow = !isFollow
+                                        } else {
+                                            viewModel.deleteFollow(memberId.toLong())
+                                            isFollow = !isFollow
+                                        }
+                                    }
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .align(Alignment.Center)
+                                        .padding(top = 14.dp, bottom = 14.dp),
+                                ) {
+                                    if (!isFollow) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_add),
+                                            contentDescription = null,
+                                            tint = Color.White,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = if (!isFollow)
+                                            "팔로우하기"
+                                        else
+                                            "팔로우 중",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        lineHeight = 19.6.sp,
+                                        color = if (!isFollow)
+                                            Color.White
+                                        else
+                                            colorResource(id = R.color.gray700),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (!viewModel.isBlock.value) {
+                        items(viewModel.difFeedCard.value.chunked(3)) { row ->
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                row.forEach { card ->
+                                    Box(
+                                        modifier = Modifier
+                                            .size(boxWidth)
+                                            .aspectRatio(1f)
+                                            .clickable {
+                                                navController.navigate("${PostNav.Detail.screenRoute}/${card.id}")
+                                            }
+                                    ) {
+                                        ImageLoaderForUrl(card.backgroundImgUrl.href)
+                                        Text(
+                                            text = card.content,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 12.sp,
+                                            lineHeight = 21.6.sp,
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .padding(10.dp),
+                                            maxLines = 4,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    item {
+                        if (viewModel.isBlock.value) {
+                            Text(
+                                "차단한 계정입니다.",
+                                fontSize = 16.sp,
+                                color = Gray5,
+                                modifier = Modifier
+                                    .padding(top = 200.dp)
+                            )
                         }
                     }
                 }
-                item {
-                    if (viewModel.isBlock.value) {
-                        Text(
-                            "차단한 계정입니다.",
-                            fontSize = 16.sp,
-                            color = Gray5,
-                            modifier = Modifier
-                                .padding(top = 200.dp)
-                        )
-                    }
-                }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    contentColor = Primary
+                )
             }
         }
     }

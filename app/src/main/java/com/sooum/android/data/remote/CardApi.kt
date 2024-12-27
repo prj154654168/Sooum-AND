@@ -5,6 +5,7 @@ import com.sooum.android.domain.model.DefaultImageDataModel
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.EncryptedDeviceId
+import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.FeedCardDataModel
 import com.sooum.android.domain.model.ImageIssueDataModel
 import com.sooum.android.domain.model.KeyModel
@@ -150,4 +151,9 @@ interface CardApi {
         @Query("longitude") longitude: Double? = null,
         @Query("lastPk") lastPk: Long? = null,
     ): Response<TagFeedDataModel>
+
+    @PATCH("/members/fcm")
+    suspend fun updateFcm(
+        @Body fcmToken: FcmToken,
+    ): Response<Status>
 }
