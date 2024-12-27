@@ -14,8 +14,8 @@ android {
         applicationId = "com.sooum.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 8
-        versionName = "2.14"
+        versionCode = 9
+        versionName = "2.15"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -117,4 +117,6 @@ dependencies {
     //fcm
     implementation ("com.google.firebase:firebase-messaging-ktx")
     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
+    implementation("com.google.accompanist:accompanist-webview:0.24.13-rc")
+
 }
