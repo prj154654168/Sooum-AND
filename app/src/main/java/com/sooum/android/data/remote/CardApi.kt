@@ -32,25 +32,45 @@ import retrofit2.http.Query
 interface CardApi {
     @GET("/cards/home/latest")
     suspend fun getLatestCardList(
+        @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
+    ): Response<SortedByLatestDataModel>
 
+    @GET("/cards/home/latest/{lastCardId}")
+    suspend fun getLatestCardListAfter(
+        @Path("lastCardId") lastCardId: Long,
         @Query("latitude") latitude: Double? = null,
         @Query("longitude") longitude: Double? = null,
     ): Response<SortedByLatestDataModel>
 
     @GET("/cards/home/popular")
     suspend fun getPopularityCardList(
+        @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null,
+    ): Response<SortedByPopularityDataModel>
 
+    @GET("/cards/home/popular/{lastCardId}")
+    suspend fun getPopularityCardListAfter(
+        @Path("lastCardId") lastCardId: Long,
         @Query("latitude") latitude: Double? = null,
         @Query("longitude") longitude: Double? = null,
     ): Response<SortedByPopularityDataModel>
 
     @GET("/cards/home/distance")
     suspend fun getDistanceCardList(
-
         @Query("latitude") latitude: Double,
         @Query("longitude") longitude: Double,
         @Query("distanceFilter") distance: DistanceEnum,
     ): Response<SortedByDistanceDataModel>
+
+    @GET("/cards/home/distance/{lastCardId}")
+    suspend fun getDistanceCardListAfter(
+        @Path("lastCardId") lastCardId: Long,
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("distanceFilter") distance: DistanceEnum,
+    ): Response<SortedByDistanceDataModel>
+
 
     @GET("/cards/{cardId}/detail")
     suspend fun getFeedCard(
