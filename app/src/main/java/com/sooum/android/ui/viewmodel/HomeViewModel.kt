@@ -4,6 +4,10 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.sooum.android.User
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
@@ -13,152 +17,33 @@ import com.sooum.android.domain.usecase.homefeed.PopularityFeedUseCase
 import com.sooum.android.enums.DistanceEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getLatestFeedUseCase: LatestFeedUseCase,
-    private val getPopularityFeedUseCase: PopularityFeedUseCase,
-    private val getDistanceFeedUseCase: DistanceFeedUseCase
+    getLatestFeedUseCase: LatestFeedUseCase,
+    getPopularityFeedUseCase: PopularityFeedUseCase,
+    getDistanceFeedUseCase: DistanceFeedUseCase
 ): ViewModel() {
-    var latestCardList = mutableStateListOf<SortedByLatestDataModel.Embedded.LatestFeedCard>()
-        private set
+    val lazyLatestFeed = getLatestFeedUseCase(User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
 
-    var popularityCardList = mutableStateListOf<SortedByPopularityDataModel.Embedded.PopularFeedCard>()
-        private set
+    val lazyPopularityFeed = getPopularityFeedUseCase(User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
 
-    var distance1CardList = mutableStateListOf<SortedByDistanceDataModel.Embedded.DistanceFeedCard>()
-        private set
+    val lazyDistance1Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_1).cachedIn(viewModelScope)
+    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    var distance5CardList = mutableStateListOf<SortedByDistanceDataModel.Embedded.DistanceFeedCard>()
-        private set
+    val lazyDistance5Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_5).cachedIn(viewModelScope)
+    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    var distance10CardList = mutableStateListOf<SortedByDistanceDataModel.Embedded.DistanceFeedCard>()
-        private set
+    val lazyDistance10Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_10).cachedIn(viewModelScope)
+    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    var distance20CardList = mutableStateListOf<SortedByDistanceDataModel.Embedded.DistanceFeedCard>()
-        private set
+    val lazyDistance20Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_20).cachedIn(viewModelScope)
+    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    var distance50CardList = mutableStateListOf<SortedByDistanceDataModel.Embedded.DistanceFeedCard>()
-        private set
-
-    fun fetchLatestCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getLatestFeedUseCase(latitude, longitude)
-                latestCardList.clear()
-                latestCardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchPopularityCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getPopularityFeedUseCase(latitude, longitude)
-                popularityCardList.clear()
-                popularityCardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchDistance1CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_1)
-                distance1CardList.clear()
-                distance1CardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchDistance5CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_5)
-                distance5CardList.clear()
-                distance5CardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchDistance10CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_10)
-                distance10CardList.clear()
-                distance10CardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchDistance20CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_20)
-                distance20CardList.clear()
-                distance20CardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchDistance50CardList(latitude: Double, longitude: Double, onFetchFinished: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val cardList = getDistanceFeedUseCase(latitude, longitude, DistanceEnum.UNDER_50)
-                distance50CardList.clear()
-                distance50CardList.addAll(cardList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
-            }
-            finally {
-                delay(500)
-                onFetchFinished()
-            }
-        }
-    }
+    val lazyDistance50Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_50).cachedIn(viewModelScope)
+    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 }

@@ -38,13 +38,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.sooum.android.R
 import com.sooum.android.enums.TabEnum
+import com.sooum.android.ui.viewmodel.NotificationViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun NotificationScreen(navController: NavController) {
+    val notificationViewModel: NotificationViewModel = hiltViewModel()
     val pagerState = rememberPagerState(pageCount = {3})
 
     Column(
@@ -79,22 +82,12 @@ fun NotificationScreen(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        TabLayout(pagerState)
-//        TabRow(selectedTabIndex = selectedTabIndex) {
-//            tabs.forEachIndexed { index, title ->
-//                Tab(
-//                    selected = selectedTabIndex == index,
-//                    onClick = { selectedTabIndex = index }
-//                ) {
-//                    Text()
-//                }
-//            }
-//        }
+        TabLayout(pagerState, notificationViewModel)
     }
 }
 
 @Composable
-fun TabLayout(pagerState: PagerState) {
+fun TabLayout(pagerState: PagerState, notificationViewModel: NotificationViewModel) {
     val coroutineScope = rememberCoroutineScope()
     val tabList = listOf(TabEnum.ALL, TabEnum.REPLY, TabEnum.LIKE)
     val selectedIndex = pagerState.currentPage
@@ -163,10 +156,10 @@ fun TabLayout(pagerState: PagerState) {
         ) { index ->
             when(tabList[index]) {
                 TabEnum.ALL -> {
-                    AllScreen()
+                    AllScreen(notificationViewModel.allUnreadCount.value)
                 }
                 TabEnum.REPLY -> {
-                    ReplyScreen()
+                    ReplyScreen(notificationViewModel.cardUnreadCount.value)
                 }
                 TabEnum.LIKE -> {
                     NotExistNotification()
@@ -177,14 +170,14 @@ fun TabLayout(pagerState: PagerState) {
 }
 
 @Composable
-fun AllScreen() {
+fun AllScreen(allUnreadCount: Int) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp)
     ) {
         Text(
-            text = "읽지 않음 (12개)",
+            text = "읽지 않음 (${allUnreadCount}개)",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             lineHeight = 19.6.sp,
@@ -204,14 +197,14 @@ fun AllScreen() {
 }
 
 @Composable
-fun ReplyScreen() {
+fun ReplyScreen(cardUnreadCount: Int) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp)
     ) {
         Text(
-            text = "읽지 않음 (15개)",
+            text = "읽지 않음 (${cardUnreadCount}개)",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             lineHeight = 19.6.sp,
