@@ -367,21 +367,31 @@ fun DetailScreen(
                                         ),
                                     shape = RoundedCornerShape(40.dp),
                                     onClick = {
+                                        var flag = 0
+                                        navController.backQueue.forEach { backStackEntry ->
+                                            Log.d(
+                                                "BackStack",
+                                                "Destination: ${backStackEntry.destination.route}"
+                                            )
+                                        }
                                         navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
                                             ?.let {
-                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}") {
-                                                    popUpTo("${PostNav.Detail.screenRoute}/{cardId}") {
-                                                        inclusive = true
-                                                    }
-                                                    launchSingleTop = true
-                                                }
+                                                flag=1
+                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
+//                                                {
+//                                                    popUpTo("${PostNav.Detail.screenRoute}/{cardId}") {
+//                                                        inclusive = true
+//                                                    }
+//
+//                                                }
                                             }
+                                        Log.d("BackStack2", "2")
                                         // 백스택 팝
-                                        navController.popBackStack()
+                                        if (flag == 0) {
+                                            navController.popBackStack()
+                                        }
 
-//                                        navController.backQueue.forEach { backStackEntry ->
-//                                            Log.d("BackStack", "Destination: ${backStackEntry.destination.route}")
-//                                        }
+
 //                                        navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}"){
 //                                            popUpTo("${PostNav.Detail.screenRoute}/{cardId}") { inclusive = true } // ScreenB까지 제거
 //                                            launchSingleTop = true
