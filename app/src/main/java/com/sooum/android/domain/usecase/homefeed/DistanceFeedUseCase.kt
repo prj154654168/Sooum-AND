@@ -5,7 +5,7 @@ import com.sooum.android.enums.DistanceEnum
 import javax.inject.Inject
 
 class DistanceFeedUseCase @Inject constructor (private val repository: HomeFeedRepository) {
-    suspend operator fun invoke(
+    operator fun invoke(
         latitude: Double,
         longitude: Double,
         distanceFilter: DistanceEnum

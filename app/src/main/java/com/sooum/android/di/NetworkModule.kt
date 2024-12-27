@@ -6,6 +6,7 @@ import com.sooum.android.Constants.BASE_URL
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.AuthInterceptor
 import com.sooum.android.data.remote.CardApi
+import com.sooum.android.data.remote.NotificationApi
 import com.sooum.android.data.remote.ProfileApi
 import com.sooum.android.data.remote.ReportApi
 import com.sooum.android.data.remote.TagAPI
@@ -66,5 +67,11 @@ object NetworkModule {
     @Provides
     fun getProfileApiInstance(retrofit: Retrofit) : ProfileApi {
         return retrofit.create(ProfileApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun getNotificationApiInstance(retrofit: Retrofit) : NotificationApi {
+        return retrofit.create(NotificationApi::class.java)
     }
 }
