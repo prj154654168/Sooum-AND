@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.EncryptedDeviceId
@@ -57,7 +58,7 @@ class MainViewModel : ViewModel() {
 
     fun updateFcm(fcmToken:String){
         viewModelScope.launch {
-            retrofitInstance.updateFcm(FcmToken(fcmToken))
+
         }
     }
 
@@ -88,6 +89,15 @@ class MainViewModel : ViewModel() {
                             "refreshToken",
                             it.refreshToken
                         )
+                    }
+                    FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val token = task.result
+                            Log.e("task.result", token.toString())
+                            updateFcm(token)
+                        } else {
+                            Log.e("Firebase", "Failed to get token")
+                        }
                     }
                 } else {
                     login = 2

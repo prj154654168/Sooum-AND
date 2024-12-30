@@ -126,19 +126,11 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
     )
     // val viewModel: LogInViewModel = viewModel()
     val context = LocalContext.current
+    val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.POST_NOTIFICATIONS)
 
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
         mainViewModel.login(android_id, context)
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.e("task.result", token.toString())
-                mainViewModel.updateFcm(token)
-            } else {
-                Log.e("Firebase", "Failed to get token")
-            }
-        }
     }
     val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -192,7 +184,15 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
 //    }
 
     LaunchedEffect(Unit) {
-        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        permissions.forEach {
+            if(it == Manifest.permission.POST_NOTIFICATIONS){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissionLauncher.launch(it)
+                }
+            }else{
+                permissionLauncher.launch(it)
+            }
+        }
     }
 
 }
