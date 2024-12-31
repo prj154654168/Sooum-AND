@@ -150,8 +150,12 @@ fun AddPostScreen(
     var tagTextField by remember { mutableStateOf("") }
 
     //태그 리스트
-//    val tagList by remember { mutableStateOf(mutableListOf<String>()) }
     val tagList = remember { mutableStateListOf<String>() }
+    val tagListScrollState = rememberScrollState()
+
+    LaunchedEffect(tagList.size) {
+        tagListScrollState.animateScrollTo(tagListScrollState.maxValue)
+    }
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
@@ -675,7 +679,7 @@ fun AddPostScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .horizontalScroll(rememberScrollState())
+                                    .horizontalScroll(tagListScrollState)
                             ) {
                                 tagList.forEachIndexed { index, tag ->
                                     Spacer(
