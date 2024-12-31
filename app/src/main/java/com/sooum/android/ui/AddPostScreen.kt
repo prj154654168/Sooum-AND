@@ -21,16 +21,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -61,6 +57,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -70,7 +67,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
@@ -108,7 +104,7 @@ import com.sooum.android.ui.viewmodel.AddPostViewModel
 import java.io.ByteArrayOutputStream
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPostScreen(
     navController: NavHostController,
@@ -154,7 +150,8 @@ fun AddPostScreen(
     var tagTextField by remember { mutableStateOf("") }
 
     //태그 리스트
-    val tagList by remember { mutableStateOf(mutableListOf<String>()) }
+//    val tagList by remember { mutableStateOf(mutableListOf<String>()) }
+    val tagList = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(Unit) {
         addPostViewModel.getDefaultImageList()
@@ -786,7 +783,9 @@ fun AddPostScreen(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = null
                                             ) {
-                                                tagList.add(0, tagTextField)
+                                                if (!tagList.contains(tagTextField)) {
+                                                    tagList.add(tagTextField.trim())
+                                                }
                                                 tagTextField = ""
                                             }
                                         )
@@ -799,7 +798,9 @@ fun AddPostScreen(
                                 keyboardActions = KeyboardActions(
                                     onDone = {
                                         if (tagTextField.isNotBlank()) {
-                                            tagList.add(0, tagTextField)
+                                            if (!tagList.contains(tagTextField)) {
+                                                tagList.add(tagTextField.trim())
+                                            }
                                             tagTextField = ""
                                         }
                                         keyboardController?.hide()
@@ -827,7 +828,9 @@ fun AddPostScreen(
                                                 tagHint = tagHint.content,
                                                 tagHint.count
                                             ) { tag ->
-                                                tagList.add(0, tag)
+                                                if (!tagList.contains(tag)) {
+                                                    tagList.add(tag.trim())
+                                                }
                                                 tagTextField = ""
                                                 addPostViewModel.relatedTagList.clear()
                                             }
@@ -948,7 +951,9 @@ fun AddPostScreen(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = null
                                             ) {
-                                                tagList.add(0, tagTextField)
+                                                if (!tagList.contains(tagTextField)) {
+                                                    tagList.add(tagTextField.trim())
+                                                }
                                                 tagTextField = ""
                                             }
 
@@ -962,7 +967,9 @@ fun AddPostScreen(
                                 keyboardActions = KeyboardActions(
                                     onDone = {
                                         if (tagTextField.isNotBlank()) {
-                                            tagList.add(0, tagTextField)
+                                            if (!tagList.contains(tagTextField)) {
+                                                tagList.add(tagTextField.trim())
+                                            }
                                             tagTextField = ""
                                         }
                                         keyboardController?.hide()
@@ -990,7 +997,9 @@ fun AddPostScreen(
                                                 tagHint = tagHint.content,
                                                 tagHint.count
                                             ) { tag ->
-                                                tagList.add(0, tag)
+                                                if (!tagList.contains(tag)) {
+                                                    tagList.add(tag.trim())
+                                                }
                                                 tagTextField = ""
                                                 addPostViewModel.relatedTagList.clear()
                                             }
