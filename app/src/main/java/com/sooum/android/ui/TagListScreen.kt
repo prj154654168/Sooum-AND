@@ -333,7 +333,14 @@ fun BlockText() {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "차단된 사용자의 카드는\n확인할 수 없어요",
+            text = "차단된 사용자의 카드는",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 19.6.sp,
+            color = colorResource(R.color.gray500)
+        )
+        Text(
+            text = "확인할 수 없어요",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             lineHeight = 19.6.sp,
