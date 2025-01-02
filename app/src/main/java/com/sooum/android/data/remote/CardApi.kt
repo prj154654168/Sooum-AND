@@ -49,13 +49,6 @@ interface CardApi {
         @Query("longitude") longitude: Double? = null,
     ): Response<SortedByPopularityDataModel>
 
-    @GET("/cards/home/popular/{lastCardId}")
-    suspend fun getPopularityCardListAfter(
-        @Path("lastCardId") lastCardId: Long,
-        @Query("latitude") latitude: Double? = null,
-        @Query("longitude") longitude: Double? = null,
-    ): Response<SortedByPopularityDataModel>
-
     @GET("/cards/home/distance")
     suspend fun getDistanceCardList(
         @Query("latitude") latitude: Double,
