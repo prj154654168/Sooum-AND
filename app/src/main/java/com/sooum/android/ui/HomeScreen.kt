@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -169,6 +170,12 @@ fun HomeScreen(navController: NavHostController) {
                 isVisible = currentIndex <= distancePreviousIndex
                 distancePreviousIndex = currentIndex
             }
+    }
+
+    LaunchedEffect(selected) {
+        if (selected == HomeSelectEnum.POPULARITY && homeViewModel.popularityCardList.isEmpty()) {
+            homeViewModel.fetchPopularityCardList(latitude, longitude, {})
+        }
     }
 
     Box(
@@ -350,27 +357,21 @@ fun PopularityFeedList(
 
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val lazyPopularityFeed = homeViewModel.lazyPopularityFeed.collectAsLazyPagingItems()
-
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            lazyPopularityFeed.refresh()
+            homeViewModel.fetchPopularityCardList(User.userInfo.latitude, User.userInfo.longitude) {
+                isRefreshing = false
+            }
         }
     )
-
-    LaunchedEffect(lazyPopularityFeed.loadState.refresh) {
-        if (lazyPopularityFeed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (lazyPopularityFeed.itemCount == 0) {
+        if (homeViewModel.popularityCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
             LazyColumn(
@@ -379,12 +380,8 @@ fun PopularityFeedList(
                     .pullRefresh(pullRefreshState)
                     .fillMaxSize()
             ) {
-                items(count = lazyPopularityFeed.itemCount,
-                    key = lazyPopularityFeed.itemKey { it.id }) { index ->
-                    val feedItem = lazyPopularityFeed[index]
-                    feedItem?.let {
-                        PopularityContentCard(it, navController)
-                    }
+                items(homeViewModel.popularityCardList) { item ->
+                    PopularityContentCard(item, navController)
                 }
             }
 
@@ -1199,11 +1196,7 @@ fun HomeSelect(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
-            fontWeight = if (selected == HomeSelectEnum.LATEST) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = "인기순",
@@ -1221,11 +1214,7 @@ fun HomeSelect(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
-            fontWeight = if (selected == HomeSelectEnum.POPULARITY) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = "거리순",
@@ -1243,11 +1232,7 @@ fun HomeSelect(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
-            fontWeight = if (selected == HomeSelectEnum.DISTANCE) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+            fontWeight = FontWeight.Medium
         )
     }
 }
