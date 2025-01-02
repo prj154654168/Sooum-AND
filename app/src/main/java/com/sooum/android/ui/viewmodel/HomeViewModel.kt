@@ -25,12 +25,13 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     getLatestFeedUseCase: LatestFeedUseCase,
-    getPopularityFeedUseCase: PopularityFeedUseCase,
+    private val getPopularityFeedUseCase: PopularityFeedUseCase,
     getDistanceFeedUseCase: DistanceFeedUseCase
 ): ViewModel() {
     val lazyLatestFeed = getLatestFeedUseCase(User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
 
-    val lazyPopularityFeed = getPopularityFeedUseCase(User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
+    var popularityCardList = mutableStateListOf<SortedByPopularityDataModel.Embedded.PopularFeedCard>()
+        private set
 
     val lazyDistance1Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_1).cachedIn(viewModelScope)
     else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
@@ -46,4 +47,21 @@ class HomeViewModel @Inject constructor(
 
     val lazyDistance50Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_50).cachedIn(viewModelScope)
     else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+
+    fun fetchPopularityCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                val cardList = getPopularityFeedUseCase(latitude, longitude)
+                popularityCardList.clear()
+                popularityCardList.addAll(cardList)
+            }
+            catch (e: Exception) {
+                Log.e("HomeViewModel", e.printStackTrace().toString())
+            }
+            finally {
+                delay(500)
+                onFetchFinished()
+            }
+        }
+    }
 }
