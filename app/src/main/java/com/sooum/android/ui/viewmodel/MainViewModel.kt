@@ -37,10 +37,6 @@ class MainViewModel @Inject constructor(
     var unreadNotificationCount = mutableStateOf(0)
         private set
 
-    init {
-        fetchUnreadNotificationCount()
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
         // Base64 문자열을 디코딩
@@ -75,8 +71,8 @@ class MainViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun login(android_id: String, context: Context) {
-        Log.e("android_id", android_id)
+    fun login(android_id: String, context: Context, onLoginFinished: () -> Unit) {
+        Log.e("android_id",android_id)
         viewModelScope.launch {
             try {
                 val a = retrofitInstance.getRsaKey()
@@ -103,6 +99,7 @@ class MainViewModel @Inject constructor(
                         )
                     }
                     retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
+                    onLoginFinished()
                 } else {
                     login = 2
                 }
