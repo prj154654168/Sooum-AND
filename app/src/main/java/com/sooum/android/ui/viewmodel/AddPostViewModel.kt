@@ -186,7 +186,9 @@ class AddPostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val tagList = getRelatedTagUseCase(keyword, size)
+                relatedTagList.clear()
                 relatedTagList.addAll(tagList)
+                Log.d("123", "키워드 : ${keyword}, ${relatedTagList}")
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.printStackTrace().toString())
             }
