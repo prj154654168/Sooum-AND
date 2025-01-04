@@ -128,7 +128,9 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
-        mainViewModel.login(android_id, context)
+        mainViewModel.login(android_id, context, {
+            mainViewModel.fetchUnreadNotificationCount()
+        })
     }
     val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val permissionLauncher = rememberLauncherForActivityResult(
