@@ -376,7 +376,7 @@ fun DetailScreen(
                                         }
                                         navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
                                             ?.let {
-                                                flag=1
+                                                flag = 1
                                                 navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
 //                                                {
 //                                                    popUpTo("${PostNav.Detail.screenRoute}/{cardId}") {
@@ -402,7 +402,7 @@ fun DetailScreen(
                                         modifier = Modifier
                                             .fillMaxSize()
                                     ) {
-                                        if (!data.isParentDeleted) {
+                                        if (data.previousCardId != -1L) {
                                             ImageLoader(data.previousCardImgLink!!.href.toString())
                                             Text(
                                                 "전글",

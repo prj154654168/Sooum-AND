@@ -147,9 +147,8 @@ fun SooumNavHost(
         composable(route = NotificationNav.Notification.screenRoute) {
             NotificationScreen(navController)
         }
-        composable(route = "${MyProfile.NotionPage.screenRoute}/{url}") { backStackEntry ->
-            val url = backStackEntry.arguments?.getString("url").toString()
-            NotionPageScreen(url)
+        composable(route = MyProfile.NotionPage.screenRoute) { backStackEntry ->
+            NotionPageScreen()
         }
     }
 }

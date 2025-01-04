@@ -57,6 +57,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.common.NotificationNav
@@ -131,6 +132,15 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
         mainViewModel.login(android_id, context)
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.e("task.result", token.toString())
+                SooumApplication().saveVariable("fcmToken",token)
+            } else {
+                Log.e("Firebase", "Failed to get token")
+            }
+        }
     }
     val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val permissionLauncher = rememberLauncherForActivityResult(
