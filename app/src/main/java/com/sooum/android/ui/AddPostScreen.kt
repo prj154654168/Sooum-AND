@@ -98,6 +98,7 @@ import com.sooum.android.Utils
 import com.sooum.android.domain.model.PostCommentCardRequestDataModel
 import com.sooum.android.enums.FontEnum
 import com.sooum.android.enums.ImgTypeEnum
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
@@ -837,6 +838,7 @@ fun AddPostScreen(
                                                 }
                                                 tagTextField = ""
                                                 addPostViewModel.relatedTagList.clear()
+                                                keyboardController?.hide()
                                             }
                                         }
                                     }
@@ -1006,6 +1008,7 @@ fun AddPostScreen(
                                                 }
                                                 tagTextField = ""
                                                 addPostViewModel.relatedTagList.clear()
+                                                keyboardController?.hide()
                                             }
                                         }
                                     }
@@ -1077,7 +1080,7 @@ fun AddPostScreen(
                             ),
                             onStatusChanged = {
                                 if (it == 201) {
-                                    navController.navigate(SooumNav.Home.screenRoute)
+                                    navController.navigate("${PostNav.Detail.screenRoute}/${parentCardId}")
                                 }
                             }
                         )
@@ -1097,6 +1100,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
             indication = null
         ) {
             onTagClick(tagHint)
+
         }
     ) {
         Box(
