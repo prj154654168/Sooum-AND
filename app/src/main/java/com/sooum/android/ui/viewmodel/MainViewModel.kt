@@ -13,19 +13,32 @@ import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.Token
+import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
 import java.util.Base64
 import javax.crypto.Cipher
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val getAllUnreadCountUseCase: AllUnreadCountUseCase
+) : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
     var login by mutableStateOf<Int>(0)
     var token: Token? = null
     var encryptedDeviceId: String = ""
+
+    var unreadNotificationCount = mutableStateOf(0)
+        private set
+
+    init {
+        fetchUnreadNotificationCount()
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
@@ -88,6 +101,17 @@ class MainViewModel : ViewModel() {
 
             } catch (E: Exception) {
                 println(E)
+            }
+        }
+    }
+
+    fun fetchUnreadNotificationCount() {
+        viewModelScope.launch {
+            try {
+                val unreadCount = getAllUnreadCountUseCase()
+                unreadNotificationCount.value = unreadCount
+            }catch (e: Exception) {
+                Log.e("HomeViewModel", e.printStackTrace().toString())
             }
         }
     }
