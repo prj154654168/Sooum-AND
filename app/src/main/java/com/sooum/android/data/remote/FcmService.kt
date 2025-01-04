@@ -10,6 +10,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.google.gson.Gson
 import com.sooum.android.SooumApplication
 
 
@@ -26,10 +27,16 @@ class FcmService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         Log.e("From","${remoteMessage.from}")
-
+        if (remoteMessage.data.isNotEmpty()) {
+            Log.d("Message Notification", "Message data payload: ${remoteMessage.data}")
+        }
         // 알림 메시지인 경우
         if (remoteMessage.notification != null) {
             Log.e("Message Notification Body","${remoteMessage.notification?.body}")
+            //Log.e("Message Notification Body",remoteMessage.notification.)
+            val gson = Gson()
+            val notificationJson = gson.toJson(remoteMessage.notification)
+            Log.e("Notification JSON", notificationJson)
             showNotification(remoteMessage.notification?.title, remoteMessage.notification?.body)
         }
     }

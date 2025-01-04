@@ -19,12 +19,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,9 +55,11 @@ import com.sooum.android.R
 import com.sooum.android.ui.ImageLoaderForUrl
 import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.PostNav
+import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.MyProfileViewModel
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun MyProfileScreen(navController: NavHostController) {
     val myProfileViewModel: MyProfileViewModel = hiltViewModel()
@@ -58,8 +69,21 @@ fun MyProfileScreen(navController: NavHostController) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp // 화면 너비 가져오기
     val boxWidth = screenWidth / 3
 
-    if (data != null) {
+    var isRefreshing by remember { mutableStateOf(false) }
 
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            coroutineScope.launch {
+                myProfileViewModel.getMyProfile()
+                isRefreshing = false
+            }
+        }
+    )
+
+    if (data != null) {
         Scaffold(topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -100,177 +124,189 @@ fun MyProfileScreen(navController: NavHostController) {
                 }
             )
         }) {
-            LazyColumn(
-                modifier = Modifier
+            Box(
+                Modifier
                     .fillMaxSize()
-                    .padding(it),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(it)
             ) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, end = 20.dp)
-                    ) {
-                        if (data.profileImg != null) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(data.profileImg.href)
-                                    .build(),
-                                contentDescription = "카드 이미지",
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .size(128.dp)
-                                    .aspectRatio(1f)
-                                    .align(Alignment.Center),
-                                contentScale = ContentScale.Crop,
-                            )
-                        } else {
-                            Image(
-                                modifier = Modifier
-                                    .align(Alignment.Center),
-                                painter = painterResource(R.drawable.ic_sooum_logo),
-                                contentDescription = null
-                            )
-                        }
-                    }//이미지
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pullRefresh(pullRefreshState),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 20.dp, end = 20.dp)
+                        ) {
+                            if (data.profileImg != null) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(data.profileImg.href)
+                                        .build(),
+                                    contentDescription = "카드 이미지",
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .size(128.dp)
+                                        .aspectRatio(1f)
+                                        .align(Alignment.Center),
+                                    contentScale = ContentScale.Crop,
+                                )
+                            } else {
+                                Image(
+                                    modifier = Modifier
+                                        .align(Alignment.Center),
+                                    painter = painterResource(R.drawable.ic_sooum_logo),
+                                    contentDescription = null
+                                )
+                            }
+                        }//이미지
 
 
-                    //Spacer(modifier = Modifier.height(22.dp))
-                }
-                item {
-                    Row(
-                        modifier = Modifier
-                            //    .align(Alignment.C)
-                            .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.width(48.dp)
-                        ) {
-                            Text(
-                                data.cardCnt,
-                                fontSize = 18.sp,
-                                lineHeight = 24.48.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorResource(R.color.gray700)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "카드",
-                                fontSize = 10.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = colorResource(R.color.gray500)
-                            )
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .width(48.dp)
-                                .clickable {
-                                    navController.navigate(MyProfile.Following.screenRoute)
-                                }
-                        ) {
-                            Text(
-                                data.followingCnt,
-                                fontSize = 18.sp,
-                                lineHeight = 24.48.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorResource(R.color.gray700)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "팔로잉",
-                                fontSize = 10.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = colorResource(R.color.gray500)
-                            )
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .width(48.dp)
-                                .clickable {
-                                    navController.navigate(MyProfile.Follower.screenRoute)
-                                }
-                        ) {
-                            Text(
-                                data.followerCnt,
-                                fontSize = 18.sp,
-                                lineHeight = 24.48.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colorResource(R.color.gray700)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = "팔로워",
-                                fontSize = 10.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = colorResource(R.color.gray500)
-                            )
-                        }
-                    }//팔로우
-                }
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(color = colorResource(R.color.primary_color))
-                            .clickable { navController.navigate(MyProfile.ProfileModify.screenRoute) }
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(top = 14.dp, bottom = 14.dp),
-                        ) {
-                            Text(
-                                text = "프로필 수정",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                lineHeight = 19.6.sp,
-                                color = Color.White
-                            )
-                        }
+                        //Spacer(modifier = Modifier.height(22.dp))
                     }
-                }
-
-                items(myFeedCard.chunked(3)) { row ->
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        row.forEach { card ->
-
-                            Box(
+                    item {
+                        Row(
+                            modifier = Modifier
+                                //    .align(Alignment.C)
+                                .padding(top = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.width(48.dp)
+                            ) {
+                                Text(
+                                    data.cardCnt,
+                                    fontSize = 18.sp,
+                                    lineHeight = 24.48.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colorResource(R.color.gray700)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "카드",
+                                    fontSize = 10.sp,
+                                    lineHeight = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colorResource(R.color.gray500)
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
-                                    .size(boxWidth)
-                                    .aspectRatio(1f)
+                                    .width(48.dp)
                                     .clickable {
-                                        navController.navigate("${PostNav.Detail.screenRoute}/${card.id}")
+                                        navController.navigate(MyProfile.Following.screenRoute)
                                     }
                             ) {
-                                ImageLoaderForUrl(card.backgroundImgUrl.href)
                                 Text(
-                                    text = card.content,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 12.sp,
-                                    lineHeight = 21.6.sp,
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .padding(10.dp),
-                                    maxLines = 4,
-                                    overflow = TextOverflow.Ellipsis,
+                                    data.followingCnt,
+                                    fontSize = 18.sp,
+                                    lineHeight = 24.48.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colorResource(R.color.gray700)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "팔로잉",
+                                    fontSize = 10.sp,
+                                    lineHeight = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colorResource(R.color.gray500)
+                                )
+                            }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .width(48.dp)
+                                    .clickable {
+                                        navController.navigate(MyProfile.Follower.screenRoute)
+                                    }
+                            ) {
+                                Text(
+                                    data.followerCnt,
+                                    fontSize = 18.sp,
+                                    lineHeight = 24.48.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colorResource(R.color.gray700)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "팔로워",
+                                    fontSize = 10.sp,
+                                    lineHeight = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colorResource(R.color.gray500)
+                                )
+                            }
+                        }//팔로우
+                    }
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(color = colorResource(R.color.primary_color))
+                                .clickable { navController.navigate(MyProfile.ProfileModify.screenRoute) }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .padding(top = 14.dp, bottom = 14.dp),
+                            ) {
+                                Text(
+                                    text = "프로필 수정",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    lineHeight = 19.6.sp,
                                     color = Color.White
                                 )
                             }
+                        }
+                    }
 
+                    items(myFeedCard.chunked(3)) { row ->
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            row.forEach { card ->
+
+                                Box(
+                                    modifier = Modifier
+                                        .size(boxWidth)
+                                        .aspectRatio(1f)
+                                        .clickable {
+                                            navController.navigate("${PostNav.Detail.screenRoute}/${card.id}")
+                                        }
+                                ) {
+                                    ImageLoaderForUrl(card.backgroundImgUrl.href)
+                                    Text(
+                                        text = card.content,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 12.sp,
+                                        lineHeight = 21.6.sp,
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .padding(10.dp),
+                                        maxLines = 4,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = Color.White
+                                    )
+                                }
+
+                            }
                         }
                     }
                 }
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    contentColor = Primary
+                )
             }
         }
     }
