@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -169,6 +170,12 @@ fun HomeScreen(navController: NavHostController) {
                 isVisible = currentIndex <= distancePreviousIndex
                 distancePreviousIndex = currentIndex
             }
+    }
+
+    LaunchedEffect(selected) {
+        if (selected == HomeSelectEnum.POPULARITY && homeViewModel.popularityCardList.isEmpty()) {
+            homeViewModel.fetchPopularityCardList(latitude, longitude, {})
+        }
     }
 
     Box(
@@ -350,27 +357,21 @@ fun PopularityFeedList(
 
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val lazyPopularityFeed = homeViewModel.lazyPopularityFeed.collectAsLazyPagingItems()
-
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            lazyPopularityFeed.refresh()
+            homeViewModel.fetchPopularityCardList(User.userInfo.latitude, User.userInfo.longitude) {
+                isRefreshing = false
+            }
         }
     )
-
-    LaunchedEffect(lazyPopularityFeed.loadState.refresh) {
-        if (lazyPopularityFeed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if (lazyPopularityFeed.itemCount == 0) {
+        if (homeViewModel.popularityCardList.isEmpty()) {
             ReplaceHomeList()
         } else {
             LazyColumn(
@@ -379,12 +380,8 @@ fun PopularityFeedList(
                     .pullRefresh(pullRefreshState)
                     .fillMaxSize()
             ) {
-                items(count = lazyPopularityFeed.itemCount,
-                    key = lazyPopularityFeed.itemKey { it.id }) { index ->
-                    val feedItem = lazyPopularityFeed[index]
-                    feedItem?.let {
-                        PopularityContentCard(it, navController)
-                    }
+                items(homeViewModel.popularityCardList) { item ->
+                    PopularityContentCard(item, navController)
                 }
             }
 
@@ -948,50 +945,10 @@ fun LatestCardInfo(item: SortedByLatestDataModel.Embedded.LatestFeedCard) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        InfoElement(
-            painter = painterResource(R.drawable.ic_clock),
-            description = "시간",
-            count = formatTimeDifference(item.createdAt),
-            isTrue = false
-        )
-        if (item.distance != null) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_location),
-                description = "위치",
-                count = formatDistanceInKm(item.distance),
-                isTrue = false
-            )
-        }
-        if (item.isLiked) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_heart_filled),
-                description = "좋아요",
-                count = "${item.likeCnt}",
-                isTrue = true
-            )
-        } else {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_heart),
-                description = "좋아요",
-                count = "${item.likeCnt}",
-                isTrue = false
-            )
-        }
-        if (item.isCommentWritten) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_comment_filled),
-                description = "댓글",
-                count = "${item.commentCnt}",
-                isTrue = true
-            )
-        } else {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_comment),
-                description = "댓글",
-                count = "${item.commentCnt}",
-                isTrue = false
-            )
-        }
+        CreatedTimeElement(item.createdAt)
+        if (item.distance != null) DistanceElement(item.distance)
+        LikeElement(item.isLiked, item.likeCnt)
+        CommentElement(item.isCommentWritten, item.commentCnt)
     }
 }
 
@@ -1001,49 +958,10 @@ fun PopularityCardInfo(item: SortedByPopularityDataModel.Embedded.PopularFeedCar
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        if (item.isLiked) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_heart_filled),
-                description = "좋아요",
-                count = "${item.likeCnt}", isTrue = true
-            )
-        } else {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_heart),
-                description = "좋아요",
-                count = "${item.likeCnt}",
-                isTrue = false
-            )
-        }
-        if (item.isCommentWritten) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_comment_filled),
-                description = "댓글",
-                count = "${item.commentCnt}",
-                isTrue = true
-            )
-        } else {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_comment),
-                description = "댓글",
-                count = "${item.commentCnt}",
-                isTrue = false
-            )
-        }
-        InfoElement(
-            painter = painterResource(R.drawable.ic_clock),
-            description = "시간",
-            count = formatTimeDifference(item.createdAt),
-            isTrue = false
-        )
-        if (item.distance != null) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_location),
-                description = "위치",
-                count = formatDistanceInKm(item.distance),
-                isTrue = false
-            )
-        }
+        LikeElement(item.isLiked, item.likeCnt)
+        CommentElement(item.isCommentWritten, item.commentCnt)
+        CreatedTimeElement(item.createdAt)
+        if (item.distance != null) DistanceElement(item.distance)
     }
 }
 
@@ -1053,48 +971,131 @@ fun DistanceCardInfo(item: SortedByDistanceDataModel.Embedded.DistanceFeedCard) 
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        InfoElement(
-            painter = painterResource(R.drawable.ic_location),
-            description = "위치",
-            count = formatDistanceInKm(item.distance),
-            isTrue = false
-        )
-        InfoElement(
+        DistanceElement(item.distance)
+        CreatedTimeElement(item.createdAt)
+        LikeElement(item.isLiked, item.likeCnt)
+        CommentElement(item.isCommentWritten, item.commentCnt)
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CreatedTimeElement(createdTime: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .width(12.dp)
+                .height(12.dp),
             painter = painterResource(R.drawable.ic_clock),
-            description = "시간",
-            count = formatTimeDifference(item.createdAt),
-            isTrue = false
+            contentDescription = null,
+            tint = colorResource(R.color.gray_white)
         )
-        if (item.isLiked) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_heart_filled),
-                description = "좋아요",
-                count = "${item.likeCnt}",
-                isTrue = true
-            )
-        } else {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_heart),
-                description = "좋아요",
-                count = "${item.likeCnt}",
-                isTrue = false
-            )
-        }
-        if (item.isCommentWritten) {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_comment_filled),
-                description = "댓글",
-                count = "${item.commentCnt}",
-                isTrue = true
-            )
-        } else {
-            InfoElement(
-                painter = painterResource(R.drawable.ic_comment),
-                description = "댓글",
-                count = "${item.commentCnt}",
-                isTrue = false
-            )
-        }
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = formatTimeDifference(createdTime),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 16.8.sp,
+            color = colorResource(R.color.gray_white)
+        )
+    }
+}
+
+@Composable
+fun DistanceElement(distance: Double) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .width(12.dp)
+                .height(12.dp),
+            painter = painterResource(R.drawable.ic_location),
+            contentDescription = null,
+            tint = colorResource(R.color.gray_white)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = formatDistanceInKm(distance),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 16.8.sp,
+            color = colorResource(R.color.gray_white)
+        )
+    }
+}
+
+@Composable
+fun LikeElement(isLiked: Boolean, likeCount: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .width(12.dp)
+                .height(12.dp),
+            painter = if (isLiked) {
+                painterResource(R.drawable.ic_heart_filled)
+            } else {
+                painterResource(R.drawable.ic_heart)
+            },
+            contentDescription = null,
+            tint = if (isLiked) {
+                colorResource(R.color.primary_color)
+            } else {
+                colorResource(R.color.gray_white)
+            }
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = likeCount.toString(),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 16.8.sp,
+            color = if (isLiked) {
+                colorResource(R.color.primary_color)
+            } else {
+                colorResource(R.color.gray_white)
+            }
+        )
+    }
+}
+
+@Composable
+fun CommentElement(isCommentWritten: Boolean, commentCount: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .width(12.dp)
+                .height(12.dp),
+            painter = if (isCommentWritten) {
+                painterResource(R.drawable.ic_comment_filled)
+            } else {
+                painterResource(R.drawable.ic_comment)
+            },
+            contentDescription = null,
+            tint = if (isCommentWritten) {
+                colorResource(R.color.primary_color)
+            } else {
+                colorResource(R.color.gray_white)
+            }
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = commentCount.toString(),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 16.8.sp,
+            color = if (isCommentWritten) {
+                colorResource(R.color.primary_color)
+            } else {
+                colorResource(R.color.gray_white)
+            }
+        )
     }
 }
 
@@ -1199,11 +1200,7 @@ fun HomeSelect(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
-            fontWeight = if (selected == HomeSelectEnum.LATEST) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = "인기순",
@@ -1221,11 +1218,7 @@ fun HomeSelect(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
-            fontWeight = if (selected == HomeSelectEnum.POPULARITY) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = "거리순",
@@ -1243,11 +1236,7 @@ fun HomeSelect(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
-            fontWeight = if (selected == HomeSelectEnum.DISTANCE) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            }
+            fontWeight = FontWeight.Medium
         )
     }
 }

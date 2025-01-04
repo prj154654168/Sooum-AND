@@ -277,14 +277,18 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     Icon(
-                        painter = painterResource(R.drawable.ic_heart),
+                        painter = if (tagViewModel.tagFeedList[index].isLiked) {
+                            painterResource(R.drawable.ic_heart_filled)
+                        } else {
+                            painterResource(R.drawable.ic_heart)
+                        },
                         contentDescription = null,
+                        modifier = Modifier.size(12.dp),
                         tint = if (tagViewModel.tagFeedList[index].isLiked) {
                             colorResource(R.color.blue300)
                         } else {
                             colorResource(R.color.gray_white)
-                        },
-                        modifier = Modifier.size(12.dp)
+                        }
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -292,18 +296,26 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
-                        color = colorResource(R.color.gray_white)
+                        color = if (tagViewModel.tagFeedList[index].isLiked) {
+                            colorResource(R.color.blue300)
+                        } else {
+                            colorResource(R.color.gray_white)
+                        }
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        painter = painterResource(R.drawable.ic_comment),
+                        painter = if (tagViewModel.tagFeedList[index].isCommentWritten) {
+                            painterResource(R.drawable.ic_comment_filled)
+                        } else {
+                            painterResource(R.drawable.ic_comment)
+                        },
                         contentDescription = null,
+                        modifier = Modifier.size(12.dp),
                         tint = if (tagViewModel.tagFeedList[index].isCommentWritten) {
                             colorResource(R.color.blue300)
                         } else {
                             colorResource(R.color.gray_white)
-                        },
-                        modifier = Modifier.size(12.dp)
+                        }
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
@@ -311,7 +323,11 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
-                        color = colorResource(R.color.gray_white)
+                        color = if (tagViewModel.tagFeedList[index].isCommentWritten) {
+                            colorResource(R.color.blue300)
+                        } else {
+                            colorResource(R.color.gray_white)
+                        }
                     )
                 }
             }
@@ -333,7 +349,14 @@ fun BlockText() {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "차단된 사용자의 카드는\n확인할 수 없어요",
+            text = "차단된 사용자의 카드는",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 19.6.sp,
+            color = colorResource(R.color.gray500)
+        )
+        Text(
+            text = "확인할 수 없어요",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             lineHeight = 19.6.sp,

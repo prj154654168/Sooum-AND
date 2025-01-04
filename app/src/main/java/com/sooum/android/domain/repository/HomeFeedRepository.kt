@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface HomeFeedRepository {
     fun getLatestCardList(latitude: Double?, longitude: Double?) : Flow<PagingData<SortedByLatestDataModel.Embedded.LatestFeedCard>>
 
-    fun getPopularityCardList(latitude: Double?, longitude: Double?) : Flow<PagingData<SortedByPopularityDataModel.Embedded.PopularFeedCard>>
+    suspend fun getPopularityCardList(latitude: Double?, longitude: Double?) : List<SortedByPopularityDataModel.Embedded.PopularFeedCard>
 
     fun getDistanceCardList(latitude: Double, longitude: Double, distanceFilter: DistanceEnum) : Flow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>
 }

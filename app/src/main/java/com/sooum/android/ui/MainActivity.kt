@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -74,9 +75,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createNotificationChannel()
-        val mainViewModel : MainViewModel by viewModels()
 
         setContent {
+            val mainViewModel : MainViewModel = hiltViewModel()
             val navController = rememberNavController()
 
             NavHost(
@@ -307,23 +308,21 @@ fun Main(mainViewModel: MainViewModel) {
                                 )
                             },
                             actions = {
-                                IconButton(
-                                    onClick = {
-                                    navController.navigate(NotificationNav.Notification.screenRoute)
+                                Image(
+                                    painter = if (mainViewModel.unreadNotificationCount.value == 0) {
+                                        painterResource(R.drawable.ic_alarm)
+                                    } else {
+                                        painterResource(R.drawable.ic_alarm_2)
                                     },
-//                                    modifier = Modifier.clickable(
-//                                        interactionSource = remember { MutableInteractionSource() },
-//                                        indication = null
-//                                    ) {
-//
-//                                    }
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_alarm),
-                                        contentDescription = "Alarm",
-                                        colorFilter = ColorFilter.tint(colorResource(R.color.gray01)),
-                                    )
-                                }
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(end = 20.dp)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {
+                                            navController.navigate(NotificationNav.Notification.screenRoute)
+                                        }
+                                )
                             },
                             modifier = Modifier.padding(
                                 horizontal = 4.dp,
