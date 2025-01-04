@@ -1,12 +1,12 @@
 package com.sooum.android.data.repository
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.paging.DistanceFeedPagingSource
 import com.sooum.android.data.paging.LatestFeedPagingSource
-import com.sooum.android.data.paging.PopularityFeedPagingSource
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
@@ -32,18 +32,22 @@ class HomeFeedRepositoryImpl @Inject constructor(private val cardApi: CardApi) :
         ).flow
     }
 
-    override fun getPopularityCardList(
+    override suspend fun getPopularityCardList(
         latitude: Double?,
         longitude: Double?,
-    ): Flow<PagingData<SortedByPopularityDataModel.Embedded.PopularFeedCard>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 50,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { PopularityFeedPagingSource(cardApi, latitude, longitude) }
-        ).flow
+    ): List<SortedByPopularityDataModel.Embedded.PopularFeedCard> {
+        val response = cardApi.getPopularityCardList(latitude, longitude)
+        var popularityCardList: List<SortedByPopularityDataModel.Embedded.PopularFeedCard> =
+            listOf()
+        if (response.isSuccessful) {
+            Log.d("MainActivity", "latestReqSuccess")
+            popularityCardList = response.body()?.embedded?.popularCardRetrieveList ?: emptyList()
+        } else {
+            Log.d("MainActivity", "getLatestCardList fail")
+        }
+        return popularityCardList
     }
+
 
     override fun getDistanceCardList(
         latitude: Double,
