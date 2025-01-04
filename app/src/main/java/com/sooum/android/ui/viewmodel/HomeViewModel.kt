@@ -30,13 +30,9 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     getLatestFeedUseCase: LatestFeedUseCase,
     private val getPopularityFeedUseCase: PopularityFeedUseCase,
-    getDistanceFeedUseCase: DistanceFeedUseCase,
-    private val getAllUnreadCountUseCase: AllUnreadCountUseCase
+    getDistanceFeedUseCase: DistanceFeedUseCase
 ): ViewModel() {
 
-    init {
-        fetchUnreadNotificationCount()
-    }
     val lazyLatestFeed = getLatestFeedUseCase(User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
 
     var popularityCardList = mutableStateListOf<SortedByPopularityDataModel.Embedded.PopularFeedCard>()
@@ -57,9 +53,6 @@ class HomeViewModel @Inject constructor(
     val lazyDistance50Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_50).cachedIn(viewModelScope)
     else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    var unreadNotificationCount = mutableStateOf(0)
-        private set
-
     fun fetchPopularityCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
@@ -73,17 +66,6 @@ class HomeViewModel @Inject constructor(
             finally {
                 delay(500)
                 onFetchFinished()
-            }
-        }
-    }
-
-    fun fetchUnreadNotificationCount() {
-        viewModelScope.launch {
-            try {
-                val unreadCount = getAllUnreadCountUseCase()
-                unreadNotificationCount.value = unreadCount
-            }catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
             }
         }
     }

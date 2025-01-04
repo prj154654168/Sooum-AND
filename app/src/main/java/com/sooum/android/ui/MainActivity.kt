@@ -130,7 +130,10 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
 
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
-        mainViewModel.login(android_id, context)
+        mainViewModel.login(android_id, context, {
+            mainViewModel.fetchUnreadNotificationCount()
+        })
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
