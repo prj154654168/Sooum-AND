@@ -133,7 +133,7 @@ fun SplashScreen(navController: NavController, mainViewModel: MainViewModel) {
         mainViewModel.login(android_id, context, {
             mainViewModel.fetchUnreadNotificationCount()
         })
-        mainViewModel.login(android_id, context)
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
