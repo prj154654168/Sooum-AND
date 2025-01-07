@@ -278,9 +278,9 @@ fun AddPostScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = if (imgType == ImgTypeEnum.DEFAULT) {
-                            Color.Black
+                            colorResource(R.color.gray_black)
                         } else {
-                            colorResource(R.color.gray03)
+                            colorResource(R.color.gray400)
                         },
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -295,9 +295,9 @@ fun AddPostScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = if (imgType == ImgTypeEnum.USER) {
-                            Color.Black
+                            colorResource(R.color.gray_black)
                         } else {
-                            colorResource(R.color.gray03)
+                            colorResource(R.color.gray400)
                         },
                         modifier = Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
@@ -449,7 +449,7 @@ fun AddPostScreen(
                     text = "글씨체",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = colorResource(R.color.gray03)
+                    color = colorResource(R.color.gray700)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
