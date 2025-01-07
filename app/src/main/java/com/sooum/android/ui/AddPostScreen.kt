@@ -1188,7 +1188,7 @@ fun ContentCard(
                     }
                 },
                 modifier = Modifier
-                    .padding(40.dp)
+                    .padding(start = 56.dp, end = 56.dp, top = 52.dp, bottom = 52.dp)
                     .align(Alignment.Center),
                 textStyle = TextStyle(
                     color = Color.White,
