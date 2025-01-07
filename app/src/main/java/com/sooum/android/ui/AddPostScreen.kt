@@ -1192,7 +1192,7 @@ fun ContentCard(
                 // 기본 텍스트가 없으면 빈칸으로 표시
                 if (content.isEmpty()) {
                     Text(
-                        text = "입력하세요",
+                        text = "이곳에 글을 적어주세요.",
                         color = Color.White,
                         fontSize = if (fontEnum == FontEnum.PRETENDARD) {
                             16.sp
