@@ -1175,6 +1175,11 @@ fun ContentCard(
                 if (imgType == ImgTypeEnum.DEFAULT) ImageLoaderForUrl(selectedImageForDefault)
                 else ImageLoaderForBitmap(selectedImageForGallery)
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x80000000))
+            )
             BasicTextField(
                 value = content,
                 onValueChange = {
