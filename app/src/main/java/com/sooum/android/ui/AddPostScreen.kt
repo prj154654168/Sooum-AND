@@ -46,12 +46,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -83,6 +82,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -195,66 +195,76 @@ fun AddPostScreen(
             }
         }
 
+    val scaffoldState = androidx.compose.material3.rememberBottomSheetScaffoldState()
+
     BottomSheetScaffold(
+        scaffoldState = scaffoldState,
         topBar = {
-            TopAppBar(
-                title = {
-                    if (storyChecked) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.Center
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back),
+                    tint = colorResource(R.color.gray_black),
+                    contentDescription = "뒤로가기",
+                    modifier = Modifier
+                        .padding(start = 20.dp)
+                        .align(Alignment.CenterStart)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(37.dp),
-                                color = colorResource(R.color.blue200),
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(
-                                        start = 10.dp,
-                                        end = 10.dp,
-                                        top = 4.dp,
-                                        bottom = 4.dp
-                                    ),
-                                    text = "시간제한 카드",
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
-                                    color = colorResource(R.color.gray800)
-                                )
-                            }
+                            navController.popBackStack()
                         }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() }
+                )
+                if (storyChecked) {
+                    Surface(
+                        shape = RoundedCornerShape(37.dp),
+                        color = colorResource(R.color.blue200),
+                        modifier = Modifier.align(Alignment.Center)
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_back),
-                            tint = colorResource(R.color.gray800),
-                            contentDescription = "뒤로가기",
+                        Text(
+                            modifier = Modifier.padding(
+                                start = 10.dp,
+                                end = 10.dp,
+                                top = 4.dp,
+                                bottom = 4.dp
+                            ),
+                            text = "시간제한 카드",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            color = colorResource(R.color.gray800)
                         )
                     }
-                },
-                actions = {
-                    Text(
+                }
+                Text(
+                    modifier = Modifier
+                        .padding(end = 20.dp)
+                        .align(Alignment.CenterEnd)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            enabled = if (content.isEmpty()) false else true
+                        ) {
+                            showDialog = true
+                        },
+                    text = "작성하기",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = if (content.isEmpty()) colorResource(R.color.gray700) else colorResource(
+                        R.color.blue300
+                    )
+                )
+                if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                    Box(
                         modifier = Modifier
-                            .padding(end = 20.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                enabled = if (content.isEmpty()) false else true
-                            ) {
-                                showDialog = true
-                            },
-                        text = "작성하기",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                        color = if (content.isEmpty()) colorResource(R.color.gray700) else colorResource(
-                            R.color.blue300
-                        )
+                            .background(color = Color(0x80000000))
+                            .fillMaxSize()
                     )
                 }
-            )
+            }
         },
         sheetContainerColor = Color.White,
         sheetContent = {
@@ -1039,6 +1049,13 @@ fun AddPostScreen(
                         }
                     }
                 }
+            }
+            if (scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded) {
+                Box(
+                    modifier = Modifier
+                        .background(color = Color(0x80000000))
+                        .fillMaxSize()
+                )
             }
         }
         if (showDialog) {
