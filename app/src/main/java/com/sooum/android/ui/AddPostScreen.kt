@@ -766,7 +766,7 @@ fun AddPostScreen(
                                     Text(
                                         text = "#태그를 입력해주세요!",
                                         fontSize = 16.sp,
-                                        color = colorResource(R.color.gray02),
+                                        color = colorResource(R.color.gray500),
                                         fontWeight = FontWeight.Medium,
                                         textDecoration = TextDecoration.None
                                     )
@@ -779,12 +779,12 @@ fun AddPostScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = colorResource(R.color.primary_color),
-                                    unfocusedBorderColor = colorResource(R.color.gray02),
+                                    unfocusedBorderColor = colorResource(R.color.gray200),
                                     cursorColor = colorResource(R.color.primary_color)
                                 ),
                                 textStyle = TextStyle(
                                     fontSize = 16.sp,
-                                    color = colorResource(R.color.gray02),
+                                    color = colorResource(R.color.gray600),
                                     fontWeight = FontWeight.Medium,
                                     textDecoration = TextDecoration.None
                                 ),
@@ -793,7 +793,7 @@ fun AddPostScreen(
                                         Icon(
                                             painter = painterResource(R.drawable.ic_add),
                                             contentDescription = "Add Post",
-                                            tint = colorResource(R.color.gray02),
+                                            tint = colorResource(R.color.gray_black),
                                             modifier = Modifier.clickable(
                                                 interactionSource = remember { MutableInteractionSource() },
                                                 indication = null
