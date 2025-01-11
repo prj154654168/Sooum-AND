@@ -3,6 +3,7 @@ package com.sooum.android
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.appcompat.app.AppCompatDelegate
 import com.sooum.android.data.remote.AuthInterceptor
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
@@ -36,6 +37,7 @@ class SooumApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         prefs = getPreference(applicationContext)
         initialize()
     }
