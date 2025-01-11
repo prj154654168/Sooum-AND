@@ -85,6 +85,7 @@ import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray100
 import com.sooum.android.ui.theme.Gray3
+import com.sooum.android.ui.theme.GrayWhite
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.launch
@@ -97,10 +98,13 @@ fun DetailScreen(
     cardId: String?,
     viewModel: DetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
+    var lastRefreshTime  by remember { mutableStateOf(0L) }
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
+        val currentTime = System.currentTimeMillis()
+        lastRefreshTime = currentTime // 초기 로딩 시간 기록
         cardId?.let {
             Log.e("latitude", latitude.toString())
             Log.e("latitude", longitude.toString())
@@ -205,15 +209,18 @@ fun DetailScreen(
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
-            isRefreshing = true
-            coroutineScope.launch {
-                cardId?.let {
-                    viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
-                    viewModel.getDetailCardLikeCommentCount(it.toLong())
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastRefreshTime >= 1000L) { // 0.5초 간격 제한
+                lastRefreshTime = currentTime
+                isRefreshing = true
+                coroutineScope.launch {
+                    cardId?.let {
+                        viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
+                        viewModel.getDetailCardLikeCommentCount(it.toLong())
+                    }
+                    isRefreshing = false
                 }
-                isRefreshing = false
             }
-
         }
     )
     val targetCardId = SooumApplication().getVariable("targetCardId")
@@ -226,7 +233,12 @@ fun DetailScreen(
                 launchSingleTop = true
             }
         } else {
-            navController.popBackStack()
+            navController.navigate(SooumNav.Home.screenRoute) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
     }
 
@@ -244,7 +256,12 @@ fun DetailScreen(
                                 launchSingleTop = true
                             }
                         } else {
-                            navController.popBackStack()
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         }
 
                     }) {
@@ -369,6 +386,7 @@ fun DetailScreen(
                                                 .clickable { showBottomSheet = true },
                                             painter = painterResource(R.drawable.ic_detail_kebab),
                                             contentDescription = "케밥 더보기 버튼",
+                                            tint = GrayWhite
                                         )
                                     }
                                 }
@@ -686,20 +704,26 @@ fun DetailLike(
     viewModel: DetailViewModel,
     cardId: String?,
 ) {
+    // 상태 추적을 위해 count의 cardLikeCnt 값을 mutableStateOf로 관리
     var likeState by remember { mutableStateOf(count.isLiked) }
+    var likeCount by remember { mutableStateOf(count.cardLikeCnt) }
 
     Row(modifier = Modifier.clickable {
-        Log.e(
-            "cardId",
-            cardId.toString()
-        )
-        if (likeState) {
-            cardId?.let { viewModel.likeOff(it.toLong()) }
-        } else {
-            cardId?.let { viewModel.likeOn(it.toLong()) }
-        }
-        likeState = !likeState
+        Log.e("cardId", cardId.toString())
 
+        if (likeState) {
+            cardId?.let {
+                viewModel.likeOff(it.toLong())
+                likeCount -= 1
+            }
+        } else {
+            cardId?.let {
+                viewModel.likeOn(it.toLong())
+                likeCount += 1
+            }
+        }
+
+        likeState = !likeState
     }) {
         Icon(
             modifier = Modifier
@@ -713,7 +737,7 @@ fun DetailLike(
         )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
-            text = count.cardLikeCnt.toString(),
+            text = likeCount.toString(),
             fontSize = 14.sp,
             color = if (likeState) Primary else Color.Black
         )

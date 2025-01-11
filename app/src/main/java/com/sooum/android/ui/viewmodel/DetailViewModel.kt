@@ -68,14 +68,12 @@ class DetailViewModel : ViewModel() {
     fun likeOn(cardId: Long) {
         viewModelScope.launch {
             retrofitInstance.likeOn(cardId).body()
-            getDetailCardLikeCommentCount(cardId)
         }
     }
 
     fun likeOff(cardId: Long) {
         viewModelScope.launch {
             retrofitInstance.likeOff(cardId).body()
-            getDetailCardLikeCommentCount(cardId)
         }
     }
 
