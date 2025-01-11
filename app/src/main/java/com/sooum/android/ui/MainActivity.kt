@@ -282,7 +282,7 @@ fun Main(mainViewModel: MainViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    SoonumTheme {
+//    SoonumTheme {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -351,4 +351,4 @@ fun Main(mainViewModel: MainViewModel) {
             }
         }
     }
-}
+//}
