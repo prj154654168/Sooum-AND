@@ -6,10 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
-import androidx.paging.map
-import com.sooum.android.SooumApplication
 import com.sooum.android.domain.model.NotificationDataModel
-import com.sooum.android.domain.model.NotificationResponse
 import com.sooum.android.domain.usecase.notification.AllReadNotificationUseCase
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.AllUnreadNotificationUseCase
@@ -20,7 +17,6 @@ import com.sooum.android.domain.usecase.notification.LikeReadNotificationUseCase
 import com.sooum.android.domain.usecase.notification.LikeUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.LikeUnreadNotificationUseCase
 import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
-import com.sooum.android.enums.NotificationTypeEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -39,7 +35,7 @@ class NotificationViewModel @Inject constructor(
     cardReadNotificationUseCase: CardReadNotificationUseCase,
     likeReadNotificationUseCase: LikeReadNotificationUseCase,
     private val readNotificationUseCase: ReadNotificationUseCase
-): ViewModel() {
+) : ViewModel() {
     var allUnreadCount = mutableStateOf(0)
         private set
 
@@ -65,9 +61,6 @@ class NotificationViewModel @Inject constructor(
         getAllUnreadCount()
         getCardUnreadCount()
         getLikeUnreadCount()
-
-        SooumApplication().removeVariable("notificationId")
-        SooumApplication().removeVariable("targetCardId")
     }
 
     fun getAllUnreadCount() {

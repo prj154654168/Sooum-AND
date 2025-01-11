@@ -2,10 +2,10 @@ package com.sooum.android.ui
 
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +23,6 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Tab
@@ -46,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sooum.android.R
 import com.sooum.android.domain.model.NotificationDataModel
@@ -62,7 +60,14 @@ import java.util.Locale
 @Composable
 fun NotificationScreen(navController: NavController) {
     val notificationViewModel: NotificationViewModel = hiltViewModel()
-    val pagerState = rememberPagerState(pageCount = {3})
+    val pagerState = rememberPagerState(pageCount = { 3 })
+
+    BackHandler {
+        navController.navigate("main") {
+            popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+            launchSingleTop = true
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -83,7 +88,11 @@ fun NotificationScreen(navController: NavController) {
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ) {
-                        navController.popBackStack()
+                        // navController.popBackStack()
+                        navController.navigate("main") {
+                            popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+                            launchSingleTop = true
+                        }
                     }
             )
             Text(
@@ -164,9 +173,11 @@ fun TabLayout(
                 TabEnum.ALL -> {
                     AllScreen(notificationViewModel, navController)
                 }
+
                 TabEnum.REPLY -> {
                     ReplyScreen(notificationViewModel, navController)
                 }
+
                 TabEnum.LIKE -> {
                     LikeScreen(notificationViewModel, navController)
                 }
@@ -174,7 +185,6 @@ fun TabLayout(
         }
     }
 }
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -204,9 +214,18 @@ fun AllScreen(notificationViewModel: NotificationViewModel, navController: NavCo
                     val notificationItem = lazyAllUnread[index]
                     notificationItem?.let {
                         if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(notificationViewModel, notificationItem, false)
+                            WarningNotificationElement(
+                                notificationViewModel,
+                                notificationItem,
+                                false
+                            )
                         } else {
-                            CardNotificationElement(notificationViewModel, navController, notificationItem, false)
+                            CardNotificationElement(
+                                notificationViewModel,
+                                navController,
+                                notificationItem,
+                                false
+                            )
                         }
                     }
                 }
@@ -219,9 +238,18 @@ fun AllScreen(notificationViewModel: NotificationViewModel, navController: NavCo
                     val notificationItem = lazyAllRead[index]
                     notificationItem?.let {
                         if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(notificationViewModel, notificationItem, true)
+                            WarningNotificationElement(
+                                notificationViewModel,
+                                notificationItem,
+                                true
+                            )
                         } else {
-                            CardNotificationElement(notificationViewModel, navController, notificationItem, true)
+                            CardNotificationElement(
+                                notificationViewModel,
+                                navController,
+                                notificationItem,
+                                true
+                            )
                         }
                     }
                 }
@@ -257,9 +285,18 @@ fun ReplyScreen(notificationViewModel: NotificationViewModel, navController: Nav
                     val notificationItem = lazyCardUnread[index]
                     notificationItem?.let {
                         if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(notificationViewModel, notificationItem, false)
+                            WarningNotificationElement(
+                                notificationViewModel,
+                                notificationItem,
+                                false
+                            )
                         } else {
-                            CardNotificationElement(notificationViewModel, navController, notificationItem, false)
+                            CardNotificationElement(
+                                notificationViewModel,
+                                navController,
+                                notificationItem,
+                                false
+                            )
                         }
                     }
                 }
@@ -272,9 +309,18 @@ fun ReplyScreen(notificationViewModel: NotificationViewModel, navController: Nav
                     val notificationItem = lazyCardRead[index]
                     notificationItem?.let {
                         if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(notificationViewModel, notificationItem, true)
+                            WarningNotificationElement(
+                                notificationViewModel,
+                                notificationItem,
+                                true
+                            )
                         } else {
-                            CardNotificationElement(notificationViewModel, navController, notificationItem, true)
+                            CardNotificationElement(
+                                notificationViewModel,
+                                navController,
+                                notificationItem,
+                                true
+                            )
                         }
                     }
                 }
@@ -320,9 +366,18 @@ fun LikeScreen(notificationViewModel: NotificationViewModel, navController: NavC
                     val notificationItem = lazyLikeUnread[index]
                     notificationItem?.let {
                         if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(notificationViewModel, notificationItem, false)
+                            WarningNotificationElement(
+                                notificationViewModel,
+                                notificationItem,
+                                false
+                            )
                         } else {
-                            CardNotificationElement(notificationViewModel, navController, notificationItem, false)
+                            CardNotificationElement(
+                                notificationViewModel,
+                                navController,
+                                notificationItem,
+                                false
+                            )
                         }
                     }
                 }
@@ -335,9 +390,18 @@ fun LikeScreen(notificationViewModel: NotificationViewModel, navController: NavC
                     val notificationItem = lazyLikeRead[index]
                     notificationItem?.let {
                         if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(notificationViewModel, notificationItem, true)
+                            WarningNotificationElement(
+                                notificationViewModel,
+                                notificationItem,
+                                true
+                            )
                         } else {
-                            CardNotificationElement(notificationViewModel, navController, notificationItem, true)
+                            CardNotificationElement(
+                                notificationViewModel,
+                                navController,
+                                notificationItem,
+                                true
+                            )
                         }
                     }
                 }
@@ -348,7 +412,12 @@ fun LikeScreen(notificationViewModel: NotificationViewModel, navController: NavC
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CardNotificationElement(notificationViewModel: NotificationViewModel, navController: NavController, notificationItem: NotificationDataModel, isRead: Boolean) {
+fun CardNotificationElement(
+    notificationViewModel: NotificationViewModel,
+    navController: NavController,
+    notificationItem: NotificationDataModel,
+    isRead: Boolean
+) {
     Log.d("123", notificationItem.toString())
     val nickname = if (notificationItem is NotificationDataModel.FeedLikeNotification) {
         notificationItem.nickName
@@ -492,7 +561,11 @@ fun CardNotificationElement(notificationViewModel: NotificationViewModel, navCon
 }
 
 @Composable
-fun WarningNotificationElement(notificationViewModel: NotificationViewModel, notificationItem: NotificationDataModel, isRead: Boolean) {
+fun WarningNotificationElement(
+    notificationViewModel: NotificationViewModel,
+    notificationItem: NotificationDataModel,
+    isRead: Boolean
+) {
     val warningItem = if (notificationItem.notificationType == NotificationTypeEnum.BLOCKED) {
         notificationItem as NotificationDataModel.BlockedNotification
     } else {

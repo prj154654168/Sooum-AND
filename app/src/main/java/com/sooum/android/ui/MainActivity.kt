@@ -1,12 +1,9 @@
 package com.sooum.android.ui
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
@@ -46,8 +43,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -64,10 +59,10 @@ import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.common.NotificationNav
+import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumBottomNavigation
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
-import com.sooum.android.ui.theme.SoonumTheme
 import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -83,32 +78,59 @@ class MainActivity : ComponentActivity() {
             val mainViewModel: MainViewModel = hiltViewModel()
             val navController = rememberNavController()
 
+            val android_id = Settings.Secure.getString(
+                LocalContext.current.getContentResolver(),
+                Settings.Secure.ANDROID_ID
+            )
+            mainViewModel.login(android_id, {
+                mainViewModel.fetchUnreadNotificationCount()
+            })
+
             val targetCardId = intent.getStringExtra("targetCardId")
             val notificationId = intent.getStringExtra("notificationId")
-            if (targetCardId != null) {
-                SooumApplication().saveVariable("targetCardId", targetCardId)
-                intent.removeExtra("targetCardId")
-            }
+
+            Log.e("targetCardId", "$targetCardId+$notificationId")
+
             if (notificationId != null) {
                 SooumApplication().saveVariable("notificationId", notificationId)
                 mainViewModel.handleNotificationRead(notificationId.toLong())
                 intent.removeExtra("notificationId")
-            }
 
-
-            NavHost(
-                navController = navController,
-                startDestination = "splash"
-            ) {
-                composable("splash") {
-                    SplashScreen(navController, mainViewModel)
+                if (targetCardId != null) {
+                    SooumApplication().saveVariable("targetCardId", targetCardId)
+                    intent.removeExtra("targetCardId")
+                    SooumNavHost(
+                        navController = navController,
+                        startDestination = "${PostNav.Detail.screenRoute}/{cardId}",
+                        mainViewModel
+                        // startDestination = "${PostNav.Detail.screenRoute}/${targetCardId}"
+                    )
+                } else {
+                    if (mainViewModel.isLoading == 1) {
+                        SooumNavHost(
+                            navController = navController,
+                            startDestination = NotificationNav.Notification.screenRoute,
+                            mainViewModel
+                        )
+                        mainViewModel.isLoading = 2
+                    }
                 }
-                composable("main") {
-                    Main(mainViewModel)
+            } else {
+                NavHost(
+                    navController = navController,
+                    startDestination = "splash"
+                ) {
+                    composable("splash") {
+                        SplashScreen(navController, mainViewModel)
+                    }
+                    composable("main") {
+                        Main(mainViewModel)
+                    }
                 }
             }
         }
     }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -150,9 +172,9 @@ fun SplashScreen(
 
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
-        mainViewModel.login(android_id, context, {
-            mainViewModel.fetchUnreadNotificationCount()
-        })
+//        mainViewModel.login(android_id, context, {
+//            mainViewModel.fetchUnreadNotificationCount()
+//        })
 
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
@@ -324,73 +346,75 @@ fun Main(mainViewModel: MainViewModel) {
     val currentRoute = navBackStackEntry?.destination?.route
 
 //    SoonumTheme {
-        // A surface container using the 'background' color from the theme
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Scaffold(
-                bottomBar = {
-                    if (SooumNav.isMainRoute(currentRoute) == 1) {
-                        SooumBottomNavigation(navController)
-                    }
-                    if (SooumNav.isMainRoute(currentRoute) == 4) {
-                        SooumBottomNavigation(navController)
-                    }
-                },
+    // A surface container using the 'background' color from the theme
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Scaffold(
+            bottomBar = {
+                if (SooumNav.isMainRoute(currentRoute) == 1) {
+                    SooumBottomNavigation(navController)
+                }
+                if (SooumNav.isMainRoute(currentRoute) == 4) {
+                    SooumBottomNavigation(navController)
+                }
+            },
 
-                topBar = {//top bar 추후 수정 필요
-                    if (SooumNav.isMainRoute(currentRoute) == 1) {
-                        TopAppBar(
-                            title = {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_logo),
-                                    contentDescription = "앱 로고",
-                                    modifier = Modifier
-                                        .width(93.dp)
-                                        .height(18.dp)
-                                )
-                            },
-                            actions = {
-                                Image(
-                                    painter = if (mainViewModel.unreadNotificationCount.value == 0) {
-                                        painterResource(R.drawable.ic_alarm)
-                                    } else {
-                                        painterResource(R.drawable.ic_alarm_2)
-                                    },
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .padding(end = 20.dp)
-                                        .clickable(
-                                            interactionSource = remember { MutableInteractionSource() },
-                                            indication = null
-                                        ) {
-                                            navController.navigate(NotificationNav.Notification.screenRoute)
-                                        }
-                                )
-                            },
-                            modifier = Modifier.padding(
-                                horizontal = 4.dp,
-                                vertical = 2.dp
+            topBar = {//top bar 추후 수정 필요
+                if (SooumNav.isMainRoute(currentRoute) == 1) {
+                    TopAppBar(
+                        title = {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_logo),
+                                contentDescription = "앱 로고",
+                                modifier = Modifier
+                                    .width(93.dp)
+                                    .height(18.dp)
                             )
+                        },
+                        actions = {
+                            Image(
+                                painter = if (mainViewModel.unreadNotificationCount.value == 0) {
+                                    painterResource(R.drawable.ic_alarm)
+                                } else {
+                                    painterResource(R.drawable.ic_alarm_2)
+                                },
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(end = 20.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null
+                                    ) {
+                                        navController.navigate(NotificationNav.Notification.screenRoute)
+                                    }
+                            )
+                        },
+                        modifier = Modifier.padding(
+                            horizontal = 4.dp,
+                            vertical = 2.dp
                         )
-                    }
-                },
-            ) { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding))
-
-                if (mainViewModel.login == 1) {
-                    SooumNavHost(
-                        navController = navController,
-                        startDestination = SooumNav.Home.screenRoute,
-                    )
-                } else {
-                    SooumNavHost(
-                        navController = navController,
-                        startDestination = LogInNav.LogIn.screenRoute,
                     )
                 }
+            },
+        ) { innerPadding ->
+            Box(modifier = Modifier.padding(innerPadding))
+
+            if (mainViewModel.login == 1) {
+                SooumNavHost(
+                    navController = navController,
+                    startDestination = SooumNav.Home.screenRoute,
+                    mainViewModel
+                )
+            } else {
+                SooumNavHost(
+                    navController = navController,
+                    startDestination = LogInNav.LogIn.screenRoute,
+                    mainViewModel
+                )
             }
         }
     }
+}
 //}

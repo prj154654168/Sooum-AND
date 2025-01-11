@@ -89,14 +89,12 @@ import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
-import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.enums.HomeSelectEnum
-import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -179,21 +177,21 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
     val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        val targetCardId = SooumApplication().getVariable("targetCardId")
-        val notificationId = SooumApplication().getVariable("notificationId")
-        Log.e(
-            "targetCardId",
-            "$targetCardId+$notificationId"
-        )
-        if (notificationId != "") {
-            if (targetCardId != "") {
-                navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
-            } else {
-                navController.navigate(NotificationNav.Notification.screenRoute)
-            }
-        }
-    }
+//    LaunchedEffect(Unit) {
+//        val targetCardId = SooumApplication().getVariable("targetCardId")
+//        val notificationId = SooumApplication().getVariable("notificationId")
+//        Log.e(
+//            "targetCardId",
+//            "$targetCardId+$notificationId"
+//        )
+//        if (notificationId != "") {
+//            if (targetCardId != "") {
+//                navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
+//            } else {
+//                navController.navigate(NotificationNav.Notification.screenRoute)
+//            }
+//        }
+//    }
 
     Box(
         modifier = Modifier

@@ -1,10 +1,10 @@
 package com.sooum.android.ui.viewmodel
 
-import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -35,6 +35,7 @@ class MainViewModel @Inject constructor(
     var login by mutableStateOf<Int>(0)
     var token: Token? = null
     var encryptedDeviceId: String = ""
+    var isLoading by mutableIntStateOf(0)
 
     var unreadNotificationCount = mutableStateOf(0)
         private set
@@ -76,17 +77,19 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = readNotificationUseCase(notificationId)
-                Log.e("handleNotificationRead",notificationId.toString())
-            }catch (E:Exception){
-                Log.e("handleNotificationRead",notificationId.toString())
+                Log.e("handleNotificationRead", notificationId.toString())
+            } catch (E: Exception) {
+                Log.e("handleNotificationRead", notificationId.toString())
                 println(E)
+            } finally {
+                isLoading = 1
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun login(android_id: String, context: Context, onLoginFinished: () -> Unit) {
-        Log.e("android_id",android_id)
+    fun login(android_id: String, onLoginFinished: () -> Unit) {
+        Log.e("android_id", android_id)
         viewModelScope.launch {
             try {
                 val a = retrofitInstance.getRsaKey()
@@ -129,7 +132,7 @@ class MainViewModel @Inject constructor(
             try {
                 val unreadCount = getAllUnreadCountUseCase()
                 unreadNotificationCount.value = unreadCount
-            }catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
         }

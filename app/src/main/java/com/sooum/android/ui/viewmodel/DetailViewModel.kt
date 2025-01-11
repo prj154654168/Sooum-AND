@@ -26,17 +26,12 @@ class DetailViewModel : ViewModel() {
         private set
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
 
-    init{
-        SooumApplication().removeVariable("notificationId")
-        SooumApplication().removeVariable("targetCardId")
-    }
-
 
     fun getFeedCard(toLong: Double, longitude: Double, cardId: Long) {
         viewModelScope.launch {
             try {
                 feedCardDataModel = retrofitInstance.getFeedCard(cardId, toLong, longitude).body()
-                Log.e("feedCardDataModel",feedCardDataModel.toString())
+                Log.e("feedCardDataModel", feedCardDataModel.toString())
             } catch (E: Exception) {
                 println(E)
             }
@@ -48,7 +43,10 @@ class DetailViewModel : ViewModel() {
             try {
                 detailCardLikeCommentCountDataModel =
                     retrofitInstance.getCardLikeCommentCount(cardId).body()
-                Log.e("detailCardLikeCommentCountDataModel",detailCardLikeCommentCountDataModel.toString())
+                Log.e(
+                    "detailCardLikeCommentCountDataModel",
+                    detailCardLikeCommentCountDataModel.toString()
+                )
             } catch (E: Exception) {
                 println(E)
             }
@@ -60,7 +58,7 @@ class DetailViewModel : ViewModel() {
             try {
                 detailCommentCardDataModel =
                     retrofitInstance.getDeatilCommentCard(cardId, latitude, longitude).body()
-                Log.e("detailCommentCardDataModel",detailCommentCardDataModel.toString())
+                Log.e("detailCommentCardDataModel", detailCommentCardDataModel.toString())
             } catch (E: Exception) {
                 println(E)
             }

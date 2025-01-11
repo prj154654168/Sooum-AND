@@ -2,6 +2,7 @@ package com.sooum.android.ui
 
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -72,6 +73,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
@@ -214,6 +216,19 @@ fun DetailScreen(
 
         }
     )
+    val targetCardId = SooumApplication().getVariable("targetCardId")
+
+    BackHandler {
+        if (targetCardId != "") {
+            SooumApplication().removeVariable("targetCardId")
+            navController.navigate("main") {
+                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+                launchSingleTop = true
+            }
+        } else {
+            navController.popBackStack()
+        }
+    }
 
     if (data != null) {
         Scaffold(topBar = {
@@ -222,7 +237,16 @@ fun DetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.popBackStack()
+                        if (targetCardId != "") {
+                            SooumApplication().removeVariable("targetCardId")
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
+
                     }) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
