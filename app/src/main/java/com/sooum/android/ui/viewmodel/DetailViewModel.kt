@@ -26,6 +26,11 @@ class DetailViewModel : ViewModel() {
         private set
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
 
+    init{
+        SooumApplication().removeVariable("notificationId")
+        SooumApplication().removeVariable("targetCardId")
+    }
+
 
     fun getFeedCard(toLong: Double, longitude: Double, cardId: Long) {
         viewModelScope.launch {

@@ -30,15 +30,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.MyProfile
+import com.sooum.android.ui.viewmodel.SettingViewModel
 
 @Composable
 fun SettingScreen(navController: NavHostController) {
-    var isChecked by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val settingViewModel : SettingViewModel = hiltViewModel()
+   // var isChecked by remember { mutableStateOf(settingViewModel.isNotify.value) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -85,9 +89,9 @@ fun SettingScreen(navController: NavHostController) {
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
                 Switch(
-                    checked = isChecked,
+                    checked = settingViewModel.isNotify.value,
                     onCheckedChange = {
-                        isChecked = it
+                        settingViewModel.updateNotify()
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,

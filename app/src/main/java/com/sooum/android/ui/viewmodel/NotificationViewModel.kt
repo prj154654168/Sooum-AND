@@ -7,6 +7,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
+import com.sooum.android.SooumApplication
 import com.sooum.android.domain.model.NotificationDataModel
 import com.sooum.android.domain.model.NotificationResponse
 import com.sooum.android.domain.usecase.notification.AllReadNotificationUseCase
@@ -64,6 +65,9 @@ class NotificationViewModel @Inject constructor(
         getAllUnreadCount()
         getCardUnreadCount()
         getLikeUnreadCount()
+
+        SooumApplication().removeVariable("notificationId")
+        SooumApplication().removeVariable("targetCardId")
     }
 
     fun getAllUnreadCount() {

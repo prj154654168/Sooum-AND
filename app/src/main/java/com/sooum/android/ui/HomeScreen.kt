@@ -186,8 +186,8 @@ fun HomeScreen(navController: NavHostController) {
             "targetCardId",
             "$targetCardId+$notificationId"
         )
-        if (notificationId != "null") {
-            if (targetCardId != "null") {
+        if (notificationId != "") {
+            if (targetCardId != "") {
                 navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
             } else {
                 navController.navigate(NotificationNav.Notification.screenRoute)

@@ -1,9 +1,12 @@
 package com.sooum.android.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
@@ -43,6 +46,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -73,6 +78,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         createNotificationChannel()
 
+
         setContent {
             val mainViewModel: MainViewModel = hiltViewModel()
             val navController = rememberNavController()
@@ -80,13 +86,13 @@ class MainActivity : ComponentActivity() {
             val targetCardId = intent.getStringExtra("targetCardId")
             val notificationId = intent.getStringExtra("notificationId")
             if (targetCardId != null) {
-                SooumApplication().saveVariable("notificationId", targetCardId)
+                SooumApplication().saveVariable("targetCardId", targetCardId)
                 intent.removeExtra("targetCardId")
             }
             if (notificationId != null) {
                 SooumApplication().saveVariable("notificationId", notificationId)
-                intent.removeExtra("notificationId")
                 mainViewModel.handleNotificationRead(notificationId.toLong())
+                intent.removeExtra("notificationId")
             }
 
 
@@ -103,7 +109,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val importance = NotificationManager.IMPORTANCE_DEFAULT

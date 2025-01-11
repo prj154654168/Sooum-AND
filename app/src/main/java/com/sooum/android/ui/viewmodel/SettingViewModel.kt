@@ -15,34 +15,33 @@ class SettingViewModel @Inject constructor(
     private val getNotifyUseCase: GetNotifyUseCase,
     private val updateNotifyUseCase: UpdateNotifyUseCase,
 ) : ViewModel() {
-    var isNotify = mutableStateOf<Boolean>(true)
+    var isNotify = mutableStateOf<Boolean>(false)
         private set
 
-    init{
+    init {
         getNotify()
     }
 
-    fun getNotify(){
+    fun getNotify() {
         viewModelScope.launch {
             try {
-                val response = getNotifyUseCase
-
-            }catch (E:Exception){
+                val response = getNotifyUseCase()
+                isNotify.value = response.isAllowNotify
+            } catch (E: Exception) {
                 println(E)
             }
         }
     }
 
-    fun updateNotify(){
+    fun updateNotify() {
         viewModelScope.launch {
             try {
-                val response = updateNotifyUseCase(NotifyBody(isNotify.value))
-            }catch (E:Exception){
+                val response = updateNotifyUseCase(NotifyBody(!isNotify.value))
+                isNotify.value = !isNotify.value
+            } catch (E: Exception) {
                 println(E)
             }
         }
     }
-
-
 
 }
