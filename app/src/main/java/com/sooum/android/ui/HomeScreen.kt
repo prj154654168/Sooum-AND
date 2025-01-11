@@ -84,18 +84,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.domain.model.SortedByDistanceDataModel
 import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.enums.HomeSelectEnum
+import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -177,6 +178,22 @@ fun HomeScreen(navController: NavHostController) {
             homeViewModel.fetchPopularityCardList(latitude, longitude, {})
         }
     }
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        val targetCardId = SooumApplication().getVariable("targetCardId")
+        val notificationId = SooumApplication().getVariable("notificationId")
+        Log.e(
+            "targetCardId",
+            "$targetCardId+$notificationId"
+        )
+        if (notificationId != "null") {
+            if (targetCardId != "null") {
+                navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
+            } else {
+                navController.navigate(NotificationNav.Notification.screenRoute)
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -252,7 +269,6 @@ fun HomeScreen(navController: NavHostController) {
                 )
             }
             if (openSystemLocationDialog) {
-                val context = LocalContext.current
 
                 if (ActivityCompat.shouldShowRequestPermissionRationale(
                         context as Activity,
@@ -489,7 +505,8 @@ fun DistanceFeedList(
             (distance == DistanceEnum.UNDER_5 && lazyDistance5Feed.itemCount == 0) ||
             (distance == DistanceEnum.UNDER_10 && lazyDistance10Feed.itemCount == 0) ||
             (distance == DistanceEnum.UNDER_20 && lazyDistance20Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)) {
+            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)
+        ) {
             ReplaceHomeList()
         } else {
             LazyColumn(

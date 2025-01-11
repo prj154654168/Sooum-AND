@@ -15,6 +15,7 @@ import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.Token
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
+import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
@@ -26,7 +27,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getAllUnreadCountUseCase: AllUnreadCountUseCase
+    private val getAllUnreadCountUseCase: AllUnreadCountUseCase,
+    private val readNotificationUseCase: ReadNotificationUseCase
 ) : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
@@ -67,6 +69,18 @@ class MainViewModel @Inject constructor(
     fun updateFcm() {
         viewModelScope.launch {
             retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
+        }
+    }
+
+    fun handleNotificationRead(notificationId: Long) {
+        viewModelScope.launch {
+            try {
+                val result = readNotificationUseCase(notificationId)
+                Log.e("handleNotificationRead",notificationId.toString())
+            }catch (E:Exception){
+                Log.e("handleNotificationRead",notificationId.toString())
+                println(E)
+            }
         }
     }
 
