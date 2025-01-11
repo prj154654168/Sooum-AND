@@ -391,35 +391,25 @@ fun DetailScreen(
                                         ),
                                     shape = RoundedCornerShape(40.dp),
                                     onClick = {
-                                        var flag = 0
-                                        navController.backQueue.forEach { backStackEntry ->
-                                            Log.d(
-                                                "BackStack",
-                                                "Destination: ${backStackEntry.destination.route}"
-                                            )
-                                        }
-                                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                                            ?.let {
-                                                flag = 1
-                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
-//                                                {
-//                                                    popUpTo("${PostNav.Detail.screenRoute}/{cardId}") {
-//                                                        inclusive = true
-//                                                    }
-//
-//                                                }
+                                        if (data.previousCardId != -1L) {
+                                            var flag = 0
+                                            navController.backQueue.forEach { backStackEntry ->
+                                                Log.d(
+                                                    "BackStack",
+                                                    "Destination: ${backStackEntry.destination.route}"
+                                                )
                                             }
-                                        Log.d("BackStack2", "2")
-                                        // 백스택 팝
-                                        if (flag == 0) {
-                                            navController.popBackStack()
+                                            navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                                                ?.let {
+                                                    flag = 1
+                                                    navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
+                                                }
+                                            Log.d("BackStack2", "2")
+                                            // 백스택 팝
+                                            if (flag == 0) {
+                                                navController.popBackStack()
+                                            }
                                         }
-
-
-//                                        navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}"){
-//                                            popUpTo("${PostNav.Detail.screenRoute}/{cardId}") { inclusive = true } // ScreenB까지 제거
-//                                            launchSingleTop = true
-//                                        }
                                     }
                                 ) {
                                     Box(
@@ -679,7 +669,7 @@ fun DetailScreen(
                     refreshing = isRefreshing,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter),
-                    contentColor = Primary
+                    contentColor = Color.Black
                 )
 
             }
@@ -907,7 +897,12 @@ fun DeleteDialog(
                     Button(
                         onClick = {
                             viewModel.deleteCard(cardId)
-                            navController.popBackStack()//TODO 추후 삭제화면 보이게 해야함.
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         },
                         modifier = Modifier
                             .width(130.dp)
@@ -987,7 +982,12 @@ fun BlockDialog(
                     Button(
                         onClick = {
                             viewModel.userBlocks()
-                            navController.popBackStack()
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         },
                         modifier = Modifier
                             .width(130.dp)

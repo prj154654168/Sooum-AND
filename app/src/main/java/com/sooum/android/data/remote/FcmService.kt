@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.ui.MainActivity
 
@@ -67,7 +68,7 @@ class FcmService : FirebaseMessagingService() {
         }
 
         val builder1 = NotificationCompat.Builder(this, "sooum-channel")
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.sooum_logo)
             .setContentTitle(messageTitle)
             .setContentText(messageContent)
             .setAutoCancel(true)

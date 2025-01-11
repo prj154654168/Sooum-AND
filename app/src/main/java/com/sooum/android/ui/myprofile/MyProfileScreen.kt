@@ -305,7 +305,7 @@ fun MyProfileScreen(navController: NavHostController) {
                     refreshing = isRefreshing,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter),
-                    contentColor = Primary
+                    contentColor = Color.Black
                 )
             }
         }

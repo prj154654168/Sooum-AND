@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +45,7 @@ import com.sooum.android.enums.ReportTypeEnum
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray300
 import com.sooum.android.ui.theme.Gray4
+import com.sooum.android.ui.theme.GrayRadio
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.ReportViewModel
 import kotlinx.coroutines.delay
@@ -107,7 +107,7 @@ fun ReportScreen(
                     onClick = { navController.popBackStack() }
                 ) {
                     Icon(
-                        Icons.Default.ArrowForward,
+                        painterResource(R.drawable.ic_arrow_back),
                         contentDescription = "뒤로가기",
                     )
                 }
@@ -186,8 +186,6 @@ fun ReportScreen(
                     "기타",
                     "해당하는 신고항목이 없는 경우"
                 )
-
-
             }
 
             Button(
@@ -248,7 +246,8 @@ fun ReportButton(
                     onClick = { onOptionSelected() },
                     modifier = Modifier,
                     colors = RadioButtonDefaults.colors(
-                        selectedColor = Primary, // 선택되었을 때의 색상
+                        unselectedColor = GrayRadio,
+                        selectedColor = Primary,
                     )
                 )
                 Text(
