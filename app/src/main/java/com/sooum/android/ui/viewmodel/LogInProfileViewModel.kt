@@ -40,9 +40,9 @@ class LogInProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = myProfileUseCase()
-                myProfileNickName.value = response.nickname
                 myProfileImgUrl.value =
                     if (response.profileImg != null) response.profileImg.href else ""
+                myProfileNickName.value = response.nickname
             } catch (E: Exception) {
                 println(E)
             }

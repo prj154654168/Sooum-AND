@@ -11,6 +11,8 @@ import com.sooum.android.domain.model.MyCommentCardDataModel
 import com.sooum.android.domain.model.MyFeedCardDataModel
 import com.sooum.android.domain.model.MyProfileDataModel
 import com.sooum.android.domain.model.NoticeDataModel
+import com.sooum.android.domain.model.NotifyBody
+import com.sooum.android.domain.model.NotifyDataModel
 import com.sooum.android.domain.model.UserCodeBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -74,9 +76,14 @@ interface ProfileApi {
     suspend fun getDifFollowing(@Path("profileOnwerPk") profileOwnerPk: Long): Response<FollowingDataModel>
 
     @POST("/followers")
-    suspend fun postFollower(@Body followerBody: FollowerBody) : Response<Any>
+    suspend fun postFollower(@Body followerBody: FollowerBody): Response<Any>
 
     @DELETE("/followers/{toMemberId}")
-    suspend fun deleteFollower(@Path("toMemberId") toMemberId: Long) : Response<Any>
+    suspend fun deleteFollower(@Path("toMemberId") toMemberId: Long): Response<Any>
 
+    @GET("/members/notify")
+    suspend fun getNotify(): Response<NotifyDataModel>
+
+    @PATCH("/members/notify")
+    suspend fun updateNotify(@Body notifyBody: NotifyBody) : Response<Any>
 }

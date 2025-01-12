@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +45,7 @@ import com.sooum.android.ui.viewmodel.EnterUserCodeViewModel
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EnterUserCodeScreen(navController: NavHostController) {
+    var lastClickTime by remember { mutableLongStateOf(0L) }
     val android_id = Settings.Secure.getString(
         LocalContext.current.getContentResolver(),
         Settings.Secure.ANDROID_ID
@@ -147,6 +149,7 @@ fun EnterUserCodeScreen(navController: NavHostController) {
         Button(
             onClick = {
                 viewModel.postUserCode(code)
+                code = ""
             },
             modifier = Modifier
                 .padding(20.dp)

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,7 +48,8 @@ import com.sooum.android.ui.theme.Primary
 @Composable
 fun NickNameScreen(navController: NavHostController) {
 
-    val adjectives = listOf<String>( "공부하는", "생각하는", "사랑하는", "노래하는",
+    val adjectives = listOf<String>(
+        "공부하는", "생각하는", "사랑하는", "노래하는",
         "요리하는", "운동하는", "여행하는", "대화하는",
         "청소하는", "정리하는", "그리는", "사진하는",
         "연구하는", "설계하는", "개발하는", "관리하는",
@@ -65,7 +65,8 @@ fun NickNameScreen(navController: NavHostController) {
         "기록하는", "정리하는", "대처하는", "해결하는",
         "조율하는", "탐색하는", "분석하는", "실천하는"
     )
-    val nouns = listOf("강아지", "고양이", "기린", "토끼",
+    val nouns = listOf(
+        "강아지", "고양이", "기린", "토끼",
         "사자", "호랑이", "악어", "코끼리",
         "판다", "부엉이", "까치", "앵무새",
         "여우", "오리", "수달", "다람쥐",
@@ -90,7 +91,7 @@ fun NickNameScreen(navController: NavHostController) {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    painterResource(R.drawable.ic_arrow_back),
                     contentDescription = "뒤로가기",
                 )
             }
@@ -138,8 +139,7 @@ fun NickNameScreen(navController: NavHostController) {
                             Modifier
                                 .fillMaxWidth()
                                 .background(color = Gray50, shape = RoundedCornerShape(20.dp))
-                                .padding(all = 16.dp)
-                            , contentAlignment = Alignment.CenterStart
+                                .padding(all = 16.dp), contentAlignment = Alignment.CenterStart
                         ) {
                             innerTextField()  // TextField의 텍스트를 표시
                             IconButton(

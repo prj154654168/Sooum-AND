@@ -9,9 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -32,10 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.domain.model.MemberInfo
 import com.sooum.android.domain.model.Policy
@@ -73,7 +72,7 @@ fun AgreeScreen(navController: NavHostController) {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    painterResource(R.drawable.ic_arrow_back),
                     contentDescription = "뒤로가기",
                 )
             }

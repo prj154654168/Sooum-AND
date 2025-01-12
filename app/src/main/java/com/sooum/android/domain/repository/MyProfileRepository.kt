@@ -10,7 +10,10 @@ import com.sooum.android.domain.model.MyCommentCardDataModel
 import com.sooum.android.domain.model.MyFeedCardDataModel
 import com.sooum.android.domain.model.MyProfileDataModel
 import com.sooum.android.domain.model.NoticeDataModel
+import com.sooum.android.domain.model.NotifyBody
+import com.sooum.android.domain.model.NotifyDataModel
 import com.sooum.android.domain.model.UserCodeBody
+import retrofit2.Response
 
 interface MyProfileRepository {
     suspend fun getMyProfile(): MyProfileDataModel
@@ -37,4 +40,7 @@ interface MyProfileRepository {
     suspend fun getDifFollowing(profileOwnerPk: Long): FollowingDataModel
     suspend fun postFollower(followerBody: FollowerBody)
     suspend fun deleteFollower(toMemberId: Long)
+
+    suspend fun getNotify() : NotifyDataModel
+    suspend fun updateNotify(notifyBody: NotifyBody)
 }

@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.domain.model.NoticeDataModel
+import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Primary
@@ -71,7 +73,10 @@ fun NoticeScreen(navController: NavHostController) {
             }
             LazyColumn {
                 items(noticeViewModel.noticeList.value) { notice ->
-                    NoticeItem(notice)
+                    NoticeItem(notice){
+                        SooumApplication().saveVariable("notionUrl",notice.link)
+                        navController.navigate(MyProfile.NotionPage.screenRoute)
+                    }
                 }
             }
         }
@@ -81,12 +86,15 @@ fun NoticeScreen(navController: NavHostController) {
 }
 
 @Composable
-fun NoticeItem(notice: NoticeDataModel.NoticeDto) {
+fun NoticeItem(notice: NoticeDataModel.NoticeDto, function: () -> Unit) {
     Column() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 10.dp, start = 20.dp, end = 20.dp)
+                .clickable {
+                    function()
+                }
         ) {
             Row(modifier = Modifier.align(Alignment.BottomStart)) {
                 if (notice.noticeType == "MAINTENANCE") {

@@ -12,6 +12,8 @@ import com.sooum.android.domain.model.MyCommentCardDataModel
 import com.sooum.android.domain.model.MyFeedCardDataModel
 import com.sooum.android.domain.model.MyProfileDataModel
 import com.sooum.android.domain.model.NoticeDataModel
+import com.sooum.android.domain.model.NotifyBody
+import com.sooum.android.domain.model.NotifyDataModel
 import com.sooum.android.domain.model.UserCodeBody
 import com.sooum.android.domain.repository.MyProfileRepository
 import javax.inject.Inject
@@ -212,5 +214,29 @@ class MyProfileRepositoryImpl @Inject constructor(private val profileApi: Profil
             throw Exception("Failed to get default image: $errorMessage")
         }
 
+    }
+
+    override suspend fun getNotify(): NotifyDataModel {
+        val response = profileApi.getNotify()
+
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+        } else {
+            // 실패한 경우의 에러 메시지를 로그로 출력
+            val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+    }
+
+    override suspend fun updateNotify(notifyBody: NotifyBody) {
+        val response = profileApi.updateNotify(notifyBody)
+        if (response.isSuccessful) {
+            if (response.code() == 204) {
+                Log.d("API Response", "요청이 성공적으로 처리되었습니다. 반환값 없음.")
+            }
+        } else {
+            val errorMessage = response.message() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
     }
 }

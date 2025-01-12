@@ -48,7 +48,6 @@ fun SooumBottomNavigation(navController: NavHostController) {
                     100.dp
                 )
                 clip = true
-
             }
             .height(70.dp), containerColor = White70
     ) {
@@ -89,7 +88,7 @@ fun SooumBottomNavigation(navController: NavHostController) {
                     Icon(
                         painter = painterResource(id = screen.icon),
                         contentDescription = screen.screenRoute,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                 },
                 modifier = Modifier

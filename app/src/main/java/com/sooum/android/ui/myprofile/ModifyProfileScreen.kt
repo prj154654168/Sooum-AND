@@ -60,12 +60,12 @@ import java.io.ByteArrayOutputStream
 
 @Composable
 fun ModifyProfileScreen(navController: NavHostController) {
-
-
     val viewModel: LogInProfileViewModel = hiltViewModel()
     val context = LocalContext.current
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
+    var lastClickTime by remember { mutableStateOf(0L) }
+
     val imageCropLauncher =
         rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
             if (result.isSuccessful) {
@@ -96,13 +96,11 @@ fun ModifyProfileScreen(navController: NavHostController) {
                 Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
             }
         }
-    var nicknameTextField by remember { mutableStateOf("") }
+    // var nicknameTextField by remember { mutableStateOf("") }
     LaunchedEffect(Unit) {
-        viewModel.getMyProfile()
         delay(500L)
-        nicknameTextField = viewModel.myProfileNickName.value
+        viewModel.getMyProfile()
     }
-
 
     if (viewModel.isLoading == 1) {
         navController.navigate(SooumNav.Profile.screenRoute) {
@@ -226,10 +224,10 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = nicknameTextField,
+                value = viewModel.myProfileNickName.value,
                 onValueChange = {
                     if (it.length <= 8) {
-                        nicknameTextField = it
+                        viewModel.myProfileNickName.value = it
                     }
                 },
                 placeholder = {
@@ -268,7 +266,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (nicknameTextField.isEmpty()) {
+                if (viewModel.myProfileNickName.value.isEmpty()) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -287,7 +285,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     }
                 }
                 Text(
-                    text = "${nicknameTextField.length}/8",
+                    text = "${viewModel.myProfileNickName.value.length}/8",
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     lineHeight = 14.sp,
@@ -307,15 +305,18 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .clickable {
-                        if (nicknameTextField.isNotEmpty()) {
-                            viewModel.profiles(
-                                nicknameTextField,
-                                if (selectedImageBitmap == null) 2 else 1
-                            )
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastClickTime > 500) {
+                            lastClickTime = currentTime
+                            if (viewModel.myProfileNickName.value.isNotEmpty()) {
+                                viewModel.profiles(
+                                    viewModel.myProfileNickName.value,
+                                    if (selectedImageBitmap == null) 2 else 1
+                                )
+                            }
                         }
-
                     },
-                color = if (nicknameTextField.isNotEmpty()) colorResource(R.color.blue300) else colorResource(
+                color = if (viewModel.myProfileNickName.value.isNotEmpty()) colorResource(R.color.blue300) else colorResource(
                     id = R.color.gray500
                 )
             ) {
@@ -325,7 +326,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                         fontWeight = FontWeight.Medium,
                         fontSize = 14.sp,
                         lineHeight = 19.6.sp,
-                        color = if (nicknameTextField.isNotEmpty()) colorResource(R.color.gray_white) else colorResource(
+                        color = if (viewModel.myProfileNickName.value.isNotEmpty()) colorResource(R.color.gray_white) else colorResource(
                             id = R.color.gray_black
                         ),
                         modifier = Modifier
