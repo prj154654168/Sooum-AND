@@ -19,12 +19,12 @@ data class FeedCardDataModel(
     val status: Status,
     val storyExpirationTime: String?,
     val tags: List<Tag>,
-    val isParentDeleted: Boolean,
     val previousCardId: Long?,
     val previousCardImgLink: PreviousCardImgLink?,
-
-    ) {
-
+    val isFeedCardStory : Boolean,
+    val isPreviousCardDelete : Boolean,
+    val isFeedCard : Boolean
+) {
 
 }
 data class PreviousCardImgLink(
