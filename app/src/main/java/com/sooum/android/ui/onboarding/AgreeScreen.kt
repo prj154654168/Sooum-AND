@@ -186,7 +186,7 @@ fun AgreeScreen(navController: NavHostController) {
                                 SooumApplication().getVariable("encryptedDeviceId")
                                     .toString(),
                                 SooumApplication().getVariable("fcmToken"),
-                                false
+                                true
                             ),
                             policy = Policy(firstChecked, secondChecked, thirdChecked)
                         )
