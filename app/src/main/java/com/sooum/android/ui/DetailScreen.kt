@@ -483,7 +483,7 @@ fun DetailScreen(
                                 Row(modifier = Modifier.align(Alignment.BottomStart)) {
                                     if (data.member.profileImgUrl == null) {
                                         Image(
-                                            painter = painterResource(id = R.drawable.ic_profile_logo),
+                                            painter = painterResource(id = R.drawable.ic_sooum_logo),
                                             contentDescription = "앱 로고",
                                             modifier = Modifier
                                                 .size(32.dp)
@@ -527,8 +527,11 @@ fun DetailScreen(
                                     )
                                 }//프로필
                                 Row(
-                                    modifier = Modifier.align(Alignment.BottomEnd),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .height(32.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (data.distance != 0.0) {
                                         InfoElement(
@@ -546,7 +549,6 @@ fun DetailScreen(
                                         isTrue = false
                                     )
                                 }
-
                             }
                         } else {
                             Column(
@@ -613,15 +615,16 @@ fun DetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (count != null) {
-                        DetailLike(count, viewModel, cardId)
+                        DetailLike(count, viewModel, cardId, data != null)
                         Icon(
                             modifier = Modifier
                                 .padding(start = 10.dp)
                                 .width(24.dp)
                                 .height(24.dp)
-                                .clickable(
-                                ) {
-                                    navController.navigate("addCommentCard/${cardId}/${data?.storyExpirationTime ?: "null"}")
+                                .clickable {
+                                    if (data != null) {
+                                        navController.navigate("addCommentCard/${cardId}/${data.storyExpirationTime}")
+                                    }
                                 },
                             painter = painterResource(R.drawable.ic_detail_comment),
                             contentDescription = "댓글",
@@ -674,21 +677,29 @@ fun DetailScreen(
                             }
                         }
                     }
+                } else {
+                    Box(modifier = Modifier
+                        .height(240.dp)
+                        .fillMaxWidth()) {
+                        Text(
+                            "댓글이 아직 없어요",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFFB4B4B4),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
                 }
             }
-
             PullRefreshIndicator(
                 refreshing = isRefreshing,
                 state = pullRefreshState,
                 modifier = Modifier.align(Alignment.TopCenter),
                 contentColor = Color.Black
             )
-
         }
-
     }
-
-
 }
 
 @Composable
@@ -696,44 +707,46 @@ fun DetailLike(
     count: DetailCardLikeCommentCountDataModel,
     viewModel: DetailViewModel,
     cardId: String?,
+    isData: Boolean,
 ) {
     // 상태 추적을 위해 count의 cardLikeCnt 값을 mutableStateOf로 관리
     var likeState by remember { mutableStateOf(count.isLiked) }
     var likeCount by remember { mutableStateOf(count.cardLikeCnt) }
 
-    Row(modifier = Modifier.clickable {
-        Log.e("cardId", cardId.toString())
-
-        if (likeState) {
-            cardId?.let {
-                viewModel.likeOff(it.toLong())
-                likeCount -= 1
+    if (isData) {
+        Row(modifier = Modifier.clickable {
+            Log.e("cardId", cardId.toString())
+            if (likeState) {
+                cardId?.let {
+                    viewModel.likeOff(it.toLong())
+                    likeCount -= 1
+                }
+            } else {
+                cardId?.let {
+                    viewModel.likeOn(it.toLong())
+                    likeCount += 1
+                }
             }
-        } else {
-            cardId?.let {
-                viewModel.likeOn(it.toLong())
-                likeCount += 1
-            }
+            likeState = !likeState
+        })
+        {
+            Icon(
+                modifier = Modifier
+                    .width(24.dp)
+                    .height(24.dp),
+                painter = if (likeState) painterResource(R.drawable.ic_heart_filled) else painterResource(
+                    R.drawable.ic_detail_heart
+                ),
+                contentDescription = "좋아요",
+                tint = if (likeState) Primary else Color.Black
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = likeCount.toString(),
+                fontSize = 14.sp,
+                color = if (likeState) Primary else Color.Black
+            )
         }
-
-        likeState = !likeState
-    }) {
-        Icon(
-            modifier = Modifier
-                .width(24.dp)
-                .height(24.dp),
-            painter = if (likeState) painterResource(R.drawable.ic_heart_filled) else painterResource(
-                R.drawable.ic_detail_heart
-            ),
-            contentDescription = "좋아요",
-            tint = if (likeState) Primary else Color.Black
-        )
-        Spacer(modifier = Modifier.width(5.dp))
-        Text(
-            text = likeCount.toString(),
-            fontSize = 14.sp,
-            color = if (likeState) Primary else Color.Black
-        )
     }
 }
 
