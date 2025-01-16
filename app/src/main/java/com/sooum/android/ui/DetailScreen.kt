@@ -235,11 +235,32 @@ fun DetailScreen(
                 launchSingleTop = true
             }
         } else {
-            navController.navigate(SooumNav.Home.screenRoute) {
-                popUpTo(navController.graph.id) {
-                    inclusive = true
+            var flag = 0
+            navController.backQueue.forEach { backStackEntry ->
+                Log.d(
+                    "BackStack",
+                    "Destination: ${backStackEntry.destination.route}"
+                )
+            }
+            navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                ?.let {
+                    flag = 1
+                    navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+                        popUpTo(MyProfile.MyCommentHistory.screenRoute) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
-                launchSingleTop = true
+            Log.d("BackStack2", "2")
+            // 백스택 팝
+            if (flag == 0) {
+                navController.navigate(SooumNav.Home.screenRoute) {
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
             }
         }
     }
@@ -257,11 +278,32 @@ fun DetailScreen(
                             launchSingleTop = true
                         }
                     } else {
-                        navController.navigate(SooumNav.Home.screenRoute) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = true
+                        var flag = 0
+                        navController.backQueue.forEach { backStackEntry ->
+                            Log.d(
+                                "BackStack",
+                                "Destination: ${backStackEntry.destination.route}"
+                            )
+                        }
+                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                            ?.let {
+                                flag = 1
+                                navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+                                    popUpTo(MyProfile.MyCommentHistory.screenRoute) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
-                            launchSingleTop = true
+                        Log.d("BackStack2", "2")
+                        // 백스택 팝
+                        if (flag == 0) {
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         }
                     }
 
@@ -678,9 +720,11 @@ fun DetailScreen(
                         }
                     }
                 } else {
-                    Box(modifier = Modifier
-                        .height(240.dp)
-                        .fillMaxWidth()) {
+                    Box(
+                        modifier = Modifier
+                            .height(240.dp)
+                            .fillMaxWidth()
+                    ) {
                         Text(
                             "댓글이 아직 없어요",
                             fontWeight = FontWeight.Bold,

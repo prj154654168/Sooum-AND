@@ -119,5 +119,6 @@ dependencies {
     implementation ("com.google.firebase:firebase-messaging-ktx")
     implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
     implementation("com.google.accompanist:accompanist-webview:0.24.13-rc")
+    implementation ("com.google.firebase:firebase-analytics-ktx")
 
 }

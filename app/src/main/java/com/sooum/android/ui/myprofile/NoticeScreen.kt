@@ -97,7 +97,7 @@ fun NoticeItem(notice: NoticeDataModel.NoticeDto, function: () -> Unit) {
                 }
         ) {
             Row(modifier = Modifier.align(Alignment.BottomStart)) {
-                if (notice.noticeType == "MAINTENANCE") {
+                if (notice.noticeType == "ANNOUNCEMENT") {
                     Text("공지사항", fontSize = 14.sp, color = Primary)
                 } else {
                     Text(
