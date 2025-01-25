@@ -689,7 +689,14 @@ fun LatestContentCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x00000000), // 투명한 검정
+                            Color(0x99000000)  // 약간 불투명한 검정
+                        )
+                    )
+                )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -776,7 +783,14 @@ fun PopularityContentCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
+                        )
+                    )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -863,7 +877,14 @@ fun DistanceContentCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
+                        )
+                    )
                     .align(Alignment.BottomCenter)
             )
             Box(
