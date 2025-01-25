@@ -2,6 +2,7 @@ package com.sooum.android.ui
 
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -72,6 +73,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
@@ -83,6 +85,7 @@ import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray100
 import com.sooum.android.ui.theme.Gray3
+import com.sooum.android.ui.theme.GrayWhite
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.launch
@@ -95,10 +98,13 @@ fun DetailScreen(
     cardId: String?,
     viewModel: DetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
+    var lastRefreshTime  by remember { mutableStateOf(0L) }
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
+        val currentTime = System.currentTimeMillis()
+        lastRefreshTime = currentTime // 초기 로딩 시간 기록
         cardId?.let {
             Log.e("latitude", latitude.toString())
             Log.e("latitude", longitude.toString())
@@ -203,17 +209,38 @@ fun DetailScreen(
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
-            isRefreshing = true
-            coroutineScope.launch {
-                cardId?.let {
-                    viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
-                    viewModel.getDetailCardLikeCommentCount(it.toLong())
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastRefreshTime >= 1000L) { // 0.5초 간격 제한
+                lastRefreshTime = currentTime
+                isRefreshing = true
+                coroutineScope.launch {
+                    cardId?.let {
+                        viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
+                        viewModel.getDetailCardLikeCommentCount(it.toLong())
+                    }
+                    isRefreshing = false
                 }
-                isRefreshing = false
             }
-
         }
     )
+    val targetCardId = SooumApplication().getVariable("targetCardId")
+
+    BackHandler {
+        if (targetCardId != "") {
+            SooumApplication().removeVariable("targetCardId")
+            navController.navigate("main") {
+                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+                launchSingleTop = true
+            }
+        } else {
+            navController.navigate(SooumNav.Home.screenRoute) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     if (data != null) {
         Scaffold(topBar = {
@@ -222,7 +249,21 @@ fun DetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.popBackStack()
+                        if (targetCardId != "") {
+                            SooumApplication().removeVariable("targetCardId")
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+                                launchSingleTop = true
+                            }
+                        } else {
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
+                        }
+
                     }) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
@@ -345,6 +386,7 @@ fun DetailScreen(
                                                 .clickable { showBottomSheet = true },
                                             painter = painterResource(R.drawable.ic_detail_kebab),
                                             contentDescription = "케밥 더보기 버튼",
+                                            tint = GrayWhite
                                         )
                                     }
                                 }
@@ -367,42 +409,32 @@ fun DetailScreen(
                                         ),
                                     shape = RoundedCornerShape(40.dp),
                                     onClick = {
-                                        var flag = 0
-                                        navController.backQueue.forEach { backStackEntry ->
-                                            Log.d(
-                                                "BackStack",
-                                                "Destination: ${backStackEntry.destination.route}"
-                                            )
-                                        }
-                                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                                            ?.let {
-                                                flag=1
-                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
-//                                                {
-//                                                    popUpTo("${PostNav.Detail.screenRoute}/{cardId}") {
-//                                                        inclusive = true
-//                                                    }
-//
-//                                                }
+                                        if (data.previousCardId != -1L) {
+                                            var flag = 0
+                                            navController.backQueue.forEach { backStackEntry ->
+                                                Log.d(
+                                                    "BackStack",
+                                                    "Destination: ${backStackEntry.destination.route}"
+                                                )
                                             }
-                                        Log.d("BackStack2", "2")
-                                        // 백스택 팝
-                                        if (flag == 0) {
-                                            navController.popBackStack()
+                                            navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                                                ?.let {
+                                                    flag = 1
+                                                    navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
+                                                }
+                                            Log.d("BackStack2", "2")
+                                            // 백스택 팝
+                                            if (flag == 0) {
+                                                navController.popBackStack()
+                                            }
                                         }
-
-
-//                                        navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}"){
-//                                            popUpTo("${PostNav.Detail.screenRoute}/{cardId}") { inclusive = true } // ScreenB까지 제거
-//                                            launchSingleTop = true
-//                                        }
                                     }
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
                                     ) {
-                                        if (!data.isParentDeleted) {
+                                        if (data.previousCardId != -1L) {
                                             ImageLoader(data.previousCardImgLink!!.href.toString())
                                             Text(
                                                 "전글",
@@ -655,7 +687,7 @@ fun DetailScreen(
                     refreshing = isRefreshing,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter),
-                    contentColor = Primary
+                    contentColor = Color.Black
                 )
 
             }
@@ -672,20 +704,26 @@ fun DetailLike(
     viewModel: DetailViewModel,
     cardId: String?,
 ) {
+    // 상태 추적을 위해 count의 cardLikeCnt 값을 mutableStateOf로 관리
     var likeState by remember { mutableStateOf(count.isLiked) }
+    var likeCount by remember { mutableStateOf(count.cardLikeCnt) }
 
     Row(modifier = Modifier.clickable {
-        Log.e(
-            "cardId",
-            cardId.toString()
-        )
-        if (likeState) {
-            cardId?.let { viewModel.likeOff(it.toLong()) }
-        } else {
-            cardId?.let { viewModel.likeOn(it.toLong()) }
-        }
-        likeState = !likeState
+        Log.e("cardId", cardId.toString())
 
+        if (likeState) {
+            cardId?.let {
+                viewModel.likeOff(it.toLong())
+                likeCount -= 1
+            }
+        } else {
+            cardId?.let {
+                viewModel.likeOn(it.toLong())
+                likeCount += 1
+            }
+        }
+
+        likeState = !likeState
     }) {
         Icon(
             modifier = Modifier
@@ -699,7 +737,7 @@ fun DetailLike(
         )
         Spacer(modifier = Modifier.width(5.dp))
         Text(
-            text = count.cardLikeCnt.toString(),
+            text = likeCount.toString(),
             fontSize = 14.sp,
             color = if (likeState) Primary else Color.Black
         )
@@ -883,7 +921,12 @@ fun DeleteDialog(
                     Button(
                         onClick = {
                             viewModel.deleteCard(cardId)
-                            navController.popBackStack()//TODO 추후 삭제화면 보이게 해야함.
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         },
                         modifier = Modifier
                             .width(130.dp)
@@ -963,7 +1006,12 @@ fun BlockDialog(
                     Button(
                         onClick = {
                             viewModel.userBlocks()
-                            navController.popBackStack()
+                            navController.navigate(SooumNav.Home.screenRoute) {
+                                popUpTo(navController.graph.id) {
+                                    inclusive = true
+                                }
+                                launchSingleTop = true
+                            }
                         },
                         modifier = Modifier
                             .width(130.dp)

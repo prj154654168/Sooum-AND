@@ -31,7 +31,7 @@ class DetailViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 feedCardDataModel = retrofitInstance.getFeedCard(cardId, toLong, longitude).body()
-                Log.e("feedCardDataModel",feedCardDataModel.toString())
+                Log.e("feedCardDataModel", feedCardDataModel.toString())
             } catch (E: Exception) {
                 println(E)
             }
@@ -43,7 +43,10 @@ class DetailViewModel : ViewModel() {
             try {
                 detailCardLikeCommentCountDataModel =
                     retrofitInstance.getCardLikeCommentCount(cardId).body()
-                Log.e("detailCardLikeCommentCountDataModel",detailCardLikeCommentCountDataModel.toString())
+                Log.e(
+                    "detailCardLikeCommentCountDataModel",
+                    detailCardLikeCommentCountDataModel.toString()
+                )
             } catch (E: Exception) {
                 println(E)
             }
@@ -55,7 +58,7 @@ class DetailViewModel : ViewModel() {
             try {
                 detailCommentCardDataModel =
                     retrofitInstance.getDeatilCommentCard(cardId, latitude, longitude).body()
-                Log.e("detailCommentCardDataModel",detailCommentCardDataModel.toString())
+                Log.e("detailCommentCardDataModel", detailCommentCardDataModel.toString())
             } catch (E: Exception) {
                 println(E)
             }
@@ -65,14 +68,12 @@ class DetailViewModel : ViewModel() {
     fun likeOn(cardId: Long) {
         viewModelScope.launch {
             retrofitInstance.likeOn(cardId).body()
-            getDetailCardLikeCommentCount(cardId)
         }
     }
 
     fun likeOff(cardId: Long) {
         viewModelScope.launch {
             retrofitInstance.likeOff(cardId).body()
-            getDetailCardLikeCommentCount(cardId)
         }
     }
 

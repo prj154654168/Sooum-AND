@@ -84,7 +84,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import coil.compose.AsyncImage
@@ -177,6 +176,22 @@ fun HomeScreen(navController: NavHostController) {
             homeViewModel.fetchPopularityCardList(latitude, longitude, {})
         }
     }
+    val context = LocalContext.current
+//    LaunchedEffect(Unit) {
+//        val targetCardId = SooumApplication().getVariable("targetCardId")
+//        val notificationId = SooumApplication().getVariable("notificationId")
+//        Log.e(
+//            "targetCardId",
+//            "$targetCardId+$notificationId"
+//        )
+//        if (notificationId != "") {
+//            if (targetCardId != "") {
+//                navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
+//            } else {
+//                navController.navigate(NotificationNav.Notification.screenRoute)
+//            }
+//        }
+//    }
 
     Box(
         modifier = Modifier
@@ -252,7 +267,6 @@ fun HomeScreen(navController: NavHostController) {
                 )
             }
             if (openSystemLocationDialog) {
-                val context = LocalContext.current
 
                 if (ActivityCompat.shouldShowRequestPermissionRationale(
                         context as Activity,
@@ -489,7 +503,8 @@ fun DistanceFeedList(
             (distance == DistanceEnum.UNDER_5 && lazyDistance5Feed.itemCount == 0) ||
             (distance == DistanceEnum.UNDER_10 && lazyDistance10Feed.itemCount == 0) ||
             (distance == DistanceEnum.UNDER_20 && lazyDistance20Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)) {
+            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)
+        ) {
             ReplaceHomeList()
         } else {
             LazyColumn(

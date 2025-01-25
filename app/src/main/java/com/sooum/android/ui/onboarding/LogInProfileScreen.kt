@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -112,7 +110,7 @@ fun LogInProfileScreen(navController: NavHostController) {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    painterResource(R.drawable.ic_arrow_back),
                     contentDescription = "뒤로가기",
                 )
             }
@@ -228,6 +226,7 @@ fun LogInProfileScreen(navController: NavHostController) {
         }
     }
 }
+
 private fun resizeBitmap(bitmap: Bitmap, maxWidth: Int, maxHeight: Int): Bitmap {
     val width = bitmap.width
     val height = bitmap.height

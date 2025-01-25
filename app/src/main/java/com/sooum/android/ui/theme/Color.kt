@@ -12,6 +12,7 @@ val Pink40 = Color(0xFF7D5260)
 
 val White100 = Color(0xFFFFFFFF)
 val White70 = Color(0xB3FFFFFF)
+val GrayWhite = Color(0xFFFEFEFE)
 
 val Gray1 = Color(0xFF7D7D7D)
 val Gray3 = Color(0xFFC7C7C7)
@@ -20,5 +21,6 @@ val Gray50 = Color(0xFFF9F9F9)
 val Gray5 = Color(0xFF8D8D8D)
 val Gray300 = Color(0xFFC7C7C7)
 val Gray100 = Color(0xFFEEEEEE)
+val GrayRadio = Color(0xFFC6C6C6)
 
 val Primary = Color(0xFF0BC7F2)

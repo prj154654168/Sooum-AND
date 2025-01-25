@@ -427,7 +427,7 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                     refreshing = isRefreshing,
                     state = pullRefreshState,
                     modifier = Modifier.align(Alignment.TopCenter),
-                    contentColor = Primary
+                    contentColor = Color.Black
                 )
             }
         }

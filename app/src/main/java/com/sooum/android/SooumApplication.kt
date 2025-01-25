@@ -3,7 +3,6 @@ package com.sooum.android
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.sooum.android.data.remote.AuthInterceptor
 import dagger.hilt.android.HiltAndroidApp
@@ -14,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 @HiltAndroidApp
 class SooumApplication : Application() {
-    companion object{
+    companion object {
         private val prefsFilename = "Prefs"
         lateinit var prefs: SharedPreferences
         lateinit var retrofitInstance: Retrofit
@@ -26,6 +25,10 @@ class SooumApplication : Application() {
 
     fun getVariable(item: String): String {
         return prefs.getString(item, "").toString()
+    }
+
+    fun removeVariable(item: String) {
+        prefs.edit().remove(item).apply()
     }
 
     private fun getPreference(context: Context): SharedPreferences {

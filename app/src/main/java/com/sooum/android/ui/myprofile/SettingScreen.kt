@@ -30,15 +30,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.MyProfile
+import com.sooum.android.ui.viewmodel.SettingViewModel
 
 @Composable
 fun SettingScreen(navController: NavHostController) {
-    var isChecked by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val settingViewModel : SettingViewModel = hiltViewModel()
+   // var isChecked by remember { mutableStateOf(settingViewModel.isNotify.value) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -85,9 +89,9 @@ fun SettingScreen(navController: NavHostController) {
                     modifier = Modifier.align(Alignment.CenterStart)
                 )
                 Switch(
-                    checked = isChecked,
+                    checked = settingViewModel.isNotify.value,
                     onCheckedChange = {
-                        isChecked = it
+                        settingViewModel.updateNotify()
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
@@ -151,8 +155,12 @@ fun SettingScreen(navController: NavHostController) {
             SettingRow("1:1 문의하기") {
                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                     data = Uri.parse("mailto:sooum1004@gmail.com") // 이메일 주소
-                    putExtra(Intent.EXTRA_SUBJECT, "[1:1 문의하기]")
-                    putExtra(Intent.EXTRA_TEXT, SooumApplication().getVariable("refreshToken")) // 이메일 본문 (옵션)
+                    putExtra(Intent.EXTRA_SUBJECT, "[문의하기]")
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "식별 정보 : ${SooumApplication().getVariable("refreshToken")}\n\n문의 내용: 식별 정보 삭제에 주의하여 주시고, 이곳에 자유롭게 문의하실 내용을 적어주세요.\n" +
+                                "단, 본 양식에 비방, 욕설, 허위 사실 유포 등의 부적절한 내용이 포함될 경우, 관련 법령에 따라 민·형사상 법적 조치가 이루어질 수 있음을 알려드립니다."
+                    ) // 이메일 본문 (옵션)
                 }
                 if (emailIntent.resolveActivity(context.packageManager) != null) {
                     context.startActivity(emailIntent)
@@ -162,6 +170,13 @@ fun SettingScreen(navController: NavHostController) {
                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                     data = Uri.parse("mailto:sooum1004@gmail.com") // 이메일 주소
                     putExtra(Intent.EXTRA_SUBJECT, "[제안하기]")
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "식별 정보 : ${SooumApplication().getVariable("refreshToken")}\n\n" +
+                                "제안 내용: 식별 정보 삭제에 주의하여 주시고, 이곳에 숨 개발팀에 제안할 내용을 자유롭게 작성해 주세요.\n" +
+                                "단, 본 양식에 비방, 욕설, 허위 사실 유포 등의 부적절한 내용이 포함될 경우, 관련 법령에 따라 민·형사상 법적 조치가 이루어질 수 있음을 알려드립니다."
+                    ) // 이메일 본문 (옵션)
+
                 }
                 if (emailIntent.resolveActivity(context.packageManager) != null) {
                     context.startActivity(emailIntent)
