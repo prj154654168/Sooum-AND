@@ -63,6 +63,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -491,13 +493,27 @@ fun DetailScreen(
                                     maxLines = 4,
                                     overflow = TextOverflow.Ellipsis,
                                     lineHeight = 28.8.sp,
+                                    fontFamily = if (data.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
+                                        FontFamily(
+                                            Font(R.font.handwrite)
+                                        )
+                                    } else {
+                                        FontFamily.Default
+                                    }
                                 )
                             }
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(60.dp)
-                                    .background(gradientBrush)
+                                    .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color(0x00000000), // 투명한 검정
+                                            Color(0x99000000)  // 약간 불투명한 검정
+                                        )
+                                    )
+                                )
                                     .align(Alignment.BottomCenter)
                             )
                             Box(
@@ -788,13 +804,27 @@ fun DeatilCommentItem(
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 28.8.sp,
+                    fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
+                        FontFamily(
+                            Font(R.font.handwrite)
+                        )
+                    } else {
+                        FontFamily.Default
+                    }
                 )
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
+                        )
+                    )
                     .align(Alignment.BottomCenter)
             )
             Box(
