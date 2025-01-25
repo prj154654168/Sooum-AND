@@ -56,7 +56,6 @@ import com.sooum.android.domain.model.FavoriteTagDataModel
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.viewmodel.TagViewModel
-import dev.chrisbanes.haze.HazeState
 
 @Composable
 fun TagScreen(navController: NavController) {
@@ -360,7 +359,6 @@ fun BookmarkTagCard(
     previewCard: FavoriteTagDataModel.Embedded.FavoriteTag.PreviewCard,
     onItemClick: (String) -> Unit
 ) {
-    val hazeState = remember { HazeState() }
 
     Box(
         modifier = Modifier
