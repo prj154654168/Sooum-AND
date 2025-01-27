@@ -230,6 +230,7 @@ fun MainTagScreen(tagViewModel: TagViewModel, navController: NavController) {
                     navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
                 })
         }
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
