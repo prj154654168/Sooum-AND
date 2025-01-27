@@ -346,7 +346,10 @@ fun LatestFeedList(
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 120.dp)
-                    .clickable() {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
                         }
@@ -405,7 +408,10 @@ fun PopularityFeedList(
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 120.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
                         }
@@ -564,7 +570,10 @@ fun DistanceFeedList(
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 120.dp)
-                    .clickable() {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
                         }
