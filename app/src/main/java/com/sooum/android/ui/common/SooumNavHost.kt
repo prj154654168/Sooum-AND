@@ -117,7 +117,7 @@ fun SooumNavHost(
             ReportScreen(navController, cardId)
         }
         composable(route = LogInNav.LogIn.screenRoute) {
-            LogInScreen(navController)
+            LogInScreen(navController, mainViewModel)
         }
         composable(route = LogInNav.Agree.screenRoute) {
             AgreeScreen(navController)

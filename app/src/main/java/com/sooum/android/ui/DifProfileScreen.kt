@@ -55,12 +55,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.sooum.android.R
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Gray5
-import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DifProfileViewModel
 import kotlinx.coroutines.launch
 
@@ -191,6 +191,9 @@ fun DifProfileScreen(navController: NavHostController, memberId: String?) {
                                 AsyncImage(
                                     model = ImageRequest.Builder(LocalContext.current)
                                         .data(data.profileImg.href)
+                                        .size(128)
+                                        .diskCachePolicy(CachePolicy.ENABLED) // 디스크 캐싱 활성화
+                                        .memoryCachePolicy(CachePolicy.ENABLED) // 메모리 캐싱 활성화
                                         .build(),
                                     contentDescription = "카드 이미지",
                                     modifier = Modifier

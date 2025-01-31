@@ -9,8 +9,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
+import com.sooum.android.domain.model.NicknameBody
 import com.sooum.android.domain.model.profileBody
 import com.sooum.android.domain.usecase.profile.MyProfileUseCase
+import com.sooum.android.domain.usecase.profile.NicknameAvailableUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,12 +28,14 @@ import javax.inject.Inject
 @HiltViewModel
 class LogInProfileViewModel @Inject constructor(
     private val myProfileUseCase: MyProfileUseCase,
+    private val nicknameAvailableUseCase: NicknameAvailableUseCase
 ) :
     ViewModel() {
     val cardAPIInstance = SooumApplication().instance.create(CardApi::class.java)
     var userImageUrl by mutableStateOf<String?>(null)
     var imgByteArray by mutableStateOf<ByteArray>(ByteArray(0))
     var isLoading by mutableIntStateOf(0)
+    var isNicknameAvailable by mutableStateOf(true)
 
     var myProfileNickName = mutableStateOf<String>("")
     var myProfileImgUrl = mutableStateOf<String>("")
@@ -49,32 +53,36 @@ class LogInProfileViewModel @Inject constructor(
         }
     }
 
-
     fun profiles(nickname: String, mode: Int) {
         viewModelScope.launch {
             try {
-                if (mode == 1) {
-                    val urlResponse = cardAPIInstance.getProfileImageUrl().body()
-                    Log.e("response", urlResponse.toString())
+                val response = nicknameAvailableUseCase(NicknameBody(nickname))
+                if (response.isAvailable) {
+                    if (mode == 1) {
+                        val urlResponse = cardAPIInstance.getProfileImageUrl().body()
+                        Log.e("response", urlResponse.toString())
 
-                    if (urlResponse != null) {
-                        userImageUrl = urlResponse.imgName
-                        val client = OkHttpClient()
+                        if (urlResponse != null) {
+                            userImageUrl = urlResponse.imgName
+                            val client = OkHttpClient()
 
-                        val mediaType = "image/jpeg".toMediaTypeOrNull()
-                        val requestBody = RequestBody.create(mediaType, imgByteArray)
+                            val mediaType = "image/jpeg".toMediaTypeOrNull()
+                            val requestBody = RequestBody.create(mediaType, imgByteArray)
 
-                        val request = Request.Builder()
-                            .url(urlResponse.url.href)
-                            .put(requestBody)
-                            .addHeader("Content-Type", "image/jpeg")
-                            .build()
+                            val request = Request.Builder()
+                                .url(urlResponse.url.href)
+                                .put(requestBody)
+                                .addHeader("Content-Type", "image/jpeg")
+                                .build()
 
-                        makeRequest(client, request)
+                            makeRequest(client, request)
+                        }
+                        cardAPIInstance.profiles(profileBody(nickname, userImageUrl.toString()))
+                    } else {
+                        cardAPIInstance.profiles(profileBody(nickname, null))
                     }
-                    cardAPIInstance.profiles(profileBody(nickname, userImageUrl.toString()))
                 } else {
-                    cardAPIInstance.profiles(profileBody(nickname, null))
+                    isNicknameAvailable = false
                 }
                 isLoading = 1
             } catch (E: Exception) {

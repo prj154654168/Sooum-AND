@@ -266,7 +266,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (viewModel.myProfileNickName.value.isEmpty()) {
+                if (viewModel.myProfileNickName.value.isEmpty() || !viewModel.isNicknameAvailable) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -276,7 +276,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                             tint = colorResource(R.color.red)
                         )
                         Text(
-                            text = "한글자 이상 입력해주세요",
+                            text = if (viewModel.myProfileNickName.value.isEmpty()) "한글자 이상 입력해주세요" else "부적절한 닉네임입니다. 다시 입력해주세요",
                             fontWeight = FontWeight.Medium,
                             fontSize = 14.sp,
                             lineHeight = 19.6.sp,

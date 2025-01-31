@@ -16,11 +16,13 @@ import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.Token
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
+import com.sooum.android.domain.usecase.profile.SuspensionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
+import java.time.LocalDateTime
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.inject.Inject
@@ -28,7 +30,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val getAllUnreadCountUseCase: AllUnreadCountUseCase,
-    private val readNotificationUseCase: ReadNotificationUseCase
+    private val readNotificationUseCase: ReadNotificationUseCase,
+    private val suspensionUseCase: SuspensionUseCase
 ) : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
@@ -36,6 +39,7 @@ class MainViewModel @Inject constructor(
     var token: Token? = null
     var encryptedDeviceId: String = ""
     var isLoading by mutableIntStateOf(0)
+    var date by mutableStateOf("")
 
     var unreadNotificationCount = mutableStateOf(0)
         private set
@@ -99,28 +103,40 @@ class MainViewModel @Inject constructor(
                     "encryptedDeviceId",
                     encryptedDeviceId
                 )
-                val b = retrofitInstance.logIn(EncryptedDeviceId(encryptedDeviceId))
-                Log.e("EncryptedDeviceId", b.body().toString())
 
-                if (b.body()?.isRegistered == true) {
-                    login = 1
-                    token = b.body()!!.token
-                    token?.let {
-                        SooumApplication().saveVariable(
-                            "accessToken",
-                            it.accessToken
-                        )
-                        SooumApplication().saveVariable(
-                            "refreshToken",
-                            it.refreshToken
-                        )
-                    }
-                    retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
-                    onLoginFinished()
+                val suspension = suspensionUseCase(EncryptedDeviceId(encryptedDeviceId))
+                if (suspension != null) {
+                    login = if (suspension.isBanUser) {
+                        3
+                    }//벤 당한사람
+                    else {
+                        4
+                    }//아이디 탈퇴한사람
+                    val dateTime = LocalDateTime.parse(suspension.untilBan)
+                    date = "${dateTime.year}년 ${dateTime.monthValue}월 ${dateTime.dayOfMonth}일"
                 } else {
-                    login = 2
-                }
+                    val b = retrofitInstance.logIn(EncryptedDeviceId(encryptedDeviceId))
+                    Log.e("EncryptedDeviceId", b.body().toString())
 
+                    if (b.body()?.isRegistered == true) {
+                        login = 1
+                        token = b.body()!!.token
+                        token?.let {
+                            SooumApplication().saveVariable(
+                                "accessToken",
+                                it.accessToken
+                            )
+                            SooumApplication().saveVariable(
+                                "refreshToken",
+                                it.refreshToken
+                            )
+                        }
+                        retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
+                        onLoginFinished()
+                    } else {
+                        login = 2
+                    }
+                }
             } catch (E: Exception) {
                 println(E)
             }

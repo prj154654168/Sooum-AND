@@ -5,15 +5,19 @@ import com.sooum.android.data.remote.ProfileApi
 import com.sooum.android.domain.model.CodeDataModel
 import com.sooum.android.domain.model.DeleteUserBody
 import com.sooum.android.domain.model.DifProfileDataModel
+import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.FollowerBody
 import com.sooum.android.domain.model.FollowerDataModel
 import com.sooum.android.domain.model.FollowingDataModel
 import com.sooum.android.domain.model.MyCommentCardDataModel
 import com.sooum.android.domain.model.MyFeedCardDataModel
 import com.sooum.android.domain.model.MyProfileDataModel
+import com.sooum.android.domain.model.NicknameAvailableResponse
+import com.sooum.android.domain.model.NicknameBody
 import com.sooum.android.domain.model.NoticeDataModel
 import com.sooum.android.domain.model.NotifyBody
 import com.sooum.android.domain.model.NotifyDataModel
+import com.sooum.android.domain.model.SuspensionResponse
 import com.sooum.android.domain.model.UserCodeBody
 import com.sooum.android.domain.repository.MyProfileRepository
 import javax.inject.Inject
@@ -236,6 +240,27 @@ class MyProfileRepositoryImpl @Inject constructor(private val profileApi: Profil
             }
         } else {
             val errorMessage = response.message() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+    }
+
+    override suspend fun suspension(encryptedDeviceId: EncryptedDeviceId): SuspensionResponse? {
+        val response = profileApi.suspension(encryptedDeviceId)
+
+        return when (response.code()) {
+            200 -> response.body()
+            204 -> null
+            else -> throw Exception("Unexpected response code: ${response.code()}")
+        }
+    }
+
+    override suspend fun nicknameAvailable(nicknameBody: NicknameBody): NicknameAvailableResponse {
+        val response = profileApi.nicknameAvailable(nicknameBody)
+
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("No body found")
+        } else {
+            val errorMessage = response.errorBody()?.string() ?: "Unknown error"
             throw Exception("Failed to get default image: $errorMessage")
         }
     }
