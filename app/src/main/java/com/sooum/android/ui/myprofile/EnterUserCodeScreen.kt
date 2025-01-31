@@ -152,9 +152,10 @@ fun EnterUserCodeScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                viewModel.postUserCode(code)
                 code = ""
-                restartApp(context = context)
+                viewModel.postUserCode(code){
+                    restartApp(context = context)
+                }
             },
             modifier = Modifier
                 .padding(20.dp)

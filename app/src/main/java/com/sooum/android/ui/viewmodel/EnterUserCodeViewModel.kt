@@ -65,7 +65,7 @@ class EnterUserCodeViewModel @Inject constructor(
         }
     }
 
-    fun postUserCode(code: String) {
+    fun postUserCode(code: String, function: () -> Unit) {
         viewModelScope.launch {
             try {
                 postUserCodeUseCase(
@@ -73,6 +73,7 @@ class EnterUserCodeViewModel @Inject constructor(
                         "ANDORID", code, encryptedDeviceId
                     )
                 )
+                function()
             } catch (E: Exception) {
                 println(E)
             }
