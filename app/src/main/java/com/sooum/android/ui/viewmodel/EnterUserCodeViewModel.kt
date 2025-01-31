@@ -1,7 +1,6 @@
 package com.sooum.android.ui.viewmodel
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
-import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.UserCodeBody
 import com.sooum.android.domain.usecase.profile.PostUserCodeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,7 +57,7 @@ class EnterUserCodeViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getEncryptedDeviceId(android_id: String){
+    fun getEncryptedDeviceId(android_id: String) {
         viewModelScope.launch {
             val a = retrofitInstance.getRsaKey()
             key = a.body()!!.publicKey
@@ -72,7 +70,7 @@ class EnterUserCodeViewModel @Inject constructor(
             try {
                 postUserCodeUseCase(
                     UserCodeBody(
-                        code, encryptedDeviceId
+                        "ANDORID", code, encryptedDeviceId
                     )
                 )
             } catch (E: Exception) {

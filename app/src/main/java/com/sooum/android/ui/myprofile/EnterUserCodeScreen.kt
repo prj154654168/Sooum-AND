@@ -1,5 +1,7 @@
 package com.sooum.android.ui.myprofile
 
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import androidx.annotation.RequiresApi
@@ -41,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.viewmodel.EnterUserCodeViewModel
+import kotlin.system.exitProcess
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -55,6 +58,7 @@ fun EnterUserCodeScreen(navController: NavHostController) {
     LaunchedEffect(Unit) {
         viewModel.getEncryptedDeviceId(android_id)
     }
+    val context = LocalContext.current
 
     var code by remember { mutableStateOf("") }
     Box(
@@ -150,6 +154,7 @@ fun EnterUserCodeScreen(navController: NavHostController) {
             onClick = {
                 viewModel.postUserCode(code)
                 code = ""
+                restartApp(context = context)
             },
             modifier = Modifier
                 .padding(20.dp)
@@ -162,5 +167,14 @@ fun EnterUserCodeScreen(navController: NavHostController) {
         ) {
             Text(text = "계정 이관하기")
         }
+    }
+}
+
+fun restartApp(context: Context) {
+    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    intent?.let {
+        it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(it)
+        exitProcess(0)
     }
 }
