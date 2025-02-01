@@ -72,6 +72,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -344,7 +346,10 @@ fun LatestFeedList(
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 120.dp)
-                    .clickable() {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
                         }
@@ -403,7 +408,10 @@ fun PopularityFeedList(
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 120.dp)
-                    .clickable {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
                         }
@@ -562,7 +570,10 @@ fun DistanceFeedList(
                 Box(modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 120.dp)
-                    .clickable() {
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
                         coroutineScope.launch {
                             scrollState.animateScrollToItem(0)
                         }
@@ -578,7 +589,7 @@ fun DistanceFeedList(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun RefreshIndicator(
+fun RefreshIndicator(
     modifier: Modifier = Modifier,
     state: PullRefreshState,
     refreshing: Boolean,
@@ -683,13 +694,26 @@ fun LatestContentCard(
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 28.8.sp,
+                    fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
+                        FontFamily(
+                            Font(R.font.handwrite))
+                    } else {
+                        FontFamily.Default
+                    }
                 )
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x00000000), // 투명한 검정
+                            Color(0x99000000)  // 약간 불투명한 검정
+                        )
+                    )
+                )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -766,6 +790,13 @@ fun PopularityContentCard(
                     text = item.content,
                     color = Color.White,
                     fontSize = 16.sp,
+                    fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
+                        FontFamily(
+                            Font(R.font.handwrite))
+                    } else {
+                        FontFamily.Default
+                    }
+             ,
                     fontWeight = FontWeight.Bold,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -776,7 +807,14 @@ fun PopularityContentCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
+                        )
+                    )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -857,13 +895,26 @@ fun DistanceContentCard(
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 28.8.sp,
+                    fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
+                        FontFamily(
+                            Font(R.font.handwrite))
+                    } else {
+                        FontFamily.Default
+                    }
                 )
             }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
+                        )
+                    )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -1415,7 +1466,8 @@ fun MoveToTop() {
     Surface(
         color = Color.White,
         shape = RoundedCornerShape(100.dp),
-        border = BorderStroke(width = 1.dp, color = colorResource(R.color.gray03))
+        border = BorderStroke(width = 1.dp, color = colorResource(R.color.gray03)),
+        shadowElevation = 10.dp
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

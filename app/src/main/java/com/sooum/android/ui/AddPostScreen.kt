@@ -62,6 +62,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -198,6 +199,8 @@ fun AddPostScreen(
     val scaffoldState = androidx.compose.material3.rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(
+        sheetDragHandle = {},
+        sheetShadowElevation = 40.dp,
         scaffoldState = scaffoldState,
         topBar = {
             Box(
@@ -272,6 +275,16 @@ fun AddPostScreen(
                 modifier = Modifier
                     .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
             ) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    modifier = Modifier
+                        .height(2.dp)
+                        .width(68.dp)
+                        .align(Alignment.CenterHorizontally),
+                    shape = RoundedCornerShape(8.dp),
+                    color = colorResource(R.color.gray400)
+                ) { }
+                Spacer(modifier = Modifier.height(20.dp))
                 Row {
                     androidx.compose.material3.Text(
                         text = "기본이미지",
@@ -644,7 +657,7 @@ fun AddPostScreen(
                 }
             }
         },
-        sheetPeekHeight = 280.dp
+        sheetPeekHeight = 250.dp
     ) { innerPadding ->
         // Main Content
         Box(
@@ -666,7 +679,6 @@ fun AddPostScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-
                         .padding(start = 20.dp, end = 20.dp)
                 ) {
                     ContentCard(

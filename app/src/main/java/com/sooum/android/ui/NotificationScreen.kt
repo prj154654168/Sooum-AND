@@ -197,14 +197,17 @@ fun AllScreen(notificationViewModel: NotificationViewModel, navController: NavCo
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Text(
-            text = "읽지 않음 (${notificationViewModel.allUnreadCount.value}개)",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            lineHeight = 19.6.sp,
-            color = colorResource(R.color.gray_black),
-            modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
-        )
+        if (notificationViewModel.allUnreadCount.value != 0) {
+            Text(
+                text = "읽지 않음 (${notificationViewModel.allUnreadCount.value}개)",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 19.6.sp,
+                color = colorResource(R.color.gray_black),
+                modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(10.dp))
         if (lazyAllUnread.itemCount == 0 && lazyAllRead.itemCount == 0) {
             NotExistNotification(notificationViewModel)
@@ -268,14 +271,16 @@ fun ReplyScreen(notificationViewModel: NotificationViewModel, navController: Nav
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Text(
-            text = "읽지 않음 (${notificationViewModel.cardUnreadCount.value}개)",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            lineHeight = 19.6.sp,
-            color = colorResource(R.color.gray_black),
-            modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
-        )
+        if (notificationViewModel.cardUnreadCount.value != 0) {
+            Text(
+                text = "읽지 않음 (${notificationViewModel.cardUnreadCount.value}개)",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 19.6.sp,
+                color = colorResource(R.color.gray_black),
+                modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(10.dp))
         if (lazyCardUnread.itemCount == 0 && lazyCardRead.itemCount == 0) {
             NotExistNotification(notificationViewModel)
@@ -349,14 +354,17 @@ fun LikeScreen(notificationViewModel: NotificationViewModel, navController: NavC
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Text(
-            text = "읽지 않음 (${notificationViewModel.likeUnreadCount.value}개)",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            lineHeight = 19.6.sp,
-            color = colorResource(R.color.gray_black),
-            modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
-        )
+        if (notificationViewModel.likeUnreadCount.value != 0) {
+            Text(
+                text = "읽지 않음 (${notificationViewModel.likeUnreadCount.value}개)",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 19.6.sp,
+                color = colorResource(R.color.gray_black),
+                modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(10.dp))
         if (lazyLikeUnread.itemCount == 0 && lazyLikeRead.itemCount == 0) {
             NotExistNotification(notificationViewModel)
