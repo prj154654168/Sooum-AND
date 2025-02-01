@@ -589,7 +589,7 @@ fun DistanceFeedList(
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-private fun RefreshIndicator(
+fun RefreshIndicator(
     modifier: Modifier = Modifier,
     state: PullRefreshState,
     refreshing: Boolean,
