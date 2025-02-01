@@ -7,6 +7,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.sooum.android.User
 import com.sooum.android.domain.model.FavoriteTagDataModel
 import com.sooum.android.domain.model.RecommendTagDataModel
 import com.sooum.android.domain.model.SearchTagDataModel
@@ -22,6 +25,9 @@ import com.sooum.android.domain.usecase.tag.SearchTagUseCase
 import com.sooum.android.domain.usecase.tag.TagFeedUseCase
 import com.sooum.android.domain.usecase.tag.TagSummaryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,9 +50,14 @@ class TagViewModel @Inject constructor(
     var favoriteTagList = mutableStateListOf<FavoriteTagDataModel.Embedded.FavoriteTag>()
         private set
 
-    var tagFeedList = mutableStateListOf<TagFeedDataModel.Embedded.TagFeedCardDto>()
+//    var tagFeedList = mutableStateListOf<TagFeedDataModel.Embedded.TagFeedCardDto>()
 
     var searchTagList = mutableStateListOf<SearchTagDataModel.Embedded.RelatedTag>()
+
+    private val _lazyTagFeed = MutableStateFlow<Flow<PagingData<TagFeedDataModel.Embedded.TagFeedCardDto>>?>(null)
+    val lazyTagFeed = _lazyTagFeed.asStateFlow()
+
+//    val lazyTagFeed = tagFeedUseCase(tagId, User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
 
     fun getRecommendTagList() {
         viewModelScope.launch {
@@ -124,19 +135,23 @@ class TagViewModel @Inject constructor(
         }
     }
 
-    fun getTagFeedList(tagId: String, latitude: Double?, longitude: Double?, laskPk: Long?) {
-        viewModelScope.launch {
-            try {
-                val response = tagFeedUseCase(tagId, latitude, longitude, laskPk)
-
-                tagFeedList.clear()
-                tagFeedList.addAll(response._embedded.tagFeedCardDtoList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.toString())
-            }
-        }
+    fun loadTagFeed(tagId: String) {
+        _lazyTagFeed.value = tagFeedUseCase(tagId, User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
     }
+
+//    fun getTagFeedList(tagId: String, latitude: Double?, longitude: Double?, laskPk: Long?) {
+//        viewModelScope.launch {
+//            try {
+//                val response = tagFeedUseCase(tagId, latitude, longitude, laskPk)
+//
+//                tagFeedList.clear()
+//                tagFeedList.addAll(response._embedded.tagFeedCardDtoList)
+//            }
+//            catch (e: Exception) {
+//                Log.e("HomeViewModel", e.toString())
+//            }
+//        }
+//    }
 
     fun getSearchTag(keyword: String) {
         viewModelScope.launch {
