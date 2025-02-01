@@ -13,6 +13,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,12 +41,14 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
 
     var showDialog by remember { mutableStateOf(false) }
 
-    if (mainViewModel.login == 3 || mainViewModel.login == 4) {
-        showDialog = true
-    }
 
+    LaunchedEffect(Unit) {
+        if (mainViewModel.login == 3 || mainViewModel.login == 4) {
+            showDialog = true
+        }
+    }
     if (showDialog) {
-        LoginDialog(mainViewModel.login) {
+        LoginDialog(mainViewModel.login, mainViewModel.date) {
             showDialog = false
         }
     }
@@ -93,6 +96,7 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
 @Composable
 fun LoginDialog(
     mode: Int,
+    date: String,
     showDialog: () -> Unit,
 ) {
     Dialog(onDismissRequest = {
@@ -126,13 +130,15 @@ fun LoginDialog(
                         text = "- 해당 계정은 정지된 이력이 있는 탈퇴 계정입니다.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colorResource(R.color.gray01)
+                        color = colorResource(R.color.gray01),
+                        modifier = Modifier.align(Alignment.Start)
                     )
                     Text(
-                        text = "- 새로운 계정 생성은 이후 가능합니다.",
+                        text = "- 새로운 계정 생성은 $date 이후 가능합니다.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colorResource(R.color.gray01)
+                        color = colorResource(R.color.gray01),
+                        modifier = Modifier.align(Alignment.Start)
                     )
                 } else {
                     Text(
@@ -146,13 +152,15 @@ fun LoginDialog(
                         text = "- 탈퇴 시점으로 부터 7일 경과 후 새로운 계정 생성이 가능합니다.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colorResource(R.color.gray01)
+                        color = colorResource(R.color.gray01),
+                        modifier = Modifier.align(Alignment.Start)
                     )
                     Text(
-                        text = "- 새로운 계정 생성은 이후 가능합니다.",
+                        text = "- 새로운 계정 생성은 $date 이후 가능합니다.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colorResource(R.color.gray01)
+                        color = colorResource(R.color.gray01),
+                        modifier = Modifier.align(Alignment.Start)
                     )
                 }
                 Spacer(modifier = Modifier.height(22.dp))
