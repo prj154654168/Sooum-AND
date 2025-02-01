@@ -19,15 +19,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,11 +49,18 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.sooum.android.R
 import com.sooum.android.User
+import com.sooum.android.domain.model.TagFeedDataModel
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.TagViewModel
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TagListScreen(navController: NavController, tagId: String) {
@@ -58,8 +72,40 @@ fun TagListScreen(navController: NavController, tagId: String) {
         tagViewModel.getTagSummary(tagId, onResult = {
             isFavorite = it
         })
-        tagViewModel.getTagFeedList(tagId, User.userInfo.latitude, User.userInfo.longitude, null)
+        tagViewModel.loadTagFeed(tagId)
+//        tagViewModel.getTagFeedList(tagId, User.userInfo.latitude, User.userInfo.longitude, null)
     }
+
+    val lazyTagFeed = tagViewModel.lazyTagFeed.collectAsState(initial = null).value?.collectAsLazyPagingItems()
+
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            lazyTagFeed?.refresh()
+        }
+    )
+
+    LaunchedEffect(lazyTagFeed?.loadState?.refresh) {
+        if (lazyTagFeed?.loadState?.refresh !is LoadState.Loading) {
+            isRefreshing = false
+        }
+    }
+
+    val tagScrollState = rememberLazyListState()
+
+    val showMoveToTopButton by remember {
+        derivedStateOf {
+            tagScrollState.firstVisibleItemIndex > 0 || tagScrollState.firstVisibleItemScrollOffset > 0
+        }
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    var isClickable by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -118,7 +164,9 @@ fun TagListScreen(navController: NavController, tagId: String) {
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
+                        enabled = isClickable
                     ) {
+                        isClickable = false
                         if (isFavorite) {
                             tagViewModel.deleteTagFavorite(tagId, onItemClick = {
                                 if (it == 204) {
@@ -139,29 +187,61 @@ fun TagListScreen(navController: NavController, tagId: String) {
                                 }
                             })
                         }
+
+                        coroutineScope.launch {
+                            kotlinx.coroutines.delay(1000)
+                            isClickable = true
+                        }
                     }
             )
         }
-        if (tagViewModel.tagFeedList.isEmpty()) {
-            if (tagViewModel.tagSummary?.cardCnt == 0) {
-                Box(modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center) {
-                    EmptyText()
+
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (lazyTagFeed != null) {
+                if (lazyTagFeed.itemCount == 0) {
+                    if (tagViewModel.tagSummary?.cardCnt == 0) {
+                        Box(modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center) {
+                            EmptyText()
+                        }
+                    }
+                    else {
+                        Box(modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center) {
+                            BlockText()
+                        }
+                    }
                 }
-            }
-            else {
-                Box(modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center) {
-                    BlockText()
-                }
-            }
-        }
-        else {
-            LazyColumn {
-                items(tagViewModel.tagFeedList.size) { index ->
-                    TagContentCard(tagViewModel, index, onItemClick = { cardId ->
-                        navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
-                    })
+                else {
+                    LazyColumn(
+                        state = tagScrollState,
+                        modifier = Modifier.pullRefresh(pullRefreshState)
+                    ) {
+                        items(lazyTagFeed.itemCount) { index ->
+                            TagContentCard(lazyTagFeed[index]!!, index, onItemClick = { cardId ->
+                                navController.navigate("${PostNav.Detail.screenRoute}/${cardId}")
+                            })
+                        }
+                    }
+
+                    if (showMoveToTopButton) {
+                        Box(modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 60.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                coroutineScope.launch {
+                                    tagScrollState.animateScrollToItem(0)
+                                }
+                            }
+                        ) {
+                            MoveToTop()
+                        }
+                    }
+
+                    RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
                 }
             }
         }
@@ -170,7 +250,7 @@ fun TagListScreen(navController: NavController, tagId: String) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String) -> Unit) {
+fun TagContentCard(item: TagFeedDataModel.Embedded.TagFeedCardDto, index: Int, onItemClick: (String) -> Unit) {
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(Color.Black.copy(alpha = 0f), Color.Black.copy(alpha = 0.6f)),
         startY = 0f,
@@ -183,7 +263,7 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
             .aspectRatio(1 / 0.9f)
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
             .clickable {
-                onItemClick(tagViewModel.tagFeedList[index].id)
+                onItemClick(item.id)
             },
         shape = RoundedCornerShape(40.dp)
     ) {
@@ -205,7 +285,7 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
 //                    PungTime("14 : 00 : 00")
                 }
             }
-            ImageLoader(tagViewModel.tagFeedList[index].backgroundImgUrl.href)
+            ImageLoader(item.backgroundImgUrl.href)
             Box(
                 modifier = Modifier
                     .background(
@@ -220,7 +300,7 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                     modifier = Modifier
                         .align(Alignment.Center)
                         .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp),
-                    text = tagViewModel.tagFeedList[index].content,
+                    text = item.content,
                     color = Color.White,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -252,14 +332,14 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = formatTimeDifference(tagViewModel.tagFeedList[index].createdAt),
+                        text = formatTimeDifference(item.createdAt),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
                         color = colorResource(R.color.gray_white)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    if (tagViewModel.tagFeedList[index].distance != null) {
+                    if (item.distance != null) {
                         Icon(
                             painter = painterResource(R.drawable.ic_location),
                             contentDescription = null,
@@ -268,7 +348,7 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = formatDistanceInKm(tagViewModel.tagFeedList[index].distance!!),
+                            text = formatDistanceInKm(item.distance!!),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
                             lineHeight = 16.8.sp,
@@ -277,14 +357,14 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                         Spacer(modifier = Modifier.width(8.dp))
                     }
                     Icon(
-                        painter = if (tagViewModel.tagFeedList[index].isLiked) {
+                        painter = if (item.isLiked) {
                             painterResource(R.drawable.ic_heart_filled)
                         } else {
                             painterResource(R.drawable.ic_heart)
                         },
                         contentDescription = null,
                         modifier = Modifier.size(12.dp),
-                        tint = if (tagViewModel.tagFeedList[index].isLiked) {
+                        tint = if (item.isLiked) {
                             colorResource(R.color.blue300)
                         } else {
                             colorResource(R.color.gray_white)
@@ -292,11 +372,11 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = tagViewModel.tagFeedList[index].likeCnt.toString(),
+                        text = item.likeCnt.toString(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
-                        color = if (tagViewModel.tagFeedList[index].isLiked) {
+                        color = if (item.isLiked) {
                             colorResource(R.color.blue300)
                         } else {
                             colorResource(R.color.gray_white)
@@ -304,14 +384,14 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        painter = if (tagViewModel.tagFeedList[index].isCommentWritten) {
+                        painter = if (item.isCommentWritten) {
                             painterResource(R.drawable.ic_comment_filled)
                         } else {
                             painterResource(R.drawable.ic_comment)
                         },
                         contentDescription = null,
                         modifier = Modifier.size(12.dp),
-                        tint = if (tagViewModel.tagFeedList[index].isCommentWritten) {
+                        tint = if (item.isCommentWritten) {
                             colorResource(R.color.blue300)
                         } else {
                             colorResource(R.color.gray_white)
@@ -319,11 +399,11 @@ fun TagContentCard(tagViewModel: TagViewModel, index: Int, onItemClick: (String)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = tagViewModel.tagFeedList[index].commentCnt.toString(),
+                        text = item.commentCnt.toString(),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 16.8.sp,
-                        color = if (tagViewModel.tagFeedList[index].isCommentWritten) {
+                        color = if (item.isCommentWritten) {
                             colorResource(R.color.blue300)
                         } else {
                             colorResource(R.color.gray_white)
