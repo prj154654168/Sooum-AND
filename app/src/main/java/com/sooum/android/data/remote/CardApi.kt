@@ -161,8 +161,15 @@ interface CardApi {
     suspend fun getTagFeed(
         @Path("tagId") tagId: String,
         @Query("latitude") latitude: Double? = null,
+        @Query("longitude") longitude: Double? = null
+    ): Response<TagFeedDataModel>
+
+    @GET("/cards/tags/{tagId}")
+    suspend fun getTagFeedAfter(
+        @Path("tagId") tagId: String,
+        @Query("latitude") latitude: Double? = null,
         @Query("longitude") longitude: Double? = null,
-        @Query("lastPk") lastPk: Long? = null,
+        @Query("lastPk") lastPk: String,
     ): Response<TagFeedDataModel>
 
     @PATCH("/members/fcm")
