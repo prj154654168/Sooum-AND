@@ -25,7 +25,7 @@ class HomeFeedRepositoryImpl @Inject constructor(private val cardApi: CardApi) :
     ): Flow<PagingData<SortedByLatestDataModel.Embedded.LatestFeedCard>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 20,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { LatestFeedPagingSource(cardApi, latitude, longitude) }
@@ -56,7 +56,7 @@ class HomeFeedRepositoryImpl @Inject constructor(private val cardApi: CardApi) :
     ): Flow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 20,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { DistanceFeedPagingSource(cardApi, latitude, longitude, distanceFilter) }
