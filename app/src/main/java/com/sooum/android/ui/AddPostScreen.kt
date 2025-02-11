@@ -954,7 +954,10 @@ fun AddPostScreen(
                                     )
                                 },
                                 modifier = Modifier
-                                    .fillMaxWidth(),
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focusState ->
+                                        isTagTextFieldFocused = focusState.isFocused
+                                    },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = colorResource(R.color.primary_color),
