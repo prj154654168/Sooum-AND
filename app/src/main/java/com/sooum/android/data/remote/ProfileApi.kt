@@ -4,15 +4,19 @@ import com.sooum.android.Constants
 import com.sooum.android.domain.model.CodeDataModel
 import com.sooum.android.domain.model.DeleteUserBody
 import com.sooum.android.domain.model.DifProfileDataModel
+import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.FollowerBody
 import com.sooum.android.domain.model.FollowerDataModel
 import com.sooum.android.domain.model.FollowingDataModel
 import com.sooum.android.domain.model.MyCommentCardDataModel
 import com.sooum.android.domain.model.MyFeedCardDataModel
 import com.sooum.android.domain.model.MyProfileDataModel
+import com.sooum.android.domain.model.NicknameAvailableResponse
+import com.sooum.android.domain.model.NicknameBody
 import com.sooum.android.domain.model.NoticeDataModel
 import com.sooum.android.domain.model.NotifyBody
 import com.sooum.android.domain.model.NotifyDataModel
+import com.sooum.android.domain.model.SuspensionResponse
 import com.sooum.android.domain.model.UserCodeBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -85,5 +89,15 @@ interface ProfileApi {
     suspend fun getNotify(): Response<NotifyDataModel>
 
     @PATCH("/members/notify")
-    suspend fun updateNotify(@Body notifyBody: NotifyBody) : Response<Any>
+    suspend fun updateNotify(@Body notifyBody: NotifyBody): Response<Any>
+
+    @POST("/members/suspension")
+    suspend fun suspension(
+        @Body encryptedDeviceId: EncryptedDeviceId,
+    ): Response<SuspensionResponse>
+
+    @POST("/profiles/nickname/available")
+    suspend fun nicknameAvailable(
+        @Body nicknameBody: NicknameBody,
+    ): Response<NicknameAvailableResponse>
 }

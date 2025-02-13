@@ -24,7 +24,7 @@ class UserDeleteViewModel @Inject constructor(
                         SooumApplication().getVariable("refreshToken")
                     )
                 )
-            }catch (E:Exception){
+            } catch (E: Exception) {
                 println(E)
             }
         }
