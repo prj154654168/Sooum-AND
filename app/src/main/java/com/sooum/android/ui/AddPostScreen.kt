@@ -60,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,6 +105,8 @@ import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -214,6 +217,10 @@ fun AddPostScreen(
     val scaffoldState = androidx.compose.material3.rememberBottomSheetScaffoldState()
 
     val lazyRelatedTag by addPostViewModel.suggestions.collectAsState()
+
+    var isEnabled by remember { mutableStateOf(true) }
+
+    val scope = rememberCoroutineScope()
 
     BottomSheetScaffold(
         sheetDragHandle = {},
@@ -340,11 +347,17 @@ fun AddPostScreen(
                     if (imgType == ImgTypeEnum.DEFAULT) {
                         Box(
                             modifier = Modifier.clickable(
+                                enabled = isEnabled,
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) {
+                                isEnabled = false
                                 selectedImage = 0
                                 addPostViewModel.refreshDefaultImageList()
+                                scope.launch {
+                                    delay(1000)
+                                    isEnabled = true
+                                }
                             }
                         ) {
                             Row(
