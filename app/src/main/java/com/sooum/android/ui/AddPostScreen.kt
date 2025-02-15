@@ -112,7 +112,7 @@ import java.io.ByteArrayOutputStream
 fun AddPostScreen(
     navController: NavHostController,
     cardId: String? = null,
-    storyExpirationTime: String? = null
+    storyExpirationTime: String? = null,
 ) {
     Log.d("123", "$storyExpirationTime")
     val addPostViewModel: AddPostViewModel = hiltViewModel()
@@ -130,10 +130,24 @@ fun AddPostScreen(
         animationSpec = tween(durationMillis = 300)
     )
 
-    var showDialog by remember { mutableStateOf(false) }
+
+    //본문
+    var content by remember { mutableStateOf("") }
+
 
     //기본 이미지 : DEFAULT, 내 사진 : USER
     var imgType by remember { mutableStateOf(ImgTypeEnum.DEFAULT) }
+
+    var isTextNotEmpty = content.isNotEmpty()
+    var isImageNotEmpty = if (imgType == ImgTypeEnum.DEFAULT) {
+        true
+    } else {
+        if (addPostViewModel.userImageUrl != null) true else false
+    }
+
+    val isButtonEnabled = isTextNotEmpty && isImageNotEmpty
+    var showDialog by remember { mutableStateOf(false) }
+
 
     //스위치 상태
     var storyChecked by remember { mutableStateOf(false) }  //백엔드와 동일
@@ -147,8 +161,7 @@ fun AddPostScreen(
 
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
 
-    //본문
-    var content by remember { mutableStateOf("") }
+
 
     //태그 텍스트 필드
     var tagTextField by remember { mutableStateOf("") }
@@ -253,14 +266,14 @@ fun AddPostScreen(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            enabled = if (content.isEmpty()) false else true
+                            enabled = isButtonEnabled
                         ) {
                             showDialog = true
                         },
                     text = "작성하기",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = if (content.isEmpty()) colorResource(R.color.gray700) else colorResource(
+                    color = if (!isButtonEnabled) colorResource(R.color.gray700) else colorResource(
                         R.color.blue300
                     )
                 )
