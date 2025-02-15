@@ -784,7 +784,9 @@ fun AddPostScreen(
                             androidx.compose.material3.OutlinedTextField(
                                 value = tagTextField,
                                 onValueChange = {
-                                    tagTextField = it
+                                    if (it.length <= 15) { // 15자 이하만 허용
+                                        tagTextField = it
+                                    }
                                     if (isCompleteHangul(tagTextField)) {
                                         addPostViewModel.onQueryChanged(it)
                                     }
