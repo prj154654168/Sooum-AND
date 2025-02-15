@@ -36,6 +36,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
@@ -43,11 +44,12 @@ import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray50
 import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.viewmodel.NickNameViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NickNameScreen(navController: NavHostController) {
-
+    val nickNameViewModel: NickNameViewModel = hiltViewModel()
     val adjectives = listOf<String>(
         "공부하는", "생각하는", "사랑하는", "노래하는",
         "요리하는", "운동하는", "여행하는", "대화하는",
@@ -156,14 +158,18 @@ fun NickNameScreen(navController: NavHostController) {
                     }
                 )
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    if (text.isEmpty()) {
+                    if (text.isEmpty() || !nickNameViewModel.isNicknameAvailable) {
                         Row() {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_warning),
                                 contentDescription = "warning",
                                 modifier = Modifier.padding(end = 5.dp)
                             )
-                            Text("한글자 이상 입력해주세요", color = Color.Red, fontSize = 14.sp)
+                            Text(
+                                if (text.isEmpty()) "한글자 이상 입력해주세요" else "부적절한 닉네임입니다. 다시 입력해주세요",
+                                color = Color.Red,
+                                fontSize = 14.sp
+                            )
                         }
                     }
 
@@ -185,85 +191,14 @@ fun NickNameScreen(navController: NavHostController) {
                     .align(Alignment.BottomCenter),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
                 onClick = {
-                    SooumApplication().saveVariable("nickName", text)
-                    navController.navigate(LogInNav.LogInProfile.screenRoute)
+                    nickNameViewModel.nicknameAvailable(text) {
+                        SooumApplication().saveVariable("nickName", text)
+                        navController.navigate(LogInNav.LogInProfile.screenRoute)
+                    }
+
                 }) {
                 Text(text = "확인")
             }
         }
     }
-}
-
-@Composable
-fun CustomBasicTextField(
-    text: String,
-    onTextChange: (String) -> Unit,
-    placeholder: String = "Enter text...",
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(color = Gray50, shape = RoundedCornerShape(20.dp))
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.CenterStart)
-        ) {
-            // BasicTextField
-            BasicTextField(
-                value = text,
-                onValueChange = { newText ->
-                    // 텍스트 길이 제한
-                    if (newText.length <= 8) {
-                        onTextChange(newText)
-                    }
-                },
-                modifier = Modifier
-                    .height(60.dp)
-                    .fillMaxWidth(),
-                singleLine = true,
-                textStyle = TextStyle(
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Start
-                ),
-                cursorBrush = SolidColor(Color.Black),
-                decorationBox = { innerTextField ->
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        if (text.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                style = TextStyle(color = Color.Gray, fontSize = 16.sp),
-                                modifier = Modifier
-                                    .padding(top = 10.dp, bottom = 10.dp)
-                                    .align(Alignment.CenterStart)
-                            )
-                        }
-                        innerTextField()  // TextField의 텍스트를 표시
-                    }
-                }
-            )
-
-            // Clear (X) Icon Button
-            if (text.isNotEmpty()) {
-                IconButton(onClick = { onTextChange("") }) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Clear text",
-                        tint = Color.Gray
-                    )
-                }
-            }
-        }
-    }
-
 }

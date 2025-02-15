@@ -3,17 +3,20 @@ package com.sooum.android.domain.repository
 import com.sooum.android.domain.model.CodeDataModel
 import com.sooum.android.domain.model.DeleteUserBody
 import com.sooum.android.domain.model.DifProfileDataModel
+import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.FollowerBody
 import com.sooum.android.domain.model.FollowerDataModel
 import com.sooum.android.domain.model.FollowingDataModel
 import com.sooum.android.domain.model.MyCommentCardDataModel
 import com.sooum.android.domain.model.MyFeedCardDataModel
 import com.sooum.android.domain.model.MyProfileDataModel
+import com.sooum.android.domain.model.NicknameAvailableResponse
+import com.sooum.android.domain.model.NicknameBody
 import com.sooum.android.domain.model.NoticeDataModel
 import com.sooum.android.domain.model.NotifyBody
 import com.sooum.android.domain.model.NotifyDataModel
+import com.sooum.android.domain.model.SuspensionResponse
 import com.sooum.android.domain.model.UserCodeBody
-import retrofit2.Response
 
 interface MyProfileRepository {
     suspend fun getMyProfile(): MyProfileDataModel
@@ -41,6 +44,10 @@ interface MyProfileRepository {
     suspend fun postFollower(followerBody: FollowerBody)
     suspend fun deleteFollower(toMemberId: Long)
 
-    suspend fun getNotify() : NotifyDataModel
+    suspend fun getNotify(): NotifyDataModel
     suspend fun updateNotify(notifyBody: NotifyBody)
+
+    suspend fun suspension(encryptedDeviceId: EncryptedDeviceId): SuspensionResponse?
+
+    suspend fun nicknameAvailable(nicknameBody: NicknameBody): NicknameAvailableResponse
 }

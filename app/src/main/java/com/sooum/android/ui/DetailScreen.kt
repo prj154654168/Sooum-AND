@@ -87,6 +87,8 @@ import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.theme.Gray1
 import com.sooum.android.ui.theme.Gray100
 import com.sooum.android.ui.theme.Gray3
+import com.sooum.android.ui.theme.Gray300
+import com.sooum.android.ui.theme.Gray500
 import com.sooum.android.ui.theme.GrayWhite
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.DetailViewModel
@@ -100,7 +102,7 @@ fun DetailScreen(
     cardId: String?,
     viewModel: DetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
-    var lastRefreshTime  by remember { mutableStateOf(0L) }
+    var lastRefreshTime by remember { mutableStateOf(0L) }
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude
     LaunchedEffect(Unit) {
@@ -235,29 +237,69 @@ fun DetailScreen(
                 launchSingleTop = true
             }
         } else {
-            navController.navigate(SooumNav.Home.screenRoute) {
-                popUpTo(navController.graph.id) {
-                    inclusive = true
+            var flag = 0
+            navController.backQueue.forEach { backStackEntry ->
+                Log.d(
+                    "BackStack",
+                    "Destination: ${backStackEntry.destination.route}"
+                )
+            }
+            navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                ?.let {
+                    flag = 1
+                    navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+                        popUpTo(MyProfile.MyCommentHistory.screenRoute) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
-                launchSingleTop = true
+            Log.d("BackStack2", "2")
+            // 백스택 팝
+            if (flag == 0) {
+                navController.navigate(SooumNav.Home.screenRoute) {
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
             }
         }
     }
 
-    if (data != null) {
-        Scaffold(topBar = {
-            TopAppBar(
-                title = {
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (targetCardId != "") {
-                            SooumApplication().removeVariable("targetCardId")
-                            navController.navigate(SooumNav.Home.screenRoute) {
-                                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
-                                launchSingleTop = true
+    Scaffold(topBar = {
+        TopAppBar(
+            title = {
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    if (targetCardId != "") {
+                        SooumApplication().removeVariable("targetCardId")
+                        navController.navigate(SooumNav.Home.screenRoute) {
+                            popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+                            launchSingleTop = true
+                        }
+                    } else {
+                        var flag = 0
+                        navController.backQueue.forEach { backStackEntry ->
+                            Log.d(
+                                "BackStack",
+                                "Destination: ${backStackEntry.destination.route}"
+                            )
+                        }
+                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                            ?.let {
+                                flag = 1
+                                navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+                                    popUpTo(MyProfile.MyCommentHistory.screenRoute) {
+                                        inclusive = true
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
-                        } else {
+                        Log.d("BackStack2", "2")
+                        // 백스택 팝
+                        if (flag == 0) {
                             navController.navigate(SooumNav.Home.screenRoute) {
                                 popUpTo(navController.graph.id) {
                                     inclusive = true
@@ -265,86 +307,65 @@ fun DetailScreen(
                                 launchSingleTop = true
                             }
                         }
-
-                    }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_arrow_back),
-                            contentDescription = "home",
-                            colorFilter = ColorFilter.tint(colorResource(R.color.black))
-                        )
                     }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        navController.navigate(SooumNav.Home.screenRoute) {
-                            // 모든 Back Stack을 비우고 "destination_screen"으로 이동
-                            popUpTo(navController.graph.id) {
-                                inclusive = true // "startDestinationId"까지 포함하여 모든 화면을 제거
-                            }
-                            launchSingleTop = true // 이미 존재하는 화면은 새로 시작하지 않음
+
+                }) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_arrow_back),
+                        contentDescription = "home",
+                        colorFilter = ColorFilter.tint(colorResource(R.color.black))
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = {
+                    navController.navigate(SooumNav.Home.screenRoute) {
+                        // 모든 Back Stack을 비우고 "destination_screen"으로 이동
+                        popUpTo(navController.graph.id) {
+                            inclusive = true // "startDestinationId"까지 포함하여 모든 화면을 제거
                         }
-                    }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_home),
-                            contentDescription = "home",
-                            colorFilter = ColorFilter.tint(colorResource(R.color.black))
-                        )
+                        launchSingleTop = true // 이미 존재하는 화면은 새로 시작하지 않음
                     }
-                },
-                modifier = Modifier.padding(
-                    horizontal = 4.dp,
-                    vertical = 2.dp
-                )
+                }) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_home),
+                        contentDescription = "home",
+                        colorFilter = ColorFilter.tint(colorResource(R.color.black))
+                    )
+                }
+            },
+            modifier = Modifier.padding(
+                horizontal = 4.dp,
+                vertical = 2.dp
             )
-        }) {
-            Box(
+        )
+    })
+    {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pullRefresh(pullRefreshState)
+        ) {
+
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-//                    .pointerInput(Unit) {
-//                        detectVerticalDragGestures(
-//                            onVerticalDrag = { change, dragAmount ->
-//                                change.consume() // 이벤트 소비
-//
-//                                // 아래로 드래그하면 pullRefreshState를 호출
-//                                if (dragAmount > 0) {
-//                                    dragProgress += dragAmount
-//                                    println("Dragging Downwards: $dragProgress")
-//
-//                                    // 드래그 양이 일정 범위 이상일 경우 새로고침 시작
-//                                    if (dragProgress > 200 && !isRefreshing) { // 예: 200 이상 드래그
-//                                        // 직접 refreshing 상태를 true로 설정하여 새로고침 트리거
-//                                    }
-//                                }
-//                                if (isRefreshing) {
-//                                    coroutineScope.launch {
-//                                        delay(1000) // 새로고침 후 잠시 대기
-//                                        isRefreshing = false // 새로고침 완료 후 상태를 false로 변경
-//                                    }
-//                                }
-//                            },
-//                        )
-//                    }
-                    .pullRefresh(pullRefreshState)
+                    .verticalScroll(scrollState)
+                    .padding(it)
             ) {
-
-                Column(
+                Card(
                     modifier = Modifier
-                        .verticalScroll(scrollState)
-                        .padding(it)
+                        .fillMaxWidth()
+                        .aspectRatio(1 / 0.9f)
+                        .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 10.dp),
+                    shape = RoundedCornerShape(40.dp),
+                    onClick = { }
                 ) {
-                    Card(
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1 / 0.9f)
-                            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp, top = 10.dp),
-                        shape = RoundedCornerShape(40.dp),
-                        onClick = { }
+                            .fillMaxSize()
+                            .background(Color(0xFFF8F8F8))
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                        ) {
-
+                        if (data != null) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxHeight(0.25f)
@@ -361,8 +382,8 @@ fun DetailScreen(
                                         }
                                     }
                                 }
-
                             }
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxHeight(0.25f)
@@ -393,9 +414,8 @@ fun DetailScreen(
                                     }
                                 }
                             }
-
                             ImageLoader(data.backgroundImgUrl.href)
-                            if (data.previousCardId != null) {
+                            if (data.previousCardId != null) {//상위 카드가 있을때
                                 Card(
                                     modifier = Modifier
                                         .align(Alignment.TopStart)
@@ -411,24 +431,22 @@ fun DetailScreen(
                                         ),
                                     shape = RoundedCornerShape(40.dp),
                                     onClick = {
-                                        if (data.previousCardId != -1L) {
-                                            var flag = 0
-                                            navController.backQueue.forEach { backStackEntry ->
-                                                Log.d(
-                                                    "BackStack",
-                                                    "Destination: ${backStackEntry.destination.route}"
-                                                )
+                                        var flag = 0
+                                        navController.backQueue.forEach { backStackEntry ->
+                                            Log.d(
+                                                "BackStack",
+                                                "Destination: ${backStackEntry.destination.route}"
+                                            )
+                                        }
+                                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                                            ?.let {
+                                                flag = 1
+                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
                                             }
-                                            navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                                                ?.let {
-                                                    flag = 1
-                                                    navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
-                                                }
-                                            Log.d("BackStack2", "2")
-                                            // 백스택 팝
-                                            if (flag == 0) {
-                                                navController.popBackStack()
-                                            }
+                                        Log.d("BackStack2", "2")
+                                        // 백스택 팝
+                                        if (flag == 0) {
+                                            navController.popBackStack()
                                         }
                                     }
                                 ) {
@@ -436,7 +454,7 @@ fun DetailScreen(
                                         modifier = Modifier
                                             .fillMaxSize()
                                     ) {
-                                        if (data.previousCardId != -1L) {
+                                        if (!data.isPreviousCardDelete) {
                                             ImageLoader(data.previousCardImgLink!!.href.toString())
                                             Text(
                                                 "전글",
@@ -465,7 +483,6 @@ fun DetailScreen(
                                     }
                                 }
                             }
-
                             Box(
                                 modifier = Modifier
                                     .background(
@@ -476,7 +493,6 @@ fun DetailScreen(
                                     .align(Alignment.Center)
                                     .padding(4.dp)
                             ) {
-
                                 Text(
                                     modifier = Modifier
                                         .align(Alignment.Center)
@@ -525,7 +541,7 @@ fun DetailScreen(
                                 Row(modifier = Modifier.align(Alignment.BottomStart)) {
                                     if (data.member.profileImgUrl == null) {
                                         Image(
-                                            painter = painterResource(id = R.drawable.ic_profile_logo),
+                                            painter = painterResource(id = R.drawable.ic_sooum_logo),
                                             contentDescription = "앱 로고",
                                             modifier = Modifier
                                                 .size(32.dp)
@@ -567,10 +583,13 @@ fun DetailScreen(
                                             .align(Alignment.CenterVertically)
                                             .padding(start = 8.dp)
                                     )
-                                }
+                                }//프로필
                                 Row(
-                                    modifier = Modifier.align(Alignment.BottomEnd),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .height(32.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (data.distance != 0.0) {
                                         InfoElement(
@@ -588,31 +607,50 @@ fun DetailScreen(
                                         isTrue = false
                                     )
                                 }
-
+                            }
+                        } else {
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .background(Color(0xFFF8F8F8))
+                            ) {
+                                Icon(
+                                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                                    painter = painterResource(id = R.drawable.ic_delete),
+                                    contentDescription = null,
+                                    tint = Gray300
+                                )
+                                Text(
+                                    text = "이 글을 삭제되었어요",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Gray500
+                                )
                             }
                         }
                     }
-                    if (data.tags.isEmpty()) {
-                        // 태그가 없을 때 기본 패딩 추가
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, bottom = 10.dp)
-                                .height(30.dp) // 원하는 패딩 크기 설정
-                        )
-                    } else {
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 20.dp, bottom = 10.dp),
-                        ) {
-                            items(data.tags) { item ->
-                                TagItem(item, onClick = { tagId ->
-                                    navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
-                                })
-                            }
+                }
+                if (data == null || data.tags.isEmpty()) {
+                    // 태그가 없을 때 기본 패딩 추가
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, bottom = 10.dp)
+                            .height(30.dp) // 원하는 패딩 크기 설정
+                    )
+                } else {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, bottom = 10.dp),
+                    ) {
+                        items(data.tags) { item ->
+                            TagItem(item, onClick = { tagId ->
+                                navController.navigate("${TagNav.TagList.screenRoute}/${tagId}")
+                            })
                         }
                     }
+                }
 
 
 //            Box(
@@ -624,94 +662,104 @@ fun DetailScreen(
 //            ){
 //                Row(modifier = Modifier.background(Color.Black)){}
 //            }
-                    Divider(
-                        color = Gray100,        // 선의 색상
-                        thickness = 2.dp           // 선의 두께
-                    )
-                    Row(
-                        modifier = Modifier
-                            .padding(start = 20.dp, top = 10.dp)
-                            .align(Alignment.Start),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (count != null) {
-                            DetailLike(count, viewModel, cardId)
-                            Icon(
-                                modifier = Modifier
-                                    .padding(start = 10.dp)
-                                    .width(24.dp)
-                                    .height(24.dp)
-                                    .clickable(
-                                    ) {
+                Divider(
+                    color = Gray100,        // 선의 색상
+                    thickness = 2.dp           // 선의 두께
+                )
+                Row(
+                    modifier = Modifier
+                        .padding(start = 20.dp, top = 10.dp)
+                        .align(Alignment.Start),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (count != null) {
+                        DetailLike(count, viewModel, cardId, data != null)
+                        Icon(
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .width(24.dp)
+                                .height(24.dp)
+                                .clickable {
+                                    if (data != null) {
                                         navController.navigate("addCommentCard/${cardId}/${data.storyExpirationTime}")
-                                    },
-                                painter = painterResource(R.drawable.ic_detail_comment),
-                                contentDescription = "댓글",
-                            )
-                            Spacer(modifier = Modifier.width(5.dp))
-                            Text(
-                                text = count.commentCnt.toString(),
-                                fontSize = 14.sp,
-                                color = Color.Black
-                            )
-                        }
-                    }
-
-                    if (comment != null) {
-                        if (comment.embedded.commentCardsInfoList.size == 1) {
-                            DeatilCommentItem(
-                                comment.embedded.commentCardsInfoList[0],
-                                navController,
-                                Modifier
-                                    .size(240.dp)
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(top = 10.dp, bottom = 10.dp)
-                            )
-                        } else {
-                            LazyRow(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(240.dp)
-                                    .padding(top = 10.dp)
-                            ) {
-                                items(comment.embedded.commentCardsInfoList.size) { item ->
-                                    if (item == 0) {
-                                        DeatilCommentItem(
-                                            comment.embedded.commentCardsInfoList[item],
-                                            navController,
-                                            Modifier
-                                                .aspectRatio(1 / 0.9f)
-                                                .padding(start = 20.dp, bottom = 10.dp)
-                                        )
-                                    } else {
-                                        DeatilCommentItem(
-                                            comment.embedded.commentCardsInfoList[item],
-                                            navController,
-                                            Modifier
-                                                .aspectRatio(1 / 0.9f)
-                                                .padding(start = 8.dp, bottom = 10.dp)
-                                        )
                                     }
-
-                                }
-                            }
-                        }
+                                },
+                            painter = painterResource(R.drawable.ic_detail_comment),
+                            contentDescription = "댓글",
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = count.commentCnt.toString(),
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
                     }
                 }
 
-                PullRefreshIndicator(
-                    refreshing = isRefreshing,
-                    state = pullRefreshState,
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    contentColor = Color.Black
-                )
+                if (comment != null) {
+                    if (comment.embedded.commentCardsInfoList.size == 1) {
+                        DeatilCommentItem(
+                            comment.embedded.commentCardsInfoList[0],
+                            navController,
+                            Modifier
+                                .size(240.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 10.dp, bottom = 10.dp)
+                        )
+                    } else {
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(240.dp)
+                                .padding(top = 10.dp)
+                        ) {
+                            items(comment.embedded.commentCardsInfoList.size) { item ->
+                                if (item == 0) {
+                                    DeatilCommentItem(
+                                        comment.embedded.commentCardsInfoList[item],
+                                        navController,
+                                        Modifier
+                                            .aspectRatio(1 / 0.9f)
+                                            .padding(start = 20.dp, bottom = 10.dp)
+                                    )
+                                } else {
+                                    DeatilCommentItem(
+                                        comment.embedded.commentCardsInfoList[item],
+                                        navController,
+                                        Modifier
+                                            .aspectRatio(1 / 0.9f)
+                                            .padding(start = 8.dp, bottom = 10.dp)
+                                    )
+                                }
 
+                            }
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .height(240.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            "댓글이 아직 없어요",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = Color(0xFFB4B4B4),
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+
+                }
             }
-
+            PullRefreshIndicator(
+                refreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter),
+                contentColor = Color.Black
+            )
         }
-
     }
-
 }
 
 @Composable
@@ -719,44 +767,46 @@ fun DetailLike(
     count: DetailCardLikeCommentCountDataModel,
     viewModel: DetailViewModel,
     cardId: String?,
+    isData: Boolean,
 ) {
     // 상태 추적을 위해 count의 cardLikeCnt 값을 mutableStateOf로 관리
     var likeState by remember { mutableStateOf(count.isLiked) }
     var likeCount by remember { mutableStateOf(count.cardLikeCnt) }
 
-    Row(modifier = Modifier.clickable {
-        Log.e("cardId", cardId.toString())
-
-        if (likeState) {
-            cardId?.let {
-                viewModel.likeOff(it.toLong())
-                likeCount -= 1
+    if (isData) {
+        Row(modifier = Modifier.clickable {
+            Log.e("cardId", cardId.toString())
+            if (likeState) {
+                cardId?.let {
+                    viewModel.likeOff(it.toLong())
+                    likeCount -= 1
+                }
+            } else {
+                cardId?.let {
+                    viewModel.likeOn(it.toLong())
+                    likeCount += 1
+                }
             }
-        } else {
-            cardId?.let {
-                viewModel.likeOn(it.toLong())
-                likeCount += 1
-            }
+            likeState = !likeState
+        })
+        {
+            Icon(
+                modifier = Modifier
+                    .width(24.dp)
+                    .height(24.dp),
+                painter = if (likeState) painterResource(R.drawable.ic_heart_filled) else painterResource(
+                    R.drawable.ic_detail_heart
+                ),
+                contentDescription = "좋아요",
+                tint = if (likeState) Primary else Color.Black
+            )
+            Spacer(modifier = Modifier.width(5.dp))
+            Text(
+                text = likeCount.toString(),
+                fontSize = 14.sp,
+                color = if (likeState) Primary else Color.Black
+            )
         }
-
-        likeState = !likeState
-    }) {
-        Icon(
-            modifier = Modifier
-                .width(24.dp)
-                .height(24.dp),
-            painter = if (likeState) painterResource(R.drawable.ic_heart_filled) else painterResource(
-                R.drawable.ic_detail_heart
-            ),
-            contentDescription = "좋아요",
-            tint = if (likeState) Primary else Color.Black
-        )
-        Spacer(modifier = Modifier.width(5.dp))
-        Text(
-            text = likeCount.toString(),
-            fontSize = 14.sp,
-            color = if (likeState) Primary else Color.Black
-        )
     }
 }
 

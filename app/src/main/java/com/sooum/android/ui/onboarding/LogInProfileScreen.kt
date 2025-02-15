@@ -194,7 +194,8 @@ fun LogInProfileScreen(navController: NavHostController) {
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     onClick = {
                         viewModel.profiles(
-                            SooumApplication().getVariable("nickName").toString(), 1
+                            SooumApplication().getVariable("nickName").toString(),
+                            if (selectedImageBitmap != null) 1 else 2
                         )
 
                     }) {
