@@ -54,7 +54,7 @@ class NotificationRepositoryImpl @Inject constructor(private val notificationApi
     override fun getAllUnreadNotification(): Flow<PagingData<NotificationDataModel>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { NotificationPagingSource(notificationApi, NotificationEnum.UNREADALL) }
@@ -64,7 +64,7 @@ class NotificationRepositoryImpl @Inject constructor(private val notificationApi
     override fun getCardUnreadNotification(): Flow<PagingData<NotificationDataModel>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { NotificationPagingSource(notificationApi, NotificationEnum.UNREADCARD) }
@@ -75,7 +75,7 @@ class NotificationRepositoryImpl @Inject constructor(private val notificationApi
         Log.d("123", "실행됨")
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { NotificationPagingSource(notificationApi, NotificationEnum.UNREADLIKE) }
@@ -85,7 +85,7 @@ class NotificationRepositoryImpl @Inject constructor(private val notificationApi
     override fun getAllReadNotification(): Flow<PagingData<NotificationDataModel>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { NotificationPagingSource(notificationApi, NotificationEnum.READALL) }
@@ -95,7 +95,7 @@ class NotificationRepositoryImpl @Inject constructor(private val notificationApi
     override fun getCardReadNotification(): Flow<PagingData<NotificationDataModel>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize =25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { NotificationPagingSource(notificationApi, NotificationEnum.READCARD) }
@@ -105,7 +105,7 @@ class NotificationRepositoryImpl @Inject constructor(private val notificationApi
     override fun getLikeReadNotification(): Flow<PagingData<NotificationDataModel>> {
         return Pager(
             config = PagingConfig(
-                pageSize = 50,
+                pageSize = 25,
                 enablePlaceholders = false
             ),
             pagingSourceFactory = { NotificationPagingSource(notificationApi, NotificationEnum.READLIKE) }

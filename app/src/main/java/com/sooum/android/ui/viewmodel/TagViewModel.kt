@@ -25,9 +25,19 @@ import com.sooum.android.domain.usecase.tag.SearchTagUseCase
 import com.sooum.android.domain.usecase.tag.TagFeedUseCase
 import com.sooum.android.domain.usecase.tag.TagSummaryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,12 +62,45 @@ class TagViewModel @Inject constructor(
 
 //    var tagFeedList = mutableStateListOf<TagFeedDataModel.Embedded.TagFeedCardDto>()
 
-    var searchTagList = mutableStateListOf<SearchTagDataModel.Embedded.RelatedTag>()
+//    var searchTagList = mutableStateListOf<SearchTagDataModel.Embedded.RelatedTag>()
 
     private val _lazyTagFeed = MutableStateFlow<Flow<PagingData<TagFeedDataModel.Embedded.TagFeedCardDto>>?>(null)
     val lazyTagFeed = _lazyTagFeed.asStateFlow()
 
 //    val lazyTagFeed = tagFeedUseCase(tagId, User.userInfo.latitude, User.userInfo.longitude).cachedIn(viewModelScope)
+
+    // 사용자 입력값을 저장하는 Flow
+    private val _query = MutableStateFlow("")
+
+    // 연관 검색어 결과를 저장하는 StateFlow
+    private val _suggestions = MutableStateFlow<List<SearchTagDataModel.Embedded.RelatedTag>>(emptyList())
+    val suggestions: StateFlow<List<SearchTagDataModel.Embedded.RelatedTag>> = _suggestions.asStateFlow()
+
+    init {
+        // 입력값이 변경될 때마다 API 요청 (디바운스 적용)
+        _query
+            .debounce(300) // 사용자가 입력을 멈춘 후 300ms 뒤에 요청
+            .distinctUntilChanged() // 같은 값이면 요청 안 함
+            .filter { it.isNotBlank() } // 빈 문자열이면 요청 안 함
+            .flatMapLatest { query ->
+                fetchSuggestions(query)
+            }
+            .flowOn(Dispatchers.IO)
+            .onEach { result -> _suggestions.value = result }
+            .launchIn(viewModelScope)
+    }
+
+    // 사용자가 입력한 검색어 업데이트
+    fun onQueryChanged(query: String) {
+        _query.value = query
+    }
+
+    // 🔹 검색어를 초기화하는 함수
+    fun clearSuggestions() {
+        _suggestions.value = emptyList()
+    }
+
+
 
     fun getRecommendTagList() {
         viewModelScope.launch {
@@ -153,17 +196,27 @@ class TagViewModel @Inject constructor(
 //        }
 //    }
 
-    fun getSearchTag(keyword: String) {
-        viewModelScope.launch {
-            try {
-                val response = searchTagUseCase(keyword)
-
-                searchTagList.clear()
-                searchTagList.addAll(response.embedded.relatedTagList)
-            }
-            catch (e: Exception) {
-                Log.e("HomeViewModel", e.toString())
-            }
+    // API 호출 함수
+    private fun fetchSuggestions(query: String): Flow<List<SearchTagDataModel.Embedded.RelatedTag>> = flow {
+        try {
+            val result = searchTagUseCase(query).embedded.relatedTagList // API 요청
+            emit(result)
+        } catch (e: Exception) {
+            emit(emptyList()) // 실패 시 빈 리스트 반환
         }
     }
+
+//    fun getSearchTag(keyword: String) {
+//        viewModelScope.launch {
+//            try {
+//                val response = searchTagUseCase(keyword)
+//
+//                searchTagList.clear()
+//                searchTagList.addAll(response.embedded.relatedTagList)
+//            }
+//            catch (e: Exception) {
+//                Log.e("HomeViewModel", e.toString())
+//            }
+//        }
+//    }
 }

@@ -55,10 +55,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,6 +105,8 @@ import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -111,8 +115,9 @@ import java.io.ByteArrayOutputStream
 fun AddPostScreen(
     navController: NavHostController,
     cardId: String? = null,
-    storyExpirationTime: String? = null
+    storyExpirationTime: String? = null,
 ) {
+    Log.d("123", "$storyExpirationTime")
     val addPostViewModel: AddPostViewModel = hiltViewModel()
     val context = LocalContext.current
 
@@ -128,10 +133,24 @@ fun AddPostScreen(
         animationSpec = tween(durationMillis = 300)
     )
 
-    var showDialog by remember { mutableStateOf(false) }
+
+    //본문
+    var content by remember { mutableStateOf("") }
+
 
     //기본 이미지 : DEFAULT, 내 사진 : USER
     var imgType by remember { mutableStateOf(ImgTypeEnum.DEFAULT) }
+
+    var isTextNotEmpty = content.isNotEmpty()
+    var isImageNotEmpty = if (imgType == ImgTypeEnum.DEFAULT) {
+        true
+    } else {
+        if (addPostViewModel.userImageUrl != null) true else false
+    }
+
+    val isButtonEnabled = isTextNotEmpty && isImageNotEmpty
+    var showDialog by remember { mutableStateOf(false) }
+
 
     //스위치 상태
     var storyChecked by remember { mutableStateOf(false) }  //백엔드와 동일
@@ -145,8 +164,7 @@ fun AddPostScreen(
 
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
 
-    //본문
-    var content by remember { mutableStateOf("") }
+
 
     //태그 텍스트 필드
     var tagTextField by remember { mutableStateOf("") }
@@ -197,6 +215,12 @@ fun AddPostScreen(
         }
 
     val scaffoldState = androidx.compose.material3.rememberBottomSheetScaffoldState()
+
+    val lazyRelatedTag by addPostViewModel.suggestions.collectAsState()
+
+    var isEnabled by remember { mutableStateOf(true) }
+
+    val scope = rememberCoroutineScope()
 
     BottomSheetScaffold(
         sheetDragHandle = {},
@@ -249,14 +273,14 @@ fun AddPostScreen(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            enabled = if (content.isEmpty()) false else true
+                            enabled = isButtonEnabled
                         ) {
                             showDialog = true
                         },
                     text = "작성하기",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = if (content.isEmpty()) colorResource(R.color.gray700) else colorResource(
+                    color = if (!isButtonEnabled) colorResource(R.color.gray700) else colorResource(
                         R.color.blue300
                     )
                 )
@@ -323,11 +347,17 @@ fun AddPostScreen(
                     if (imgType == ImgTypeEnum.DEFAULT) {
                         Box(
                             modifier = Modifier.clickable(
+                                enabled = isEnabled,
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null
                             ) {
+                                isEnabled = false
                                 selectedImage = 0
                                 addPostViewModel.refreshDefaultImageList()
+                                scope.launch {
+                                    delay(1000)
+                                    isEnabled = true
+                                }
                             }
                         ) {
                             Row(
@@ -402,13 +432,15 @@ fun AddPostScreen(
                                             model = addPostViewModel.defaultImageList[imageIndex].url.href, // 이미지 URL
                                             contentDescription = "Sample Image", // 접근성 설명
                                             modifier = Modifier.aspectRatio(1f),
-                                            contentScale = ContentScale.Crop // 원하는 Modifier 추가
+                                            contentScale = ContentScale.Crop, // 원하는 Modifier 추가,
                                         )
                                     }
                                 }
                             }
                         )
-                    }
+
+                        }
+
                 } else {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -765,13 +797,11 @@ fun AddPostScreen(
                             androidx.compose.material3.OutlinedTextField(
                                 value = tagTextField,
                                 onValueChange = {
-                                    tagTextField = it
+                                    if (it.length <= 15) { // 15자 이하만 허용
+                                        tagTextField = it
+                                    }
                                     if (isCompleteHangul(tagTextField)) {
-                                        addPostViewModel.relatedTagList.clear()
-                                        addPostViewModel.getRelatedTag(
-                                            tagTextField,
-                                            5
-                                        )
+                                        addPostViewModel.onQueryChanged(it)
                                     }
                                 },
                                 placeholder = {
@@ -835,7 +865,7 @@ fun AddPostScreen(
                                 ),
                             )
                             Spacer(modifier = Modifier.height(13.dp))
-                            if (addPostViewModel.relatedTagList.isNotEmpty()) {
+                            if (lazyRelatedTag.isNotEmpty()) {
                                 Column(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -850,7 +880,7 @@ fun AddPostScreen(
                                         crossAxisSpacing = 8.dp,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        addPostViewModel.relatedTagList.forEach { tagHint ->
+                                        lazyRelatedTag.forEach { tagHint ->
                                             TagHintChip(
                                                 tagHint = tagHint.content,
                                                 tagHint.count
@@ -859,7 +889,7 @@ fun AddPostScreen(
                                                     tagList.add(tag.trim())
                                                 }
                                                 tagTextField = ""
-                                                addPostViewModel.relatedTagList.clear()
+                                                addPostViewModel.clearSuggestions()
                                                 keyboardController?.hide()
                                             }
                                         }
@@ -939,11 +969,7 @@ fun AddPostScreen(
                                 onValueChange = {
                                     tagTextField = it
                                     if (isCompleteHangul(tagTextField)) {
-                                        addPostViewModel.relatedTagList.clear()
-                                        addPostViewModel.getRelatedTag(
-                                            tagTextField,
-                                            5
-                                        )
+                                        addPostViewModel.onQueryChanged(it)
                                     }
                                 },
                                 placeholder = {
@@ -956,7 +982,10 @@ fun AddPostScreen(
                                     )
                                 },
                                 modifier = Modifier
-                                    .fillMaxWidth(),
+                                    .fillMaxWidth()
+                                    .onFocusChanged { focusState ->
+                                        isTagTextFieldFocused = focusState.isFocused
+                                    },
                                 shape = RoundedCornerShape(12.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = colorResource(R.color.primary_color),
@@ -1005,7 +1034,7 @@ fun AddPostScreen(
                                 ),
                             )
                             Spacer(modifier = Modifier.height(13.dp))
-                            if (addPostViewModel.relatedTagList.isNotEmpty()) {
+                            if (lazyRelatedTag.isNotEmpty()) {
                                 Column(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -1020,7 +1049,7 @@ fun AddPostScreen(
                                         crossAxisSpacing = 8.dp,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        addPostViewModel.relatedTagList.forEach { tagHint ->
+                                        lazyRelatedTag.forEach { tagHint ->
                                             TagHintChip(
                                                 tagHint = tagHint.content,
                                                 tagHint.count
@@ -1029,7 +1058,7 @@ fun AddPostScreen(
                                                     tagList.add(tag.trim())
                                                 }
                                                 tagTextField = ""
-                                                addPostViewModel.relatedTagList.clear()
+                                                addPostViewModel.clearSuggestions()
                                                 keyboardController?.hide()
                                             }
                                         }

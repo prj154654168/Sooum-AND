@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -51,6 +52,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.firebase.messaging.FirebaseMessaging
@@ -92,6 +96,7 @@ class MainActivity : ComponentActivity() {
             Log.e("targetCardId", "$targetCardId+$notificationId")
 
             if (notificationId != null) {
+                Log.d("123", "123")
                 SooumApplication().saveVariable("notificationId", notificationId)
                 mainViewModel.handleNotificationRead(notificationId.toLong())
                 intent.removeExtra("notificationId")
@@ -190,33 +195,32 @@ fun SplashScreen(
 
     val fusedLocationProviderClient =
         remember { LocationServices.getFusedLocationProviderClient(context) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // 권한이 허용된 경우 위치를 가져옵니다.
-            fetchSingleLocation(
-                context,
-                fusedLocationProviderClient,
-                onLocationReceived = { location ->
-                    User.userInfo.latitude = location?.latitude
-                    User.userInfo.longitude = location?.longitude
-                    navController.navigate("main") {
-                        popUpTo(navController.graph.id) {
-                            inclusive = true
-                        } // 백 스택 비우기
-                        launchSingleTop = true // 중복된 화면 생성 방지
-                    }
-                })
+            Log.d("123", "12345") // 권한 허용됨
+            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+                if (location != null) {
+                    Log.d("123", "위치 가져왔음")
+                    User.userInfo.latitude = location.latitude
+                    User.userInfo.longitude = location.longitude
+                }
+                navController.navigate("main") {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
         } else {
+            Log.d("123", "권한 거부됨")
             navController.navigate("main") {
-                popUpTo(navController.graph.id) {
-                    inclusive = true
-                } // 백 스택 비우기
-                launchSingleTop = true // 중복된 화면 생성 방지
+                popUpTo(navController.graph.id) { inclusive = true }
+                launchSingleTop = true
             }
         }
     }
+
 
 
     Box(
@@ -242,14 +246,23 @@ fun SplashScreen(
 //        navController.navigate("main")
 //    }
 
+    // 권한 요청 실행
     LaunchedEffect(Unit) {
-        permissions.forEach {
-            if (it == Manifest.permission.POST_NOTIFICATIONS) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    permissionLauncher.launch(it)
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+                if (location != null) {
+                    Log.d("123", "위치 가져왔음")
+                    User.userInfo.latitude = location.latitude
+                    User.userInfo.longitude = location.longitude
                 }
-            } else {
-                permissionLauncher.launch(it)
+                navController.navigate("main") {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
     }
@@ -264,24 +277,51 @@ private fun fetchSingleLocation(
     if (ActivityCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED
+        ) != PackageManager.PERMISSION_GRANTED
     ) {
-        fusedLocationProviderClient.getCurrentLocation(
-            Priority.PRIORITY_HIGH_ACCURACY,
-            null // Optional CancellationToken, null로 설정 가능
-        ).addOnSuccessListener { location ->
-            if (location != null) {
-                onLocationReceived(location)
-                Log.d("123", "위도: ${location.latitude}, 경도: ${location.longitude}")
-            }
-        }.addOnFailureListener { exception ->
-            onLocationReceived(null)
-            Log.e("123", "위치를 가져오는 중 오류 발생: ${exception.message}")
-        }
-    } else {
         onLocationReceived(null)
         Toast.makeText(context, "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+        return
+    }
 
+    // 우선 getCurrentLocation 시도
+    fusedLocationProviderClient.getCurrentLocation(
+        Priority.PRIORITY_HIGH_ACCURACY,
+        null
+    ).addOnSuccessListener { location ->
+        if (location != null) {
+            Log.d("fetchSingleLocation", "위도: ${location.latitude}, 경도: ${location.longitude}")
+            onLocationReceived(location)
+        } else {
+            Log.d("fetchSingleLocation", "getCurrentLocation 실패, requestLocationUpdates 시도")
+            // 만약 최근 위치가 없다면 requestLocationUpdates 사용
+            val locationRequest = LocationRequest.create().apply {
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+                interval = 5000
+                fastestInterval = 2000
+            }
+
+            val locationCallback = object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult) {
+                    val newLocation = locationResult.lastLocation
+                    if (newLocation != null) {
+                        Log.d("fetchSingleLocation", "새 위치 가져옴: ${newLocation.latitude}, ${newLocation.longitude}")
+                        onLocationReceived(newLocation)
+                        // 위치 요청 중지
+                        fusedLocationProviderClient.removeLocationUpdates(this)
+                    }
+                }
+            }
+
+            fusedLocationProviderClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        }
+    }.addOnFailureListener { exception ->
+        Log.e("fetchSingleLocation", "위치를 가져오는 중 오류 발생: ${exception.message}")
+        onLocationReceived(null)
     }
 }
 

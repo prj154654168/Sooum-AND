@@ -1,6 +1,7 @@
 package com.sooum.android.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -26,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +55,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.sooum.android.R
 import com.sooum.android.domain.model.FavoriteTagDataModel
+import com.sooum.android.domain.model.SearchTagDataModel
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.viewmodel.TagViewModel
@@ -62,6 +65,7 @@ fun TagScreen(navController: NavController) {
     val tagViewModel: TagViewModel = hiltViewModel()
 
     val scrollState = rememberScrollState()
+    val scrollState2 = rememberScrollState()
 
     var tagTextField by remember { mutableStateOf("") }
     var bookmarkTag: List<String?> by remember { mutableStateOf(listOf(null)) }
@@ -91,11 +95,13 @@ fun TagScreen(navController: NavController) {
         }
     }
 
+    val lazySearchTag by tagViewModel.suggestions.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(start = 20.dp, end = 20.dp)
-            .verticalScroll(scrollState)
+//            .verticalScroll(scrollState)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
@@ -112,11 +118,15 @@ fun TagScreen(navController: NavController) {
                     painter = painterResource(R.drawable.ic_arrow_back),
                     contentDescription = null,
                     tint = colorResource(R.color.gray_black),
-                    modifier = Modifier.clickable {
-                        tagNavController.navigate("MainTagScreen")
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        tagNavController.popBackStack()
                         focusManager.clearFocus()
                         tagTextField = ""
-                        tagViewModel.searchTagList.clear()
+//                        tagViewModel.searchTagList.clear()
+                        tagViewModel.clearSuggestions()
                     }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -124,6 +134,10 @@ fun TagScreen(navController: NavController) {
             OutlinedTextField(
                 value = tagTextField,
                 onValueChange = {
+                    if (isCompleteHangul(it)) {
+                        tagViewModel.onQueryChanged(it)
+                    }
+
                     tagTextField = it
                 },
                 placeholder = {
@@ -168,7 +182,10 @@ fun TagScreen(navController: NavController) {
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            tagViewModel.getSearchTag(tagTextField)
+                            if (isCompleteHangul(tagTextField)) {
+                                tagViewModel.onQueryChanged(tagTextField)
+                            }
+//                            tagViewModel.getSearchTag(tagTextField)
                         }
 
                     )
@@ -176,22 +193,24 @@ fun TagScreen(navController: NavController) {
                 singleLine = true
             )
         }
+        Spacer(modifier = Modifier.height(24.dp))
 
         NavHost(navController = tagNavController, startDestination = "MainTagScreen") {
             composable("MainTagScreen") {
-                MainTagScreen(tagViewModel, navController)
+                MainTagScreen(tagViewModel, navController,scrollState)
             }
             composable("SearchTagScreen") {
-                SearchTagScreen(tagViewModel, navController)
+                SearchTagScreen(tagViewModel, navController, lazySearchTag, scrollState2)
             }
         }
     }
 }
 
 @Composable
-fun MainTagScreen(tagViewModel: TagViewModel, navController: NavController) {
+fun MainTagScreen(tagViewModel: TagViewModel, navController: NavController, scrollState: ScrollState) {
+//    Spacer(modifier = Modifier.height(24.dp))
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().verticalScroll(scrollState)
     ) {
         if (tagViewModel.favoriteTagList.isNotEmpty()) {
             Text(
@@ -200,7 +219,7 @@ fun MainTagScreen(tagViewModel: TagViewModel, navController: NavController) {
                 fontWeight = FontWeight.SemiBold,
                 color = colorResource(R.color.gray_black),
                 lineHeight = 24.sp,
-                modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 16.dp)
+                modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
             )
             tagViewModel.favoriteTagList.forEach { favoriteTag ->
                 BookmarkTagCardList(favoriteTag,
@@ -235,11 +254,29 @@ fun MainTagScreen(tagViewModel: TagViewModel, navController: NavController) {
 }
 
 @Composable
-fun SearchTagScreen(tagViewModel: TagViewModel, navController: NavController) {
-    if (tagViewModel.searchTagList.isNotEmpty()) {
-        Column {
-            Spacer(modifier = Modifier.height(28.dp))
-            tagViewModel.searchTagList.forEach { tag ->
+fun SearchTagScreen(tagViewModel: TagViewModel, navController: NavController, list: List<SearchTagDataModel.Embedded.RelatedTag>, scrollState2: ScrollState) {
+//    if (tagViewModel.searchTagList.isNotEmpty()) {
+//        Column {
+//            Spacer(modifier = Modifier.height(28.dp))
+//            tagViewModel.searchTagList.forEach { tag ->
+//                TagCard(
+//                    tag.tagId,
+//                    tag.content,
+//                    tag.count.toString(),
+//                    onItemClick = {
+//                        navController.navigate("${TagNav.TagList.screenRoute}/${tag.tagId}")
+//                    }
+//                )
+//            }
+//        }
+//    }
+//    Spacer(modifier = Modifier.height(24.dp))
+    if (list.isNotEmpty()) {
+        Column(
+            modifier = Modifier.verticalScroll(scrollState2)
+        ) {
+//            Spacer(modifier = Modifier.height(28.dp))
+            list.forEach { tag ->
                 TagCard(
                     tag.tagId,
                     tag.content,
@@ -249,6 +286,7 @@ fun SearchTagScreen(tagViewModel: TagViewModel, navController: NavController) {
                     }
                 )
             }
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
@@ -473,4 +511,22 @@ fun TagCard(
             }
         }
     }
+}
+
+private fun isCompleteHangul(text: String): Boolean {
+    var isSyllable = false
+
+    if (text.isEmpty()) isSyllable = false
+    else {
+        for (char in text) {
+            if (char in '\uAC00'..'\uD7A3' || (char in 'A'..'Z') || (char in 'a'..'z')) {
+                isSyllable = true
+            } else {
+                isSyllable = false
+                break
+            }
+        }
+    }
+
+    return isSyllable
 }
