@@ -262,7 +262,10 @@ fun TagContentCard(item: TagFeedDataModel.Embedded.TagFeedCardDto, index: Int, o
             .fillMaxWidth()
             .aspectRatio(1 / 0.9f)
             .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
-            .clickable {
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
                 onItemClick(item.id)
             },
         shape = RoundedCornerShape(40.dp)
@@ -313,8 +316,14 @@ fun TagContentCard(item: TagFeedDataModel.Embedded.TagFeedCardDto, index: Int, o
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(60.dp)
-                    .background(gradientBrush)
+                    .background(brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x00000000), // 투명한 검정
+                            Color(0x99000000)  // 약간 불투명한 검정
+                        )
+                    ))
                     .align(Alignment.BottomCenter)
+
             )
             Box(
                 modifier = Modifier
