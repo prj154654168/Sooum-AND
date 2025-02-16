@@ -411,6 +411,21 @@ fun AddPostScreen(
                             content = {
                                 items(addPostViewModel.defaultImageList.size) { imageIndex ->
                                     Surface(
+                                        shape = if (selectedImage == imageIndex) {
+                                            if (imageIndex == 0) {
+                                                RoundedCornerShape(topStart = 10.dp)
+                                            } else if (imageIndex == 3) {
+                                                RoundedCornerShape(topEnd = 10.dp)
+                                            } else if (imageIndex == 4) {
+                                                RoundedCornerShape(bottomStart = 10.dp)
+                                            } else if (imageIndex == 7) {
+                                                RoundedCornerShape(bottomEnd = 10.dp)
+                                            } else {
+                                                RoundedCornerShape(0.dp,)
+                                            }
+                                        } else {
+                                            RoundedCornerShape(0.dp)
+                                        },
                                         border = if (selectedImage == imageIndex) {
                                             BorderStroke(
                                                 width = 2.dp,
