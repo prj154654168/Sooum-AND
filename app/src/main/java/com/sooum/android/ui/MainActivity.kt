@@ -90,36 +90,18 @@ class MainActivity : ComponentActivity() {
                 mainViewModel.fetchUnreadNotificationCount()
             })
 
-            val targetCardId = intent.getStringExtra("targetCardId")
-            val notificationId = intent.getStringExtra("notificationId")
+//            val targetCardId = intent.getStringExtra("targetCardId")
+//            val notificationId = intent.getStringExtra("notificationId")
+//
+//            Log.e("targetCardId", "$targetCardId+$notificationId")
 
-            Log.e("targetCardId", "$targetCardId+$notificationId")
-
-            if (notificationId != null) {
-                Log.d("123", "123")
-                SooumApplication().saveVariable("notificationId", notificationId)
-                mainViewModel.handleNotificationRead(notificationId.toLong())
-                intent.removeExtra("notificationId")
-
-                if (targetCardId != null) {
-                    SooumApplication().saveVariable("targetCardId", targetCardId)
-                    intent.removeExtra("targetCardId")
-                    SooumNavHost(
-                        navController = navController,
-                        startDestination = "${PostNav.Detail.screenRoute}/{cardId}",
-                        mainViewModel
-                        // startDestination = "${PostNav.Detail.screenRoute}/${targetCardId}"
-                    )
-                } else {
-                    if (mainViewModel.isLoading == 1) {
-                        SooumNavHost(
-                            navController = navController,
-                            startDestination = NotificationNav.Notification.screenRoute,
-                            mainViewModel
-                        )
-                        mainViewModel.isLoading = 2
-                    }
-                }
+            if (mainViewModel.isLoading == 1) {
+                SooumNavHost(
+                    navController = navController,
+                    startDestination = NotificationNav.Notification.screenRoute,
+                    mainViewModel
+                )
+                mainViewModel.isLoading = 2
             } else {
                 NavHost(
                     navController = navController,
@@ -133,6 +115,26 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
+//            if (notificationId != null) {
+//                Log.d("123", "123")
+//                SooumApplication().saveVariable("notificationId", notificationId)
+//                mainViewModel.handleNotificationRead(notificationId.toLong())
+//                intent.removeExtra("notificationId")
+//
+//                if (targetCardId != null) {
+//                    SooumApplication().saveVariable("targetCardId", targetCardId)
+//                    intent.removeExtra("targetCardId")
+//                    SooumNavHost(
+//                        navController = navController,
+//                        startDestination = "${PostNav.Detail.screenRoute}/{cardId}",
+//                        mainViewModel
+//                        // startDestination = "${PostNav.Detail.screenRoute}/${targetCardId}"
+//                    )
+//                } else {
+//
+//                }
+//            }
         }
     }
 
@@ -305,7 +307,10 @@ private fun fetchSingleLocation(
                 override fun onLocationResult(locationResult: LocationResult) {
                     val newLocation = locationResult.lastLocation
                     if (newLocation != null) {
-                        Log.d("fetchSingleLocation", "새 위치 가져옴: ${newLocation.latitude}, ${newLocation.longitude}")
+                        Log.d(
+                            "fetchSingleLocation",
+                            "새 위치 가져옴: ${newLocation.latitude}, ${newLocation.longitude}"
+                        )
                         onLocationReceived(newLocation)
                         // 위치 요청 중지
                         fusedLocationProviderClient.removeLocationUpdates(this)

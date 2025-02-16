@@ -47,10 +47,10 @@ fun SooumNavHost(
 ) {
 
     LaunchedEffect(Unit) {
-        val targetCardId = SooumApplication().getVariable("targetCardId")
-        if (targetCardId != "") {
-            navController.navigate("${PostNav.Detail.screenRoute}/$targetCardId")
-        }
+//        val targetCardId = SooumApplication().getVariable("targetCardId")
+//        if (targetCardId != "") {
+//            navController.navigate("${PostNav.Detail.screenRoute}/$targetCardId")
+//        }
     }
 
     NavHost(
