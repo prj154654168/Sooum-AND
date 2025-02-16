@@ -401,6 +401,7 @@ fun DetailScreen(
                                                 .clickable { showDialog = true },
                                             painter = painterResource(R.drawable.ic_detail_delete),
                                             contentDescription = "케밥 더보기 버튼",
+                                            tint = GrayWhite
                                         )
                                     } else {
                                         Icon(
@@ -774,7 +775,8 @@ fun DetailLike(
     var likeCount by remember { mutableStateOf(count.cardLikeCnt) }
 
     if (isData) {
-        Row(modifier = Modifier.clickable {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable {
             Log.e("cardId", cardId.toString())
             if (likeState) {
                 cardId?.let {
