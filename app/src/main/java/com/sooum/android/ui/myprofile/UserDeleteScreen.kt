@@ -139,13 +139,15 @@ fun UserDeleteScreen(navController: NavHostController) {
         }
         Button(
             onClick = {
-                navController.navigate(LogInNav.LogIn.screenRoute) {
-                    viewModel.deleteUser()
-                    popUpTo(navController.graph.id) {
-                        inclusive = true
-                    } // 백 스택 비우기
-                    launchSingleTop = true // 중복된 화면 생성 방지
+                viewModel.deleteUser {
+                    navController.navigate(LogInNav.LogIn.screenRoute) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        } // 백 스택 비우기
+                        launchSingleTop = true // 중복된 화면 생성 방지
+                    }
                 }
+
             },
             modifier = Modifier
                 .padding(16.dp)

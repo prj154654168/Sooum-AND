@@ -15,7 +15,7 @@ class UserDeleteViewModel @Inject constructor(
 ) :
     ViewModel() {
 
-    fun deleteUser() {
+    fun deleteUser(function: () -> Unit) {
         viewModelScope.launch {
             try {
                 deleteUserUserCase(

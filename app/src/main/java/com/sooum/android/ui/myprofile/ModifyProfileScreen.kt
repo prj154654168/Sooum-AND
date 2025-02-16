@@ -102,14 +102,14 @@ fun ModifyProfileScreen(navController: NavHostController) {
         viewModel.getMyProfile()
     }
 
-    if (viewModel.isLoading == 1) {
+    if (viewModel.isSuccess) {
         navController.navigate(SooumNav.Profile.screenRoute) {
             popUpTo(navController.graph.id) {
                 inclusive = true
             } // 백 스택 비우기
             launchSingleTop = true // 중복된 화면 생성 방지
         }
-        viewModel.isLoading = 2
+        viewModel.isSuccess = false
     }
     Box(
         modifier = Modifier
@@ -229,6 +229,7 @@ fun ModifyProfileScreen(navController: NavHostController) {
                     if (it.length <= 8) {
                         viewModel.myProfileNickName.value = it
                     }
+                    viewModel.isNicknameAvailable = true
                 },
                 placeholder = {
                     androidx.compose.material.Text(
@@ -338,6 +339,4 @@ fun ModifyProfileScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(26.dp))
         }
     }
-
-
 }
