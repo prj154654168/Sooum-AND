@@ -227,44 +227,45 @@ fun DetailScreen(
             }
         }
     )
-    val targetCardId = SooumApplication().getVariable("targetCardId")
+  //  val targetCardId = SooumApplication().getVariable("targetCardId")
 
     BackHandler {
-        if (targetCardId != "") {
-            SooumApplication().removeVariable("targetCardId")
-            navController.navigate("main") {
-                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
-                launchSingleTop = true
-            }
-        } else {
-            var flag = 0
-            navController.backQueue.forEach { backStackEntry ->
-                Log.d(
-                    "BackStack",
-                    "Destination: ${backStackEntry.destination.route}"
-                )
-            }
-            navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                ?.let {
-                    flag = 1
-                    navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
-                        popUpTo(MyProfile.MyCommentHistory.screenRoute) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
-                }
-            Log.d("BackStack2", "2")
-            // 백스택 팝
-            if (flag == 0) {
-                navController.navigate(SooumNav.Home.screenRoute) {
-                    popUpTo(navController.graph.id) {
+        var flag = 0
+        navController.backQueue.forEach { backStackEntry ->
+            Log.d(
+                "BackStack",
+                "Destination: ${backStackEntry.destination.route}"
+            )
+        }
+        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+            ?.let {
+                flag = 1
+                navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+                    popUpTo(MyProfile.MyCommentHistory.screenRoute) {
                         inclusive = true
                     }
                     launchSingleTop = true
                 }
             }
+        Log.d("BackStack2", "2")
+        // 백스택 팝
+        if (flag == 0) {
+            navController.navigate(SooumNav.Home.screenRoute) {
+                popUpTo(navController.graph.id) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
         }
+//        if (targetCardId != "") {
+//            SooumApplication().removeVariable("targetCardId")
+//            navController.navigate("main") {
+//                popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+//                launchSingleTop = true
+//            }
+//        } else {
+//
+//        }
     }
 
     Scaffold(topBar = {
@@ -273,41 +274,43 @@ fun DetailScreen(
             },
             navigationIcon = {
                 IconButton(onClick = {
-                    if (targetCardId != "") {
-                        SooumApplication().removeVariable("targetCardId")
-                        navController.navigate(SooumNav.Home.screenRoute) {
-                            popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
-                            launchSingleTop = true
-                        }
-                    } else {
-                        var flag = 0
-                        navController.backQueue.forEach { backStackEntry ->
-                            Log.d(
-                                "BackStack",
-                                "Destination: ${backStackEntry.destination.route}"
-                            )
-                        }
-                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                            ?.let {
-                                flag = 1
-                                navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
-                                    popUpTo(MyProfile.MyCommentHistory.screenRoute) {
-                                        inclusive = true
-                                    }
-                                    launchSingleTop = true
-                                }
-                            }
-                        Log.d("BackStack2", "2")
-                        // 백스택 팝
-                        if (flag == 0) {
-                            navController.navigate(SooumNav.Home.screenRoute) {
-                                popUpTo(navController.graph.id) {
+
+                    var flag = 0
+                    navController.backQueue.forEach { backStackEntry ->
+                        Log.d(
+                            "BackStack",
+                            "Destination: ${backStackEntry.destination.route}"
+                        )
+                    }
+                    navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+                        ?.let {
+                            flag = 1
+                            navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+                                popUpTo(MyProfile.MyCommentHistory.screenRoute) {
                                     inclusive = true
                                 }
                                 launchSingleTop = true
                             }
                         }
+                    Log.d("BackStack2", "2")
+                    // 백스택 팝
+                    if (flag == 0) {
+                        navController.navigate(SooumNav.Home.screenRoute) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
                     }
+//                    if (targetCardId != "") {
+//                        SooumApplication().removeVariable("targetCardId")
+//                        navController.navigate(SooumNav.Home.screenRoute) {
+//                            popUpTo(0) { inclusive = true } // 그래프의 최상단 루트로 설정
+//                            launchSingleTop = true
+//                        }
+//                    } else {
+//
+//                    }
 
                 }) {
                     Image(

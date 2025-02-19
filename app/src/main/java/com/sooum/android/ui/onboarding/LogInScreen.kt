@@ -1,5 +1,8 @@
 package com.sooum.android.ui.onboarding
 
+import android.os.Build
+import android.provider.Settings
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,11 +40,15 @@ import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.MainViewModel
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) {
 
     var showDialog by remember { mutableStateOf(false) }
-
+    val android_id = Settings.Secure.getString(
+        LocalContext.current.getContentResolver(),
+        Settings.Secure.ANDROID_ID
+    )
 
     LaunchedEffect(Unit) {
         if (mainViewModel.login == 3 || mainViewModel.login == 4) {
@@ -77,6 +85,9 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
                 .padding(start = 20.dp, end = 20.dp, top = 100.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Primary),
             onClick = {
+                mainViewModel.login(android_id, {
+                    mainViewModel.fetchUnreadNotificationCount()
+                })
                 navController.navigate(LogInNav.Agree.screenRoute) {
                 }
             }) {
