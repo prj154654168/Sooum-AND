@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -106,10 +108,15 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.system.exitProcess
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(navController: NavHostController) {
+
+    // 뒤로가기 처리
+    BackPressExitHandler()
+
     var isVisible by remember { mutableStateOf(true) }
 
     val homeViewModel: HomeViewModel = hiltViewModel()
@@ -436,6 +443,7 @@ fun DistanceFeedList(
     distance: DistanceEnum,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    Log.e("asd","거리 값 $distance")
 
     var isRefreshing by remember { mutableStateOf(false) }
 
@@ -444,6 +452,18 @@ fun DistanceFeedList(
     val lazyDistance10Feed = homeViewModel.lazyDistance10Feed.collectAsLazyPagingItems()
     val lazyDistance20Feed = homeViewModel.lazyDistance20Feed.collectAsLazyPagingItems()
     val lazyDistance50Feed = homeViewModel.lazyDistance50Feed.collectAsLazyPagingItems()
+    Log.e("asd","거리1 값 ${lazyDistance1Feed.itemCount}")
+    Log.e("asd","거리5 값 ${lazyDistance5Feed.itemCount}")
+    Log.e("asd","거리10 값 ${lazyDistance10Feed.itemCount}")
+    Log.e("asd","거리20 값 ${lazyDistance20Feed.itemCount}")
+    Log.e("asd","거리50 값 ${lazyDistance50Feed.itemCount}")
+
+    // LazyPagingItems 상태 확인
+    Log.e("asd", "거리1 상태 확인 ${lazyDistance1Feed.loadState.refresh}")
+    Log.e("asd", "거리5 상태 확인 ${lazyDistance5Feed.loadState.refresh}")
+    Log.e("asd", "거리10 상태 확인 ${lazyDistance10Feed.loadState.refresh}")
+    Log.e("asd", "거리20 상태 확인 ${lazyDistance20Feed.loadState.refresh}")
+    Log.e("asd", "거리50 상태 확인 ${lazyDistance50Feed.loadState.refresh}")
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
@@ -707,13 +727,13 @@ fun LatestContentCard(
                     .fillMaxWidth()
                     .height(60.dp)
                     .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0x00000000), // 투명한 검정
-                            Color(0x99000000)  // 약간 불투명한 검정
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
                         )
                     )
-                )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -796,7 +816,7 @@ fun PopularityContentCard(
                     } else {
                         FontFamily.Default
                     }
-             ,
+                    ,
                     fontWeight = FontWeight.Bold,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -1195,10 +1215,21 @@ fun formatTimeDifference(timeString: String): String {
 
 fun formatDistanceInKm(distance: Double): String {
     return when {
-        distance < 0.1 -> "${(distance * 1000).toInt()}m 이내" // 0~99m
-        distance < 1.0 -> "${(distance * 1000).toInt() / 100 * 100}m" // 100~999m
-        distance < 100.0 -> "${distance.toInt()}km" // 1km~100km
-        else -> "${(distance / 100).toInt() * 100}km" // 100km 이상
+        distance == 0.0 -> "100m 이내" // 0일경우
+        distance < 0.1 -> "100m 이내" // 0.1km 미만
+        distance < 1.0 -> {
+            val roundedDistance = ((distance * 1000) / 100).toInt() * 100 // 100m 단위
+            "${roundedDistance}m"
+        }
+        distance < 100.0 -> {
+            // 5km 단위로 반올림
+            val roundedDistance = (Math.round(distance / 5) * 5).toInt()
+            "${roundedDistance}km"
+        }
+        else -> {
+            val roundedDistance = (distance / 100).toInt() * 100 // 100km 단위
+            "${roundedDistance}km"
+        }
     }
 }
 
@@ -1585,6 +1616,29 @@ fun LocationDialog(openLocationDialog: (Boolean) -> Unit, onLocationResulted: (B
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun BackPressExitHandler() {
+    val context = LocalContext.current
+    var backPressedOnce by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // 뒤로가기 버튼 핸들링
+    BackHandler {
+        if (backPressedOnce) {
+            exitProcess(0)
+        } else {
+            backPressedOnce = true
+            Toast.makeText(context, "뒤로 가기 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+
+            coroutineScope.launch {
+                delay(3000)
+                backPressedOnce = false
             }
         }
     }

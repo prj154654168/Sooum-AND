@@ -1,6 +1,7 @@
 package com.sooum.android.di
 
 import com.sooum.android.Constants.BASE_URL
+import com.sooum.android.data.remote.AppVersionApi
 import com.sooum.android.data.remote.AuthInterceptor
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.remote.NotificationApi
@@ -15,6 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -35,6 +37,7 @@ object NetworkModule {
             .Builder()
             .baseUrl(BASE_URL)
             .client(client)
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -67,5 +70,11 @@ object NetworkModule {
     @Provides
     fun getNotificationApiInstance(retrofit: Retrofit) : NotificationApi {
         return retrofit.create(NotificationApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun getAppVersionApiInstance(retrofit: Retrofit) : AppVersionApi {
+        return retrofit.create(AppVersionApi::class.java)
     }
 }

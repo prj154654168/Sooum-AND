@@ -64,7 +64,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -85,7 +84,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -1215,6 +1213,15 @@ fun ContentCard(
             ) {
                 if (imgType == ImgTypeEnum.DEFAULT) ImageLoaderForUrl(selectedImageForDefault)
                 else ImageLoaderForBitmap(selectedImageForGallery)
+                if(imgType == ImgTypeEnum.DEFAULT) {
+                    ImageLoaderForUrl(selectedImageForDefault)
+                }else {
+                    if(selectedImageForGallery == null) {
+                        ImageLoaderForUrl(selectedImageForDefault)
+                    }else {
+                        ImageLoaderForBitmap(selectedImageForGallery)
+                    }
+                }
             }
             Box(
                 modifier = Modifier
