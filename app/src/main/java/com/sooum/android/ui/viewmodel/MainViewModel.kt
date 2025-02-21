@@ -12,7 +12,6 @@ import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.EncryptedDeviceId
-import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.Token
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
@@ -71,26 +70,6 @@ class MainViewModel @Inject constructor(
         return encryptWithRSAPublicKey(android_id, publicKey)
     }
 
-    fun updateFcm() {
-        viewModelScope.launch {
-            retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
-        }
-    }
-
-    fun handleNotificationRead(notificationId: Long) {
-        viewModelScope.launch {
-            try {
-                val result = readNotificationUseCase(notificationId)
-                Log.e("handleNotificationRead", notificationId.toString())
-            } catch (E: Exception) {
-                Log.e("handleNotificationRead", notificationId.toString())
-                println(E)
-            } finally {
-                isLoading = 1
-            }
-        }
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     fun login(android_id: String, onLoginFinished: () -> Unit) {
         Log.e("android_id", android_id)
@@ -131,7 +110,7 @@ class MainViewModel @Inject constructor(
                                 it.refreshToken
                             )
                         }
-                        retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
+
                         onLoginFinished()
                     } else {
                         login = 2
