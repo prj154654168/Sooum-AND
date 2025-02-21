@@ -36,6 +36,7 @@ class LogInProfileViewModel @Inject constructor(
     var imgByteArray by mutableStateOf<ByteArray>(ByteArray(0))
     var isLoading by mutableIntStateOf(0)
     var isNicknameAvailable by mutableStateOf(true)
+    var isSuccess by mutableStateOf(false)
 
     var myProfileNickName = mutableStateOf<String>("")
     var myProfileImgUrl = mutableStateOf<String>("")
@@ -77,9 +78,20 @@ class LogInProfileViewModel @Inject constructor(
 
                             makeRequest(client, request)
                         }
-                        cardAPIInstance.profiles(profileBody(nickname, userImageUrl.toString()))
+                        if (cardAPIInstance.profiles(
+                                profileBody(
+                                    nickname,
+                                    userImageUrl.toString()
+                                )
+                            ).isSuccessful
+                        ) {
+                            isSuccess = true
+                        }
+
                     } else {
-                        cardAPIInstance.profiles(profileBody(nickname, null))
+                        if (cardAPIInstance.profiles(profileBody(nickname, null)).isSuccessful) {
+                            isSuccess = true
+                        }
                     }
                 } else {
                     isNicknameAvailable = false
