@@ -179,21 +179,6 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
     val context = LocalContext.current
-//    LaunchedEffect(Unit) {
-//        val targetCardId = SooumApplication().getVariable("targetCardId")
-//        val notificationId = SooumApplication().getVariable("notificationId")
-//        Log.e(
-//            "targetCardId",
-//            "$targetCardId+$notificationId"
-//        )
-//        if (notificationId != "") {
-//            if (targetCardId != "") {
-//                navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
-//            } else {
-//                navController.navigate(NotificationNav.Notification.screenRoute)
-//            }
-//        }
-//    }
 
     Box(
         modifier = Modifier

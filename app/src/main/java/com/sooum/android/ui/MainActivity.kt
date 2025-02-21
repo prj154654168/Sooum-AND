@@ -1,8 +1,6 @@
 package com.sooum.android.ui
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -57,13 +55,10 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.google.firebase.messaging.FirebaseMessaging
 import com.sooum.android.R
-import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.common.NotificationNav
-import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumBottomNavigation
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
@@ -75,7 +70,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        createNotificationChannel()
+
 
 
         setContent {
@@ -89,11 +84,6 @@ class MainActivity : ComponentActivity() {
             mainViewModel.login(android_id, {
                 mainViewModel.fetchUnreadNotificationCount()
             })
-
-//            val targetCardId = intent.getStringExtra("targetCardId")
-//            val notificationId = intent.getStringExtra("notificationId")
-//
-//            Log.e("targetCardId", "$targetCardId+$notificationId")
 
             if (mainViewModel.isLoading == 1) {
                 SooumNavHost(
@@ -115,39 +105,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-
-//            if (notificationId != null) {
-//                Log.d("123", "123")
-//                SooumApplication().saveVariable("notificationId", notificationId)
-//                mainViewModel.handleNotificationRead(notificationId.toLong())
-//                intent.removeExtra("notificationId")
-//
-//                if (targetCardId != null) {
-//                    SooumApplication().saveVariable("targetCardId", targetCardId)
-//                    intent.removeExtra("targetCardId")
-//                    SooumNavHost(
-//                        navController = navController,
-//                        startDestination = "${PostNav.Detail.screenRoute}/{cardId}",
-//                        mainViewModel
-//                        // startDestination = "${PostNav.Detail.screenRoute}/${targetCardId}"
-//                    )
-//                } else {
-//
-//                }
-//            }
         }
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel("sooum-channel", "sooum", importance)
-
-            val notificationManager: NotificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
 }
 
 /*
@@ -183,15 +143,6 @@ fun SplashScreen(
 //            mainViewModel.fetchUnreadNotificationCount()
 //        })
 
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.e("task.result", token.toString())
-                SooumApplication().saveVariable("fcmToken", token)
-            } else {
-                Log.e("Firebase", "Failed to get token")
-            }
-        }
     }
 
 
