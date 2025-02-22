@@ -60,6 +60,7 @@ import com.sooum.android.User
 import com.sooum.android.domain.model.TagFeedDataModel
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.TagViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -91,6 +92,7 @@ fun TagListScreen(navController: NavController, tagId: String) {
     )
 
     LaunchedEffect(lazyTagFeed?.loadState?.refresh) {
+        delay(300)
         if (lazyTagFeed?.loadState?.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
