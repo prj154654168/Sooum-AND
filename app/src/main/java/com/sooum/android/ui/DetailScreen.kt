@@ -204,6 +204,7 @@ fun DetailScreen(
         }
     } //bottom sheet
     val data = viewModel.feedCardDataModel
+    Log.d("DetailScreen", "${data?.storyExpirationTime}")
     val comment = viewModel.detailCommentCardDataModel
     var count = viewModel.detailCardLikeCommentCountDataModel//TODO 화면이 계속 리컴포징 돼서 깜빡거림...
     val scrollState = rememberScrollState()

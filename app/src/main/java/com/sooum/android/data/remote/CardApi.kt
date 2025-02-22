@@ -66,7 +66,7 @@ interface CardApi {
     ): Response<SortedByDistanceDataModel>
 
 
-    @GET("/cards/{cardId}/detail")
+    @GET("/cards/{cardId}/detail/v2")
     suspend fun getFeedCard(
         @Path("cardId") cardId: Long,
         @Query("latitude") latitude: Double? = null,
