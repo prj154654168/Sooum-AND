@@ -117,7 +117,8 @@ fun AddPostScreen(
     cardId: String? = null,
     storyExpirationTime: String? = null,
 ) {
-    Log.d("123", "$storyExpirationTime")
+    Log.d("AddPostScreen", "$cardId")
+    Log.d("AddPostScreen", "$storyExpirationTime")
     val addPostViewModel: AddPostViewModel = hiltViewModel()
     val context = LocalContext.current
 
@@ -273,14 +274,14 @@ fun AddPostScreen(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            enabled = isButtonEnabled
+                            enabled = content.isNotEmpty()
                         ) {
                             showDialog = true
                         },
                     text = "작성하기",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = if (!isButtonEnabled) colorResource(R.color.gray700) else colorResource(
+                    color = if (content.isEmpty()) colorResource(R.color.gray700) else colorResource(
                         R.color.blue300
                     )
                 )
@@ -1128,9 +1129,23 @@ fun AddPostScreen(
                             storyChecked,
                             content,
                             fontType,
-                            imgType,
+                            if (imgType == ImgTypeEnum.DEFAULT) imgType else {
+                                if (addPostViewModel.userImageUrl == null) {
+                                    ImgTypeEnum.DEFAULT
+                                } else {
+                                    imgType
+                                }
+                            },
                             if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName
-                            else addPostViewModel.userImageUrl!!,
+                            else {
+                                if (addPostViewModel.userImageUrl == null) {
+                                    Log.d("AddPostScreen", "userImageUrl Null")
+                                    addPostViewModel.selectedImageName
+                                } else {
+                                    Log.d("AddPostScreen", "userImageUrl is not Null")
+                                    addPostViewModel.userImageUrl!!
+                                }
+                            },
                             if (!storyChecked) tagList
                             else null,
                             onStatusChanged = {
@@ -1147,8 +1162,23 @@ fun AddPostScreen(
                                 longitude = if (!distanceChecked) User.userInfo.longitude else null,
                                 content = content,
                                 font = fontType,
-                                imgType = imgType,
-                                imgName = if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName else addPostViewModel.userImageUrl!!,
+                                imgType = if (imgType == ImgTypeEnum.DEFAULT) imgType else {
+                                    if (addPostViewModel.userImageUrl == null) {
+                                        ImgTypeEnum.DEFAULT
+                                    } else {
+                                        imgType
+                                    }
+                                },
+                                imgName = if (imgType == ImgTypeEnum.DEFAULT) addPostViewModel.selectedImageName
+                                else {
+                                    if (addPostViewModel.userImageUrl == null) {
+                                        Log.d("AddPostScreen", "userImageUrl Null")
+                                        addPostViewModel.selectedImageName
+                                    } else {
+                                        Log.d("AddPostScreen", "userImageUrl is not Null")
+                                        addPostViewModel.userImageUrl!!
+                                    }
+                                },
                                 commentTags = if (parentStoryExpirationTime == null) tagList else null
                             ),
                             onStatusChanged = {
@@ -1229,7 +1259,13 @@ fun ContentCard(
                     .background(Color.Black.copy(alpha = 0.8f)),
             ) {
                 if (imgType == ImgTypeEnum.DEFAULT) ImageLoaderForUrl(selectedImageForDefault)
-                else ImageLoaderForBitmap(selectedImageForGallery)
+                else {
+                    if (selectedImageForGallery == null) {
+                        ImageLoaderForUrl(selectedImageForDefault)
+                    } else {
+                        ImageLoaderForBitmap(selectedImageForGallery)
+                    }
+                }
             }
             Box(
                 modifier = Modifier
