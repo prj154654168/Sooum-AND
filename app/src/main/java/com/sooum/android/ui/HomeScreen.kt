@@ -315,6 +315,7 @@ fun LatestFeedList(
     )
 
     LaunchedEffect(lazyLatestFeed.loadState.refresh) {
+        delay(300)
         if (lazyLatestFeed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
@@ -474,30 +475,35 @@ fun DistanceFeedList(
     )
 
     LaunchedEffect(lazyDistance1Feed) {
+        delay(300)
         if (lazyDistance1Feed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
     }
 
     LaunchedEffect(lazyDistance5Feed) {
+        delay(300)
         if (lazyDistance5Feed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
     }
 
     LaunchedEffect(lazyDistance10Feed) {
+        delay(300)
         if (lazyDistance10Feed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
     }
 
     LaunchedEffect(lazyDistance20Feed) {
+        delay(300)
         if (lazyDistance20Feed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
     }
 
     LaunchedEffect(lazyDistance50Feed) {
+        delay(300)
         if (lazyDistance50Feed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
