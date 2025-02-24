@@ -8,6 +8,7 @@ class AppVersionRepositoryImpl @Inject constructor(
     private val appVersionApi: AppVersionApi
 ):AppVersionRepository {
     override suspend fun getAppVersion(): String {
-        return appVersionApi.getAppVersion()
+        val responseBody = appVersionApi.getAppVersion()
+        return responseBody.string()
     }
 }

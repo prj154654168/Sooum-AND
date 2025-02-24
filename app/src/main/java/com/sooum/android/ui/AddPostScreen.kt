@@ -1213,15 +1213,6 @@ fun ContentCard(
             ) {
                 if (imgType == ImgTypeEnum.DEFAULT) ImageLoaderForUrl(selectedImageForDefault)
                 else ImageLoaderForBitmap(selectedImageForGallery)
-                if(imgType == ImgTypeEnum.DEFAULT) {
-                    ImageLoaderForUrl(selectedImageForDefault)
-                }else {
-                    if(selectedImageForGallery == null) {
-                        ImageLoaderForUrl(selectedImageForDefault)
-                    }else {
-                        ImageLoaderForBitmap(selectedImageForGallery)
-                    }
-                }
             }
             Box(
                 modifier = Modifier
