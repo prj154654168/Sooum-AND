@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -106,10 +108,15 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.system.exitProcess
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(navController: NavHostController) {
+
+    // 뒤로가기 처리
+    BackPressExitHandler()
+
     var isVisible by remember { mutableStateOf(true) }
 
     val homeViewModel: HomeViewModel = hiltViewModel()
@@ -424,152 +431,217 @@ fun DistanceFeedList(
 
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val lazyDistance1Feed = homeViewModel.lazyDistance1Feed.collectAsLazyPagingItems()
-    val lazyDistance5Feed = homeViewModel.lazyDistance5Feed.collectAsLazyPagingItems()
-    val lazyDistance10Feed = homeViewModel.lazyDistance10Feed.collectAsLazyPagingItems()
-    val lazyDistance20Feed = homeViewModel.lazyDistance20Feed.collectAsLazyPagingItems()
-    val lazyDistance50Feed = homeViewModel.lazyDistance50Feed.collectAsLazyPagingItems()
+    // 변경: distance 값에 따라 Flow를 한 번만 생성하도록 캐싱 (재composition 시 재생성 방지)
+    val lazyDistanceFeedFlow = remember(distance) {
+        homeViewModel.getLazyDistanceFeed(distance)
+    }
+    val lazyDistanceFeed = lazyDistanceFeedFlow.collectAsLazyPagingItems()
+
+//    val lazyDistance1Feed = homeViewModel.lazyDistance1Feed.collectAsLazyPagingItems()
+//    val lazyDistance5Feed = homeViewModel.lazyDistance5Feed.collectAsLazyPagingItems()
+//    val lazyDistance10Feed = homeViewModel.lazyDistance10Feed.collectAsLazyPagingItems()
+//    val lazyDistance20Feed = homeViewModel.lazyDistance20Feed.collectAsLazyPagingItems()
+//    val lazyDistance50Feed = homeViewModel.lazyDistance50Feed.collectAsLazyPagingItems()
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
-            isRefreshing = true
-            when (distance) {
-                DistanceEnum.UNDER_1 -> {
-                    lazyDistance1Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_5 -> {
-                    lazyDistance5Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_10 -> {
-                    lazyDistance10Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_20 -> {
-                    lazyDistance20Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_50 -> {
-                    lazyDistance50Feed.refresh()
-                }
+            // 변경: 이미 로딩중이면 refresh 호출을 방지
+            if (lazyDistanceFeed.loadState.refresh !is LoadState.Loading) {
+                isRefreshing = true
+                lazyDistanceFeed.refresh()
             }
         }
     )
 
-    LaunchedEffect(lazyDistance1Feed) {
-        if (lazyDistance1Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
+//    val pullRefreshState = rememberPullRefreshState(
+//        refreshing = isRefreshing,
+//        onRefresh = {
+//            isRefreshing = true
+//            when (distance) {
+//                DistanceEnum.UNDER_1 -> {
+//                    lazyDistance1Feed.refresh()
+//                }
+//
+//                DistanceEnum.UNDER_5 -> {
+//                    lazyDistance5Feed.refresh()
+//                }
+//
+//                DistanceEnum.UNDER_10 -> {
+//                    lazyDistance10Feed.refresh()
+//                }
+//
+//                DistanceEnum.UNDER_20 -> {
+//                    lazyDistance20Feed.refresh()
+//                }
+//
+//                DistanceEnum.UNDER_50 -> {
+//                    lazyDistance50Feed.refresh()
+//                }
+//            }
+//        }
+//    )
 
-    LaunchedEffect(lazyDistance5Feed) {
-        if (lazyDistance5Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
+    // 변경: 단일 feed의 상태에 따라 isRefreshing 값을 업데이트 (여기서도 Flow가 새로 생성되지 않도록 주의)
+    LaunchedEffect(lazyDistanceFeed) {
+        snapshotFlow { lazyDistanceFeed.loadState.refresh }
+            .collect { refreshState ->
+                if (refreshState !is LoadState.Loading) {
+                    isRefreshing = false
+                }
+            }
     }
+//    LaunchedEffect(lazyDistance5Feed) {
+//        if (lazyDistance5Feed.loadState.refresh !is LoadState.Loading) {
+//            isRefreshing = false
+//        }
+//    }
+//
+//    LaunchedEffect(lazyDistance10Feed) {
+//        if (lazyDistance10Feed.loadState.refresh !is LoadState.Loading) {
+//            isRefreshing = false
+//        }
+//    }
+//
+//    LaunchedEffect(lazyDistance20Feed) {
+//        if (lazyDistance20Feed.loadState.refresh !is LoadState.Loading) {
+//            isRefreshing = false
+//        }
+//    }
+//
+//    LaunchedEffect(lazyDistance50Feed) {
+//        if (lazyDistance50Feed.loadState.refresh !is LoadState.Loading) {
+//            isRefreshing = false
+//        }
+//    }
 
-    LaunchedEffect(lazyDistance10Feed) {
-        if (lazyDistance10Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(lazyDistance20Feed) {
-        if (lazyDistance20Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(lazyDistance50Feed) {
-        if (lazyDistance50Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
+    Log.e("asd","아이템 값:${lazyDistanceFeed.itemCount}")
 
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        if ((distance == DistanceEnum.UNDER_1 && lazyDistance1Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_5 && lazyDistance5Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_10 && lazyDistance10Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_20 && lazyDistance20Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)
-        ) {
+        if (lazyDistanceFeed.itemCount == 0) {
             ReplaceHomeList()
         } else {
             LazyColumn(
                 state = scrollState,
                 modifier = Modifier.pullRefresh(pullRefreshState)
             ) {
-                when (distance) {
-                    DistanceEnum.UNDER_1 -> {
-                        items(lazyDistance1Feed.itemCount) { index ->
-                            val feedItem = lazyDistance1Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_5 -> {
-                        items(lazyDistance5Feed.itemCount) { index ->
-                            val feedItem = lazyDistance5Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_10 -> {
-                        items(lazyDistance10Feed.itemCount) { index ->
-                            val feedItem = lazyDistance10Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_20 -> {
-                        items(lazyDistance20Feed.itemCount) { index ->
-                            val feedItem = lazyDistance20Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_50 -> {
-                        items(lazyDistance50Feed.itemCount) { index ->
-                            val feedItem = lazyDistance50Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
+                items(lazyDistanceFeed.itemCount) { index ->
+                    val feedItem = lazyDistanceFeed[index]
+                    feedItem?.let {
+                        DistanceContentCard(it, navController)
                     }
                 }
             }
             if (showMoveToTopButton) {
-                Box(modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        coroutineScope.launch {
-                            scrollState.animateScrollToItem(0)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 120.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            coroutineScope.launch {
+                                scrollState.animateScrollToItem(0)
+                            }
                         }
-                    }
                 ) {
                     MoveToTop()
                 }
             }
-            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
+            RefreshIndicator(
+                Modifier.align(Alignment.TopCenter),
+                pullRefreshState,
+                isRefreshing
+            )
         }
     }
+
+//    Box(
+//        modifier = Modifier.fillMaxSize(),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        if ((distance == DistanceEnum.UNDER_1 && lazyDistance1Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_5 && lazyDistance5Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_10 && lazyDistance10Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_20 && lazyDistance20Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)
+//        ) {
+//            ReplaceHomeList()
+//        } else {
+//            LazyColumn(
+//                state = scrollState,
+//                modifier = Modifier.pullRefresh(pullRefreshState)
+//            ) {
+//                when (distance) {
+//                    DistanceEnum.UNDER_1 -> {
+//                        items(lazyDistance1Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance1Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_5 -> {
+//                        items(lazyDistance5Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance5Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_10 -> {
+//                        items(lazyDistance10Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance10Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_20 -> {
+//                        items(lazyDistance20Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance20Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_50 -> {
+//                        items(lazyDistance50Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance50Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            if (showMoveToTopButton) {
+//                Box(modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(bottom = 120.dp)
+//                    .clickable(
+//                        interactionSource = remember { MutableInteractionSource() },
+//                        indication = null
+//                    ) {
+//                        coroutineScope.launch {
+//                            scrollState.animateScrollToItem(0)
+//                        }
+//                    }
+//                ) {
+//                    MoveToTop()
+//                }
+//            }
+//            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -692,13 +764,13 @@ fun LatestContentCard(
                     .fillMaxWidth()
                     .height(60.dp)
                     .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0x00000000), // 투명한 검정
-                            Color(0x99000000)  // 약간 불투명한 검정
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
                         )
                     )
-                )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -781,7 +853,7 @@ fun PopularityContentCard(
                     } else {
                         FontFamily.Default
                     }
-             ,
+                    ,
                     fontWeight = FontWeight.Bold,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -1180,10 +1252,21 @@ fun formatTimeDifference(timeString: String): String {
 
 fun formatDistanceInKm(distance: Double): String {
     return when {
-        distance < 0.1 -> "${(distance * 1000).toInt()}m 이내" // 0~99m
-        distance < 1.0 -> "${(distance * 1000).toInt() / 100 * 100}m" // 100~999m
-        distance < 100.0 -> "${distance.toInt()}km" // 1km~100km
-        else -> "${(distance / 100).toInt() * 100}km" // 100km 이상
+        distance == 0.0 -> "100m 이내" // 0일경우
+        distance < 0.1 -> "100m 이내" // 0.1km 미만
+        distance < 1.0 -> {
+            val roundedDistance = ((distance * 1000) / 100).toInt() * 100 // 100m 단위
+            "${roundedDistance}m"
+        }
+        distance < 100.0 -> {
+            // 5km 단위로 반올림
+            val roundedDistance = (Math.round(distance / 5) * 5).toInt()
+            "${roundedDistance}km"
+        }
+        else -> {
+            val roundedDistance = (distance / 100).toInt() * 100 // 100km 단위
+            "${roundedDistance}km"
+        }
     }
 }
 
@@ -1570,6 +1653,29 @@ fun LocationDialog(openLocationDialog: (Boolean) -> Unit, onLocationResulted: (B
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun BackPressExitHandler() {
+    val context = LocalContext.current
+    var backPressedOnce by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // 뒤로가기 버튼 핸들링
+    BackHandler {
+        if (backPressedOnce) {
+            exitProcess(0)
+        } else {
+            backPressedOnce = true
+            Toast.makeText(context, "뒤로 가기 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+
+            coroutineScope.launch {
+                delay(3000)
+                backPressedOnce = false
             }
         }
     }

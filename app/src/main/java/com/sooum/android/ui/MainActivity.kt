@@ -2,8 +2,10 @@ package com.sooum.android.ui
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
@@ -19,11 +21,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +42,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,7 +51,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -64,6 +78,7 @@ import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
 import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.system.exitProcess
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -81,6 +96,8 @@ class MainActivity : ComponentActivity() {
                 LocalContext.current.getContentResolver(),
                 Settings.Secure.ANDROID_ID
             )
+
+            mainViewModel.fetchAppVersion(this)
             mainViewModel.login(android_id, {
                 mainViewModel.fetchUnreadNotificationCount()
             })
@@ -137,6 +154,18 @@ fun SplashScreen(
     val permissions =
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
 
+    // 앱 버전 다이얼로그
+    AppVersionDialog(mainViewModel.showDialogVersion) { updateValue ->
+        if(updateValue) {
+            // 업데이트 진행할 시
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}"))
+            context.startActivity(intent)
+        }else {
+            // 업데이트 진행 안할 시
+            exitProcess(0)
+        }
+    }
+
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
 //        mainViewModel.login(android_id, context, {
@@ -160,16 +189,21 @@ fun SplashScreen(
                     User.userInfo.latitude = location.latitude
                     User.userInfo.longitude = location.longitude
                 }
+                if (!mainViewModel.showDialogVersion.value) {
+                    navController.navigate("main") {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+
+            }
+        } else {
+            Log.d("123", "권한 거부됨")
+            if (!mainViewModel.showDialogVersion.value) {
                 navController.navigate("main") {
                     popUpTo(navController.graph.id) { inclusive = true }
                     launchSingleTop = true
                 }
-            }
-        } else {
-            Log.d("123", "권한 거부됨")
-            navController.navigate("main") {
-                popUpTo(navController.graph.id) { inclusive = true }
-                launchSingleTop = true
             }
         }
     }
@@ -212,9 +246,11 @@ fun SplashScreen(
                     User.userInfo.latitude = location.latitude
                     User.userInfo.longitude = location.longitude
                 }
-                navController.navigate("main") {
-                    popUpTo(navController.graph.id) { inclusive = true }
-                    launchSingleTop = true
+                if (!mainViewModel.showDialogVersion.value) {
+                    navController.navigate("main") {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             }
         }
@@ -409,6 +445,87 @@ fun Main(mainViewModel: MainViewModel) {
                     startDestination = LogInNav.LogIn.screenRoute,
                     mainViewModel
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun AppVersionDialog(
+    showDialogState: MutableState<Boolean>,
+    onButtonClick: (Boolean) -> Unit,
+) {
+    if (showDialogState.value) {
+        Dialog(onDismissRequest = {
+
+        }) {
+            Card(
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        top = 22.dp,
+                        bottom = 14.dp,
+                        start = 14.dp,
+                        end = 14.dp
+                    ),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    androidx.compose.material3.Text(
+                        text = "업데이트 안내",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colorResource(R.color.gray800),
+                        lineHeight = 24.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    androidx.compose.material3.Text(
+                        text = "안정적인 서비스를 사용을 위해\n최신버전으로 업데이트해주세요.",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colorResource(R.color.gray600),
+                        lineHeight = 19.6.sp
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                onButtonClick(false)
+                            },
+                            modifier = Modifier
+                                .width(130.dp)
+                                .height(46.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.gray03)),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            androidx.compose.material3.Text(
+                                text = "종료하기",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black.copy(alpha = 0.5f)
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                onButtonClick(true)
+                            },
+                            modifier = Modifier
+                                .width(130.dp)
+                                .height(46.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary_color)),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            androidx.compose.material3.Text(
+                                text = "업데이트",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
             }
         }
     }

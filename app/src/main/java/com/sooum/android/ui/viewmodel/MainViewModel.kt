@@ -1,5 +1,6 @@
 package com.sooum.android.ui.viewmodel
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -16,6 +17,7 @@ import com.sooum.android.domain.model.Token
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
 import com.sooum.android.domain.usecase.profile.SuspensionUseCase
+import com.sooum.android.domain.usecase.version.AppVersionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
@@ -30,7 +32,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val getAllUnreadCountUseCase: AllUnreadCountUseCase,
     private val readNotificationUseCase: ReadNotificationUseCase,
-    private val suspensionUseCase: SuspensionUseCase
+    private val suspensionUseCase: SuspensionUseCase,
+    private val getAppVersionUseCase: AppVersionUseCase
 ) : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
@@ -42,6 +45,9 @@ class MainViewModel @Inject constructor(
 
     var unreadNotificationCount = mutableStateOf(0)
         private set
+
+    // 버전 비교용 다이얼로그
+    val showDialogVersion = mutableStateOf(false)
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
@@ -130,6 +136,29 @@ class MainViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+        }
+    }
+
+    fun fetchAppVersion(context: Context) {
+        viewModelScope.launch {
+            runCatching {
+                getAppVersionUseCase()
+            }
+                .onSuccess { version ->
+                    val packageManager = context.packageManager
+                    val packageName = context.packageName
+                    val packageInfo = packageManager.getPackageInfo(packageName, 0)
+
+                    if (version.isNotEmpty()) {
+                        // api 에러 방지
+                        if (version != packageInfo.versionName) {
+                            showDialogVersion.value = true
+                        }
+                    }
+                }
+                .onFailure { error ->
+                    Log.e("error ", "error : ${error.message}")
+                }
         }
     }
 }

@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -96,7 +95,7 @@ fun NotificationScreen(navController: NavController) {
                     }
             )
             Text(
-                text = "덧글 히스토리",
+                text = "알림",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 lineHeight = 24.sp,
@@ -135,20 +134,17 @@ fun TabLayout(
         ) {
             tabList.forEachIndexed { index, page ->
                 val selected = (pagerState.currentPage == index)
-                Tab(
-                    selected = selected,
-                    onClick = {
-                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                    },
+                Box(
                     modifier = Modifier
                         .padding(top = 7.dp, bottom = 11.dp)
                         .clickable(
                             onClick = {
                                 coroutineScope.launch { pagerState.animateScrollToPage(index) }
                             },
-                            indication = null, // 리플 효과 제거
+                            indication = null,
                             interactionSource = remember { MutableInteractionSource() }
-                        )
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = when (page) {
@@ -164,6 +160,37 @@ fun TabLayout(
                         lineHeight = 19.6.sp
                     )
                 }
+                // 기존 코드 백업용
+//                Tab(
+//                    selected = selected,
+//                    onClick = {
+//                        coroutineScope.launch { pagerState.animateScrollToPage(index) }
+//                    },
+//                    modifier = Modifier
+//                        .padding(top = 7.dp, bottom = 11.dp)
+//                        .clickable(
+//                            onClick = {
+//                                coroutineScope.launch { pagerState.animateScrollToPage(index) }
+//                            },
+//                            indication = null, // 리플 효과 제거
+//                            interactionSource = remember { MutableInteractionSource() },
+//
+//                            ),
+//                ) {
+//                    Text(
+//                        text = when (page) {
+//                            TabEnum.ALL -> "전체"
+//                            TabEnum.REPLY -> "답카드"
+//                            TabEnum.LIKE -> "공감"
+//                        },
+//                        color = if (selected) colorResource(R.color.blue300)
+//                        else colorResource(R.color.gray400),
+//                        fontSize = 14.sp,
+//                        fontWeight = if (selected) FontWeight.Medium
+//                        else FontWeight.Normal,
+//                        lineHeight = 19.6.sp
+//                    )
+//                }
             }
         }
         HorizontalPager(
@@ -185,7 +212,6 @@ fun TabLayout(
         }
     }
 }
-
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

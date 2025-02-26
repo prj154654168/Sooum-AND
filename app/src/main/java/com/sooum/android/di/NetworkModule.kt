@@ -1,6 +1,7 @@
 package com.sooum.android.di
 
 import com.sooum.android.Constants.BASE_URL
+import com.sooum.android.data.remote.AppVersionApi
 import com.sooum.android.data.remote.AuthInterceptor
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.remote.NotificationApi
@@ -67,5 +68,11 @@ object NetworkModule {
     @Provides
     fun getNotificationApiInstance(retrofit: Retrofit) : NotificationApi {
         return retrofit.create(NotificationApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun getAppVersionApiInstance(retrofit: Retrofit) : AppVersionApi {
+        return retrofit.create(AppVersionApi::class.java)
     }
 }

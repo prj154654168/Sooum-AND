@@ -1,7 +1,6 @@
 package com.sooum.android.ui
 
 import android.os.Build
-import android.widget.Space
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,11 +51,8 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemKey
 import com.sooum.android.R
-import com.sooum.android.User
 import com.sooum.android.domain.model.TagFeedDataModel
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.TagViewModel
@@ -218,6 +214,11 @@ fun TagListScreen(navController: NavController, tagId: String) {
                     LazyColumn(
                         state = tagScrollState,
                         modifier = Modifier.pullRefresh(pullRefreshState)
+                            .align(if(lazyTagFeed.itemCount == 1) {
+                                Alignment.TopStart
+                            }else {
+                                Alignment.Center
+                            })
                     ) {
                         items(lazyTagFeed.itemCount) { index ->
                             TagContentCard(lazyTagFeed[index]!!, index, onItemClick = { cardId ->
