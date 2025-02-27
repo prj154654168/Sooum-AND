@@ -142,22 +142,19 @@ class MainViewModel @Inject constructor(
     fun fetchAppVersion(context: Context) {
         viewModelScope.launch {
             runCatching {
-                getAppVersionUseCase()
+                val packageManager = context.packageManager
+                val packageName = context.packageName
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                getAppVersionUseCase(packageInfo.packageName)
             }
-                .onSuccess { version ->
-                    val packageManager = context.packageManager
-                    val packageName = context.packageName
-                    val packageInfo = packageManager.getPackageInfo(packageName, 0)
-
-                    if (version.isNotEmpty()) {
-                        // api 에러 방지
-                        if (version != packageInfo.versionName) {
-                            showDialogVersion.value = true
-                        }
+                .onSuccess { result ->
+                    if (result == "\"UPDATE\"") {
+                        // 업데이트 진행
+                        showDialogVersion.value = true
                     }
                 }
                 .onFailure { error ->
-                    Log.e("error ", "error : ${error.message}")
+                    Log.e("error ", "versionError : ${error.message}")
                 }
         }
     }

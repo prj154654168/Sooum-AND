@@ -1,5 +1,5 @@
 package com.sooum.android.domain.repository
 
 interface AppVersionRepository {
-    suspend fun getAppVersion():String
+    suspend fun getAppVersion(currentVersion:String):String
 }

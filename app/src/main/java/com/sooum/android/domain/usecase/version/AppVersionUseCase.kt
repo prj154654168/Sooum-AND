@@ -6,7 +6,7 @@ import javax.inject.Inject
 class AppVersionUseCase @Inject constructor(
     private val repository : AppVersionRepository
 ) {
-    suspend operator fun invoke():String {
-        return repository.getAppVersion()
+    suspend operator fun invoke(currentVersion:String):String {
+        return repository.getAppVersion(currentVersion)
     }
 }
