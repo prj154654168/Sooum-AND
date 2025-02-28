@@ -132,7 +132,7 @@ fun HomeScreen(navController: NavHostController) {
 
     // 다이얼로그 state
     var openLocationDialog by remember { mutableStateOf(false) }
-    var openSystemLocationDialog by remember { mutableStateOf(false)}
+    var openSystemLocationDialog by remember { mutableStateOf(false) }
 
     // 각각의 리스트(LazyColumn) 상태 (최신/인기/거리)
     val latestScrollState = rememberLazyListState()
@@ -145,13 +145,11 @@ fun HomeScreen(navController: NavHostController) {
             latestScrollState.firstVisibleItemIndex > 0 || latestScrollState.firstVisibleItemScrollOffset > 0
         }
     }
-
     val showMoveToTopButtonForPopularity by remember {
         derivedStateOf {
             popularityScrollState.firstVisibleItemIndex > 0 || popularityScrollState.firstVisibleItemScrollOffset > 0
         }
     }
-
     val showMoveToTopButtonForDistance by remember {
         derivedStateOf {
             distanceScrollState.firstVisibleItemIndex > 0 || distanceScrollState.firstVisibleItemScrollOffset > 0
@@ -163,69 +161,68 @@ fun HomeScreen(navController: NavHostController) {
     var popularityPreviousIndex by remember { mutableStateOf(0) }
     var distancePreviousIndex by remember { mutableStateOf(0) }
 
-    // "최신/인기/거리" 탭 선택 상태
-    var selected by remember { mutableStateOf(HomeSelectEnum.LATEST) }
-
     // 거리 필터 값
     var distance by remember { mutableStateOf(DistanceEnum.UNDER_1) }
 
     // 코루틴 스코프 (Pager 이동 시 애니메이션을 위해)
     val coroutineScope = rememberCoroutineScope()
 
+    // 페이지 수: 최신(0), 인기(1), 거리(2) 총 3개
     val pagerState = rememberPagerState(
-        initialPage = selected.ordinal,    // 탭 상태에 맞춰 초기 페이지 지정
-        pageCount = { 3 }          // 총 페이지 수 람다
+        initialPage = HomeSelectEnum.LATEST.ordinal,
+        pageCount = { 3 }
     )
 
+    // 스크롤 상태별 헤더 표시/숨김 로직
     LaunchedEffect(latestScrollState) {
         snapshotFlow { latestScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
-                isVisible = currentIndex <= latestPreviousIndex
+                isVisible = (currentIndex <= latestPreviousIndex)
                 latestPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(popularityScrollState) {
         snapshotFlow { popularityScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
-                isVisible = currentIndex <= popularityPreviousIndex
+                isVisible = (currentIndex <= popularityPreviousIndex)
                 popularityPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(distanceScrollState) {
         snapshotFlow { distanceScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
-                isVisible = currentIndex <= distancePreviousIndex
+                isVisible = (currentIndex <= distancePreviousIndex)
                 distancePreviousIndex = currentIndex
             }
     }
 
-    // 스크롤로 페이지 이동이 완료될 때마다 툴바 보이기
+    // Pager가 이동 완료될 때마다 툴바(헤더) 보이기
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }
-            .collect { newPage ->
+            .collect {
                 // 페이지가 바뀌었으니 툴바 다시 보이기
                 isVisible = true
             }
     }
 
-    // 인기순 페이지 진입 시, 뷰모델에 데이터가 없다면 최초 fetch
-    LaunchedEffect(selected) {
-        if (selected == HomeSelectEnum.POPULARITY && homeViewModel.popularityCardList.isEmpty()) {
-            homeViewModel.fetchPopularityCardList(latitude, longitude, {})
-        }
-    }
     val context = LocalContext.current
 
-
-    // 사용자가 스와이프로 pagerState.currentPage를 바꾸면, selected도 바뀜
+    // pagerState.currentPage가 바뀔 때마다 실행
     LaunchedEffect(pagerState.currentPage) {
-        selected = HomeSelectEnum.entries.toTypedArray()[pagerState.currentPage]
-    }
+        // 1) "인기순" 탭에 진입 시, 데이터가 없다면 최초 fetch
+        if (pagerState.currentPage == HomeSelectEnum.POPULARITY.ordinal &&
+            homeViewModel.popularityCardList.isEmpty()
+        ) {
+            homeViewModel.fetchPopularityCardList(latitude, longitude) {
+                // fetch 완료 콜백
+            }
+        }
 
-    // 사용자가 상단 탭을 클릭해 selected가 바뀌면, pagerState도 이동
-    LaunchedEffect(selected) {
-        coroutineScope.launch {
-            pagerState.animateScrollToPage(selected.ordinal)
+        // 2) "거리순" 탭으로 이동 시, 아직 위치값이 없다면 위치 다이얼로그 오픈
+        if (pagerState.currentPage == HomeSelectEnum.DISTANCE.ordinal &&
+            (latitude == null || longitude == null)
+        ) {
+            openLocationDialog = true
         }
     }
 
@@ -237,101 +234,107 @@ fun HomeScreen(navController: NavHostController) {
         Column(
             modifier = Modifier.animateContentSize()
         ) {
+            // 상단 탭 + 거리 필터 (isVisible 상태에 따라 보이거나 숨김)
             AnimatedVisibility(
                 visible = isVisible
             ) {
                 Column {
-                    // 최신순/인기순/거리순 탭 (클릭 시 selected 변경)
+                    // 최신 / 인기 / 거리 탭 UI
                     HomeSelect(
-                        selected = selected,
+                        selected = HomeSelectEnum.values()[pagerState.currentPage],
                         onSelectedChange = { newSelectedEnum ->
-                            selected = newSelectedEnum
-                            if (selected == HomeSelectEnum.DISTANCE && latitude == null && longitude == null) {
-                                openLocationDialog = true
+                            coroutineScope.launch {
+                                // animateScrollToPage -> scrollToPage 로 변경
+                                pagerState.scrollToPage(newSelectedEnum.ordinal)
                             }
                         }
                     )
+
                     Divider(
                         Modifier
                             .fillMaxWidth()
                             .height(1.dp)
                     )
-                    // "거리 순"을 선택했을 때만 거리 필터 표시
-                    if (selected == HomeSelectEnum.DISTANCE) {
-                        LocationFilter(distance, onDistanceChange = { newDistance ->
-                            distance = newDistance
-                        })
+
+                    // "거리 순"일 때만 거리 필터 표시
+                    if (pagerState.currentPage == HomeSelectEnum.DISTANCE.ordinal) {
+                        LocationFilter(
+                            distance = distance,
+                            onDistanceChange = { newDistance ->
+                                distance = newDistance
+                            }
+                        )
                     }
                 }
             }
 
-            /**********************************************
-             * HorizontalPager: 페이지 인덱스(pageIndex)에 따라
-             * 3가지 화면(최신 / 인기 / 거리)을 보여준다.
-             *
-             * 기존에 'selected' 값으로 분기했던 'when(selected)'를
-             * 여기서 'pageIndex'로 대체한 것.
-             *
-             * 즉, "0번째 페이지 -> 최신순 리스트"
-             *     "1번째 페이지 -> 인기순 리스트"
-             *     "2번째 페이지 -> 거리순 리스트"
-             * 형태로 렌더링한다.
-             **********************************************/
-
+            // pageIndex에 따라 3가지 화면(최신 / 인기 / 거리)을 보여줌
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize()
             ) { pageIndex ->
                 when (pageIndex) {
-                    0 -> LatestFeedList(
-                        navController = navController,
-                        homeViewModel = homeViewModel,
-                        scrollState = latestScrollState,
-                        showMoveToTopButton = showMoveToTopButtonForLatest
-                    )
-                    1 -> PopularityFeedList(
-                        navController = navController,
-                        homeViewModel = homeViewModel,
-                        scrollState = popularityScrollState,
-                        showMoveToTopButton = showMoveToTopButtonForPopularity
-                    )
-                    2 -> DistanceFeedList(
-                        navController = navController,
-                        homeViewModel = homeViewModel,
-                        scrollState = distanceScrollState,
-                        showMoveToTopButton = showMoveToTopButtonForDistance,
-                        distance = distance
-                    )
+                    HomeSelectEnum.LATEST.ordinal -> {
+                        LatestFeedList(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            scrollState = latestScrollState,
+                            showMoveToTopButton = showMoveToTopButtonForLatest
+                        )
+                    }
+                    HomeSelectEnum.POPULARITY.ordinal -> {
+                        PopularityFeedList(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            scrollState = popularityScrollState,
+                            showMoveToTopButton = showMoveToTopButtonForPopularity
+                        )
+                    }
+                    HomeSelectEnum.DISTANCE.ordinal -> {
+                        DistanceFeedList(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            scrollState = distanceScrollState,
+                            showMoveToTopButton = showMoveToTopButtonForDistance,
+                            distance = distance
+                        )
+                    }
                 }
             }
 
+            // 위치 설정 다이얼로그
             if (openLocationDialog) {
-                LocationDialog(openLocationDialog = { isOpen ->
-                    openLocationDialog = isOpen
-                },
+                LocationDialog(
+                    openLocationDialog = { isOpen ->
+                        openLocationDialog = isOpen
+                    },
                     onLocationResulted = { isGrant ->
+                        // 권한 허용 시 openSystemLocationDialog = true
                         openSystemLocationDialog = isGrant
                     }
                 )
             }
-            if (openSystemLocationDialog) {
 
-                if (ActivityCompat.shouldShowRequestPermissionRationale(
+            // 시스템 위치 설정 다이얼로그
+            if (openSystemLocationDialog) {
+                if (
+                    ActivityCompat.shouldShowRequestPermissionRationale(
                         context as Activity,
                         android.Manifest.permission.ACCESS_FINE_LOCATION
                     )
                 ) {
+                    // 권한 재요청
                     GetUserLocation { location ->
                         latitude = location?.latitude
                         longitude = location?.longitude
                     }
                 } else {
+                    // 사용자가 "다시 묻지 않음"을 체크한 경우, 설정 화면으로 유도
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     val uri = Uri.fromParts("package", context.packageName, null)
                     intent.data = uri
                     context.startActivity(intent)
                 }
-
             }
         }
     }
