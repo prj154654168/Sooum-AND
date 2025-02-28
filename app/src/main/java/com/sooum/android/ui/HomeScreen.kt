@@ -44,6 +44,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -209,7 +210,7 @@ fun HomeScreen(navController: NavHostController) {
 
     // pagerState.currentPage가 바뀔 때마다 실행
     LaunchedEffect(pagerState.currentPage) {
-        // 1) "인기순" 탭에 진입 시, 데이터가 없다면 최초 fetch
+        // "인기순" 탭에 진입 시, 데이터가 없다면 최초 fetch
         if (pagerState.currentPage == HomeSelectEnum.POPULARITY.ordinal &&
             homeViewModel.popularityCardList.isEmpty()
         ) {
@@ -218,7 +219,7 @@ fun HomeScreen(navController: NavHostController) {
             }
         }
 
-        // 2) "거리순" 탭으로 이동 시, 아직 위치값이 없다면 위치 다이얼로그 오픈
+        // "거리순" 탭으로 이동 시, 아직 위치값이 없다면 위치 다이얼로그 오픈
         if (pagerState.currentPage == HomeSelectEnum.DISTANCE.ordinal &&
             (latitude == null || longitude == null)
         ) {
@@ -282,6 +283,7 @@ fun HomeScreen(navController: NavHostController) {
                             showMoveToTopButton = showMoveToTopButtonForLatest
                         )
                     }
+
                     HomeSelectEnum.POPULARITY.ordinal -> {
                         PopularityFeedList(
                             navController = navController,
@@ -290,6 +292,7 @@ fun HomeScreen(navController: NavHostController) {
                             showMoveToTopButton = showMoveToTopButtonForPopularity
                         )
                     }
+
                     HomeSelectEnum.DISTANCE.ordinal -> {
                         DistanceFeedList(
                             navController = navController,
@@ -370,7 +373,9 @@ fun LatestFeedList(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentAlignment = Alignment.Center
     ) {
         if (lazyLatestFeed.itemCount == 0) {
@@ -379,7 +384,6 @@ fun LatestFeedList(
             LazyColumn(
                 state = scrollState,
                 modifier = Modifier
-                    .pullRefresh(pullRefreshState)
                     .fillMaxSize()
             ) {
                 items(count = lazyLatestFeed.itemCount,
@@ -436,11 +440,23 @@ fun PopularityFeedList(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentAlignment = Alignment.Center
     ) {
         if (homeViewModel.popularityCardList.isEmpty()) {
-            ReplaceHomeList()
+            //스크롤 가능한 영역(VerticalScroll)으로 감싸주기
+            //    => 이를 통해 Pull-to-Refresh 제스처를 인식할 수 있게 함
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ReplaceHomeList()
+            }
         } else {
             LazyColumn(
                 state = scrollState,
@@ -469,8 +485,8 @@ fun PopularityFeedList(
                     MoveToTop()
                 }
             }
-            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
+        RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
     }
 }
 
@@ -486,24 +502,20 @@ fun DistanceFeedList(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    var isRefreshing by remember { mutableStateOf(false) }
-
-    // 변경: distance 값에 따라 Flow를 한 번만 생성하도록 캐싱 (재composition 시 재생성 방지)
+    // distance 값에 따라 Flow를 한 번만 생성 (재composition 시 재생성 방지)
     val lazyDistanceFeedFlow = remember(distance) {
         homeViewModel.getLazyDistanceFeed(distance)
     }
     val lazyDistanceFeed = lazyDistanceFeedFlow.collectAsLazyPagingItems()
 
-//    val lazyDistance1Feed = homeViewModel.lazyDistance1Feed.collectAsLazyPagingItems()
-//    val lazyDistance5Feed = homeViewModel.lazyDistance5Feed.collectAsLazyPagingItems()
-//    val lazyDistance10Feed = homeViewModel.lazyDistance10Feed.collectAsLazyPagingItems()
-//    val lazyDistance20Feed = homeViewModel.lazyDistance20Feed.collectAsLazyPagingItems()
-//    val lazyDistance50Feed = homeViewModel.lazyDistance50Feed.collectAsLazyPagingItems()
+    // Loading 여부를 체크
+    var isRefreshing by remember { mutableStateOf(false) }
 
+    // Pull-to-Refresh 상태 관리
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
-            // 변경: 이미 로딩중이면 refresh 호출을 방지
+            // 이미 로딩중이면 refresh 호출을 방지
             if (lazyDistanceFeed.loadState.refresh !is LoadState.Loading) {
                 isRefreshing = true
                 lazyDistanceFeed.refresh()
@@ -511,79 +523,41 @@ fun DistanceFeedList(
         }
     )
 
-//    val pullRefreshState = rememberPullRefreshState(
-//        refreshing = isRefreshing,
-//        onRefresh = {
-//            isRefreshing = true
-//            when (distance) {
-//                DistanceEnum.UNDER_1 -> {
-//                    lazyDistance1Feed.refresh()
-//                }
-//
-//                DistanceEnum.UNDER_5 -> {
-//                    lazyDistance5Feed.refresh()
-//                }
-//
-//                DistanceEnum.UNDER_10 -> {
-//                    lazyDistance10Feed.refresh()
-//                }
-//
-//                DistanceEnum.UNDER_20 -> {
-//                    lazyDistance20Feed.refresh()
-//                }
-//
-//                DistanceEnum.UNDER_50 -> {
-//                    lazyDistance50Feed.refresh()
-//                }
-//            }
-//        }
-//    )
-
-    // 변경: 단일 feed의 상태에 따라 isRefreshing 값을 업데이트 (여기서도 Flow가 새로 생성되지 않도록 주의)
+    // refresh 상태 변화 감지 (Paging3 loadState.refresh)
     LaunchedEffect(lazyDistanceFeed) {
         snapshotFlow { lazyDistanceFeed.loadState.refresh }
             .collect { refreshState ->
+                // 로딩이 종료되면 isRefreshing=false
                 if (refreshState !is LoadState.Loading) {
                     isRefreshing = false
                 }
             }
     }
-//    LaunchedEffect(lazyDistance5Feed) {
-//        if (lazyDistance5Feed.loadState.refresh !is LoadState.Loading) {
-//            isRefreshing = false
-//        }
-//    }
-//
-//    LaunchedEffect(lazyDistance10Feed) {
-//        if (lazyDistance10Feed.loadState.refresh !is LoadState.Loading) {
-//            isRefreshing = false
-//        }
-//    }
-//
-//    LaunchedEffect(lazyDistance20Feed) {
-//        if (lazyDistance20Feed.loadState.refresh !is LoadState.Loading) {
-//            isRefreshing = false
-//        }
-//    }
-//
-//    LaunchedEffect(lazyDistance50Feed) {
-//        if (lazyDistance50Feed.loadState.refresh !is LoadState.Loading) {
-//            isRefreshing = false
-//        }
-//    }
-
-    Log.e("asd","아이템 값:${lazyDistanceFeed.itemCount}")
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentAlignment = Alignment.Center
     ) {
+        // 데이터가 없는지 확인
         if (lazyDistanceFeed.itemCount == 0) {
-            ReplaceHomeList()
+            //스크롤 가능한 영역(VerticalScroll)으로 감싸주기
+            //    => 이를 통해 Pull-to-Refresh 제스처를 인식할 수 있게 함
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 기존 ReplaceHomeList() 내용
+                ReplaceHomeList()
+            }
         } else {
             LazyColumn(
                 state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)
+                modifier = Modifier.fillMaxSize()
             ) {
                 items(lazyDistanceFeed.itemCount) { index ->
                     val feedItem = lazyDistanceFeed[index]
@@ -609,13 +583,15 @@ fun DistanceFeedList(
                     MoveToTop()
                 }
             }
-            RefreshIndicator(
-                Modifier.align(Alignment.TopCenter),
-                pullRefreshState,
-                isRefreshing
-            )
         }
+
+        RefreshIndicator(
+            state = pullRefreshState,
+            refreshing = isRefreshing,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
+
 
 //    Box(
 //        modifier = Modifier.fillMaxSize(),
@@ -810,7 +786,8 @@ fun LatestContentCard(
                     lineHeight = 28.8.sp,
                     fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
                         FontFamily(
-                            Font(R.font.handwrite))
+                            Font(R.font.handwrite)
+                        )
                     } else {
                         FontFamily.Default
                     }
@@ -906,11 +883,11 @@ fun PopularityContentCard(
                     fontSize = 16.sp,
                     fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
                         FontFamily(
-                            Font(R.font.handwrite))
+                            Font(R.font.handwrite)
+                        )
                     } else {
                         FontFamily.Default
-                    }
-                    ,
+                    },
                     fontWeight = FontWeight.Bold,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -1011,7 +988,8 @@ fun DistanceContentCard(
                     lineHeight = 28.8.sp,
                     fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
                         FontFamily(
-                            Font(R.font.handwrite))
+                            Font(R.font.handwrite)
+                        )
                     } else {
                         FontFamily.Default
                     }
@@ -1315,11 +1293,13 @@ fun formatDistanceInKm(distance: Double): String {
             val roundedDistance = ((distance * 1000) / 100).toInt() * 100 // 100m 단위
             "${roundedDistance}m"
         }
+
         distance < 100.0 -> {
             // 5km 단위로 반올림
             val roundedDistance = (Math.round(distance / 5) * 5).toInt()
             "${roundedDistance}km"
         }
+
         else -> {
             val roundedDistance = (distance / 100).toInt() * 100 // 100km 단위
             "${roundedDistance}km"
