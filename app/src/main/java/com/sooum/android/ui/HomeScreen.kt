@@ -39,6 +39,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -114,25 +116,30 @@ import kotlin.system.exitProcess
 @Composable
 fun HomeScreen(navController: NavHostController) {
 
-    // 뒤로가기 처리
+    // 뒤로가기 2번 눌렀을 때 앱 종료
     BackPressExitHandler()
 
+    // 화면에서 스크롤 위/아래에 따라 헤더(필터 등)를 보이거나 숨김
     var isVisible by remember { mutableStateOf(true) }
 
     val homeViewModel: HomeViewModel = hiltViewModel()
 
+    // 위치/거리 관련 State
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude
 
     Log.d("HomeScreen", "${latitude}, ${longitude}")
 
+    // 다이얼로그 state
     var openLocationDialog by remember { mutableStateOf(false) }
-    var openSystemLocationDialog by remember { mutableStateOf(false) }
+    var openSystemLocationDialog by remember { mutableStateOf(false)}
 
+    // 각각의 리스트(LazyColumn) 상태 (최신/인기/거리)
     val latestScrollState = rememberLazyListState()
     val popularityScrollState = rememberLazyListState()
     val distanceScrollState = rememberLazyListState()
 
+    // 스크롤 위치가 특정 조건 이상이면 "맨 위로" 버튼 보이기
     val showMoveToTopButtonForLatest by remember {
         derivedStateOf {
             latestScrollState.firstVisibleItemIndex > 0 || latestScrollState.firstVisibleItemScrollOffset > 0
@@ -151,12 +158,24 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 
+    // 이전 인덱스 추적 -> 스크롤 아래로 내리면 헤더 숨김, 위로 올리면 헤더 보임
     var latestPreviousIndex by remember { mutableStateOf(0) }
     var popularityPreviousIndex by remember { mutableStateOf(0) }
     var distancePreviousIndex by remember { mutableStateOf(0) }
 
+    // "최신/인기/거리" 탭 선택 상태
     var selected by remember { mutableStateOf(HomeSelectEnum.LATEST) }
+
+    // 거리 필터 값
     var distance by remember { mutableStateOf(DistanceEnum.UNDER_1) }
+
+    // 코루틴 스코프 (Pager 이동 시 애니메이션을 위해)
+    val coroutineScope = rememberCoroutineScope()
+
+    val pagerState = rememberPagerState(
+        initialPage = selected.ordinal,    // 탭 상태에 맞춰 초기 페이지 지정
+        pageCount = { 3 }          // 총 페이지 수 람다
+    )
 
     LaunchedEffect(latestScrollState) {
         snapshotFlow { latestScrollState.firstVisibleItemIndex }
@@ -180,12 +199,35 @@ fun HomeScreen(navController: NavHostController) {
             }
     }
 
+    // 스크롤로 페이지 이동이 완료될 때마다 툴바 보이기
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect { newPage ->
+                // 페이지가 바뀌었으니 툴바 다시 보이기
+                isVisible = true
+            }
+    }
+
+    // 인기순 페이지 진입 시, 뷰모델에 데이터가 없다면 최초 fetch
     LaunchedEffect(selected) {
         if (selected == HomeSelectEnum.POPULARITY && homeViewModel.popularityCardList.isEmpty()) {
             homeViewModel.fetchPopularityCardList(latitude, longitude, {})
         }
     }
     val context = LocalContext.current
+
+
+    // 사용자가 스와이프로 pagerState.currentPage를 바꾸면, selected도 바뀜
+    LaunchedEffect(pagerState.currentPage) {
+        selected = HomeSelectEnum.entries.toTypedArray()[pagerState.currentPage]
+    }
+
+    // 사용자가 상단 탭을 클릭해 selected가 바뀌면, pagerState도 이동
+    LaunchedEffect(selected) {
+        coroutineScope.launch {
+            pagerState.animateScrollToPage(selected.ordinal)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -199,6 +241,7 @@ fun HomeScreen(navController: NavHostController) {
                 visible = isVisible
             ) {
                 Column {
+                    // 최신순/인기순/거리순 탭 (클릭 시 selected 변경)
                     HomeSelect(
                         selected = selected,
                         onSelectedChange = { newSelectedEnum ->
@@ -213,6 +256,7 @@ fun HomeScreen(navController: NavHostController) {
                             .fillMaxWidth()
                             .height(1.dp)
                     )
+                    // "거리 순"을 선택했을 때만 거리 필터 표시
                     if (selected == HomeSelectEnum.DISTANCE) {
                         LocationFilter(distance, onDistanceChange = { newDistance ->
                             distance = newDistance
@@ -221,32 +265,42 @@ fun HomeScreen(navController: NavHostController) {
                 }
             }
 
-            when (selected) {
-                HomeSelectEnum.LATEST -> {
-                    LatestFeedList(
-                        navController,
-                        homeViewModel,
-                        latestScrollState,
-                        showMoveToTopButtonForLatest
-                    )
-                }
+            /**********************************************
+             * HorizontalPager: 페이지 인덱스(pageIndex)에 따라
+             * 3가지 화면(최신 / 인기 / 거리)을 보여준다.
+             *
+             * 기존에 'selected' 값으로 분기했던 'when(selected)'를
+             * 여기서 'pageIndex'로 대체한 것.
+             *
+             * 즉, "0번째 페이지 -> 최신순 리스트"
+             *     "1번째 페이지 -> 인기순 리스트"
+             *     "2번째 페이지 -> 거리순 리스트"
+             * 형태로 렌더링한다.
+             **********************************************/
 
-                HomeSelectEnum.POPULARITY -> {
-                    PopularityFeedList(
-                        navController,
-                        homeViewModel,
-                        popularityScrollState,
-                        showMoveToTopButtonForPopularity
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { pageIndex ->
+                when (pageIndex) {
+                    0 -> LatestFeedList(
+                        navController = navController,
+                        homeViewModel = homeViewModel,
+                        scrollState = latestScrollState,
+                        showMoveToTopButton = showMoveToTopButtonForLatest
                     )
-                }
-
-                HomeSelectEnum.DISTANCE -> {
-                    DistanceFeedList(
-                        navController,
-                        homeViewModel,
-                        distanceScrollState,
-                        showMoveToTopButtonForDistance,
-                        distance
+                    1 -> PopularityFeedList(
+                        navController = navController,
+                        homeViewModel = homeViewModel,
+                        scrollState = popularityScrollState,
+                        showMoveToTopButton = showMoveToTopButtonForPopularity
+                    )
+                    2 -> DistanceFeedList(
+                        navController = navController,
+                        homeViewModel = homeViewModel,
+                        scrollState = distanceScrollState,
+                        showMoveToTopButton = showMoveToTopButtonForDistance,
+                        distance = distance
                     )
                 }
             }
