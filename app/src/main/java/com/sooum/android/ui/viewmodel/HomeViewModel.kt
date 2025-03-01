@@ -78,6 +78,7 @@ class HomeViewModel @Inject constructor(
     fun fetchPopularityCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
+                delay(300)
                 val cardList = getPopularityFeedUseCase(latitude, longitude)
                 popularityCardList.clear()
                 popularityCardList.addAll(cardList)
@@ -86,7 +87,6 @@ class HomeViewModel @Inject constructor(
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
             finally {
-                delay(500)
                 onFetchFinished()
             }
         }

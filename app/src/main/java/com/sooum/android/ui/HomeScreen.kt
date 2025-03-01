@@ -393,6 +393,7 @@ fun LatestFeedList(
     )
 
     LaunchedEffect(lazyLatestFeed.loadState.refresh) {
+        delay(300)
         if (lazyLatestFeed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
@@ -553,6 +554,7 @@ fun DistanceFeedList(
     LaunchedEffect(lazyDistanceFeed) {
         snapshotFlow { lazyDistanceFeed.loadState.refresh }
             .collect { refreshState ->
+                delay(300)
                 // 로딩이 종료되면 isRefreshing=false
                 if (refreshState !is LoadState.Loading) {
                     isRefreshing = false
