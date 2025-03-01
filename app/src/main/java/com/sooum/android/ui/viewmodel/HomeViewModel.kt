@@ -30,7 +30,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     getLatestFeedUseCase: LatestFeedUseCase,
     private val getPopularityFeedUseCase: PopularityFeedUseCase,
-    getDistanceFeedUseCase: DistanceFeedUseCase,
+    private val getDistanceFeedUseCase: DistanceFeedUseCase,
     private val getAllUnreadCountUseCase: AllUnreadCountUseCase,
 ): ViewModel() {
 
@@ -39,20 +39,38 @@ class HomeViewModel @Inject constructor(
     var popularityCardList = mutableStateListOf<SortedByPopularityDataModel.Embedded.PopularFeedCard>()
         private set
 
-    val lazyDistance1Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_1).cachedIn(viewModelScope)
-    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+//    val lazyDistance1Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_1).cachedIn(viewModelScope)
+//    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+//
+//    val lazyDistance5Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_5).cachedIn(viewModelScope)
+//    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+//
+//    val lazyDistance10Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_10).cachedIn(viewModelScope)
+//    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+//
+//    val lazyDistance20Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_20).cachedIn(viewModelScope)
+//    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+//
+//    val lazyDistance50Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_50).cachedIn(viewModelScope)
+//    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    val lazyDistance5Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_5).cachedIn(viewModelScope)
-    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    val lazyDistance10Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_10).cachedIn(viewModelScope)
-    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
-    val lazyDistance20Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_20).cachedIn(viewModelScope)
-    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
+    // 기존에 5개의 LazyFlow를 미리 생성하던 방식을 제거하고,
+    // 선택된 거리(distance)에 따라 해당 Flow를 반환하는 함수로 변경함.
+    fun getLazyDistanceFeed(distance: DistanceEnum): Flow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>> {
+        return if (User.userInfo.latitude != null && User.userInfo.longitude != null) {
+            getDistanceFeedUseCase(
+                User.userInfo.latitude!!,
+                User.userInfo.longitude!!,
+                distance
+            ).cachedIn(viewModelScope)
+        } else {
+            emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>()
+                .cachedIn(viewModelScope)
+        }
+    }
 
-    val lazyDistance50Feed = if (User.userInfo.latitude != null && User.userInfo.longitude != null) getDistanceFeedUseCase(User.userInfo.latitude!!, User.userInfo.longitude!!, DistanceEnum.UNDER_50).cachedIn(viewModelScope)
-    else emptyFlow<PagingData<SortedByDistanceDataModel.Embedded.DistanceFeedCard>>().cachedIn(viewModelScope)
 
     var unreadNotificationCount = mutableStateOf(0)
         private set

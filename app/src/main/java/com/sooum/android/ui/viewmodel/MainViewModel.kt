@@ -1,5 +1,6 @@
 package com.sooum.android.ui.viewmodel
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -12,11 +13,11 @@ import androidx.lifecycle.viewModelScope
 import com.sooum.android.SooumApplication
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.EncryptedDeviceId
-import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.Token
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
 import com.sooum.android.domain.usecase.profile.SuspensionUseCase
+import com.sooum.android.domain.usecase.version.AppVersionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import java.security.KeyFactory
@@ -31,7 +32,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val getAllUnreadCountUseCase: AllUnreadCountUseCase,
     private val readNotificationUseCase: ReadNotificationUseCase,
-    private val suspensionUseCase: SuspensionUseCase
+    private val suspensionUseCase: SuspensionUseCase,
+    private val getAppVersionUseCase: AppVersionUseCase
 ) : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
@@ -43,6 +45,9 @@ class MainViewModel @Inject constructor(
 
     var unreadNotificationCount = mutableStateOf(0)
         private set
+
+    // 버전 비교용 다이얼로그
+    val showDialogVersion = mutableStateOf(false)
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
@@ -69,26 +74,6 @@ class MainViewModel @Inject constructor(
         val publicKey = base64ToRSAPublicKey(key.toString())
         // 문자열 암호화
         return encryptWithRSAPublicKey(android_id, publicKey)
-    }
-
-    fun updateFcm() {
-        viewModelScope.launch {
-            retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
-        }
-    }
-
-    fun handleNotificationRead(notificationId: Long) {
-        viewModelScope.launch {
-            try {
-                val result = readNotificationUseCase(notificationId)
-                Log.e("handleNotificationRead", notificationId.toString())
-            } catch (E: Exception) {
-                Log.e("handleNotificationRead", notificationId.toString())
-                println(E)
-            } finally {
-                isLoading = 1
-            }
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -131,7 +116,7 @@ class MainViewModel @Inject constructor(
                                 it.refreshToken
                             )
                         }
-                        retrofitInstance.updateFcm(FcmToken(SooumApplication().getVariable("fcmToken")))
+
                         onLoginFinished()
                     } else {
                         login = 2
@@ -151,6 +136,26 @@ class MainViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("HomeViewModel", e.printStackTrace().toString())
             }
+        }
+    }
+
+    fun fetchAppVersion(context: Context) {
+        viewModelScope.launch {
+            runCatching {
+                val packageManager = context.packageManager
+                val packageName = context.packageName
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                getAppVersionUseCase(packageInfo.packageName)
+            }
+                .onSuccess { result ->
+                    if (result == "\"UPDATE\"") {
+                        // 업데이트 진행
+                        showDialogVersion.value = true
+                    }
+                }
+                .onFailure { error ->
+                    Log.e("error ", "versionError : ${error.message}")
+                }
         }
     }
 }

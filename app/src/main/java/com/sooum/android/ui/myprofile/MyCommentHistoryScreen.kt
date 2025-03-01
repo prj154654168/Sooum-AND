@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,14 +29,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.ImageLoaderForUrl
+import com.sooum.android.ui.RefreshIndicator
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.MyCommentHistoryViewModel
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MyCommentHistoryScreen(navController: NavHostController) {
 
     val viewModel: MyCommentHistoryViewModel = hiltViewModel()
 
+    // PullRefreshState를 관리
+    val pullRefreshState = rememberPullRefreshState(refreshing = viewModel.refreshing.value, onRefresh = {
+        // 새로 고침 시작
+        viewModel.refreshComments()
+    })
 
     Box(
         modifier = Modifier
@@ -42,6 +52,7 @@ fun MyCommentHistoryScreen(navController: NavHostController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .pullRefresh(pullRefreshState)
         ) {
             Box(
                 modifier = Modifier
@@ -54,13 +65,16 @@ fun MyCommentHistoryScreen(navController: NavHostController) {
                     tint = colorResource(R.color.gray_black),
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .clickable {
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                        ) {
                             navController.popBackStack()
                         }
                         .padding(15.dp)
                 )
                 Text(
-                    text = "덧글 히스토리",
+                    text = "답카드 히스토리",
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
                     lineHeight = 24.sp,
@@ -69,7 +83,14 @@ fun MyCommentHistoryScreen(navController: NavHostController) {
                         .padding(15.dp)
                 )
 
+                // 새로 고침 인디케이터
+                RefreshIndicator(
+                    state = pullRefreshState,
+                    refreshing = viewModel.refreshing.value,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
+
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3)
             ) {

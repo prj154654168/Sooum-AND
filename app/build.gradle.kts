@@ -78,28 +78,28 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.3.0")
 
     //Retrofit2
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     //Pull to Refresh
-    implementation ("com.google.accompanist:accompanist-swiperefresh:0.36.0")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.36.0")
     implementation("androidx.compose.material:material:1.7.3")
 
     //viewmodel livedata(추후에 변경할듯)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("androidx.compose.runtime:runtime-livedata:1.3.2")
-    implementation ("androidx.activity:activity-ktx:1.1.0")
+    implementation("androidx.activity:activity-ktx:1.1.0")
 
     //GPS
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
     //flowRow
-    implementation ("com.google.accompanist:accompanist-flowlayout:0.30.1")
+    implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
 
     //Hilt
     implementation("com.google.dagger:hilt-android:2.48.1")
     kapt("com.google.dagger:hilt-compiler:2.48.1")
-    implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Paging3
     implementation("androidx.paging:paging-runtime-ktx:3.3.0")
@@ -110,15 +110,11 @@ dependencies {
 
     // OkHttp 및 HttpLoggingInterceptor
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
-    implementation ("com.squareup.okhttp3:logging-interceptor:4.10.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
 
     //haze
     implementation("dev.chrisbanes.haze:haze:1.0.2")
 
-    //fcm
-    implementation ("com.google.firebase:firebase-messaging-ktx")
-    implementation(platform("com.google.firebase:firebase-bom:32.3.1"))
+    //webvie
     implementation("com.google.accompanist:accompanist-webview:0.24.13-rc")
-    implementation ("com.google.firebase:firebase-analytics-ktx")
-
 }

@@ -75,12 +75,10 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sooum.android.R
-import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
-import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
@@ -103,8 +101,8 @@ fun DetailScreen(
     viewModel: DetailViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
 ) {
     var lastRefreshTime by remember { mutableStateOf(0L) }
-    var latitude = User.userInfo.latitude
-    var longitude = User.userInfo.longitude
+    val latitude = User.userInfo.latitude
+    val longitude = User.userInfo.longitude
     LaunchedEffect(Unit) {
         // 서버 호출 (예시로 delay로 가정)
         val currentTime = System.currentTimeMillis()
@@ -114,7 +112,7 @@ fun DetailScreen(
             Log.e("latitude", longitude.toString())
             viewModel.getFeedCard(latitude!!, longitude!!, it.toLong())
             viewModel.getDetailCardLikeCommentCount(it.toLong())
-            viewModel.getDetailCommentCard(it.toLong(), latitude!!, longitude!!)
+            viewModel.getDetailCommentCard(it.toLong(), latitude, longitude)
         }
     }
 
@@ -228,36 +226,38 @@ fun DetailScreen(
             }
         }
     )
-  //  val targetCardId = SooumApplication().getVariable("targetCardId")
+    //  val targetCardId = SooumApplication().getVariable("targetCardId")
 
+    // 뒤로가기 처리
     BackHandler {
-        var flag = 0
-        navController.backQueue.forEach { backStackEntry ->
-            Log.d(
-                "BackStack",
-                "Destination: ${backStackEntry.destination.route}"
-            )
-        }
-        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-            ?.let {
-                flag = 1
-                navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
-                    popUpTo(MyProfile.MyCommentHistory.screenRoute) {
-                        inclusive = true
-                    }
-                    launchSingleTop = true
-                }
-            }
-        Log.d("BackStack2", "2")
-        // 백스택 팝
-        if (flag == 0) {
-            navController.navigate(SooumNav.Home.screenRoute) {
-                popUpTo(navController.graph.id) {
-                    inclusive = true
-                }
-                launchSingleTop = true
-            }
-        }
+        navController.popBackStack()
+//        var flag = 0
+//        navController.backQueue.forEach { backStackEntry ->
+//            Log.d(
+//                "BackStack",
+//                "Destination: ${backStackEntry.destination.route}"
+//            )
+//        }
+//        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+//            ?.let {
+//                flag = 1
+//                navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+//                    popUpTo(MyProfile.MyCommentHistory.screenRoute) {
+//                        inclusive = true
+//                    }
+//                    launchSingleTop = true
+//                }
+//            }
+//        Log.d("BackStack2", "2")
+//        // 백스택 팝
+//        if (flag == 0) {
+//            navController.navigate(SooumNav.Home.screenRoute) {
+//                popUpTo(navController.graph.id) {
+//                    inclusive = true
+//                }
+//                launchSingleTop = true
+//            }
+//        }
 //        if (targetCardId != "") {
 //            SooumApplication().removeVariable("targetCardId")
 //            navController.navigate("main") {
@@ -275,34 +275,57 @@ fun DetailScreen(
             },
             navigationIcon = {
                 IconButton(onClick = {
+                    val previousBackStackEntry = navController.previousBackStackEntry
 
-                    var flag = 0
-                    navController.backQueue.forEach { backStackEntry ->
-                        Log.d(
-                            "BackStack",
-                            "Destination: ${backStackEntry.destination.route}"
-                        )
-                    }
-                    navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                        ?.let {
-                            flag = 1
-                            navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
-                                popUpTo(MyProfile.MyCommentHistory.screenRoute) {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
+                    // 나중 백스택 처리용으로 남겨둠
+                    previousBackStackEntry?.destination?.route?.let { previousRoute ->
+                        Log.e("Navigation", "이전 화면: $previousRoute\n 카드 값 : $cardId")
+                        when (previousRoute) {
+                            "메인홈" -> {
+                                navController.popBackStack()
                             }
-                        }
-                    Log.d("BackStack2", "2")
-                    // 백스택 팝
-                    if (flag == 0) {
-                        navController.navigate(SooumNav.Home.screenRoute) {
-                            popUpTo(navController.graph.id) {
-                                inclusive = true
+
+                            "프로필" -> {
+                                navController.popBackStack()
                             }
-                            launchSingleTop = true
+
+                            "덧글 히스토리" -> {
+                                navController.popBackStack()
+                            }
+
+                           else -> {
+                               navController.popBackStack()
+                           }
                         }
                     }
+
+//                    var flag = 0
+//                    navController.backQueue.forEach { backStackEntry ->
+//                        Log.d(
+//                            "BackStack",
+//                            "Destination: ${backStackEntry.destination.route}"
+//                        )
+//                    }
+//                    navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+//                        ?.let {
+//                            flag = 1
+//                            navController.navigate(MyProfile.MyCommentHistory.screenRoute) {
+//                                popUpTo(MyProfile.MyCommentHistory.screenRoute) {
+//                                    inclusive = true
+//                                }
+//                                launchSingleTop = true
+//                            }
+//                        }
+//                    Log.d("BackStack2", "2")
+//                    // 백스택 팝
+//                    if (flag == 0) {
+//                        navController.navigate(SooumNav.Home.screenRoute) {
+//                            popUpTo(navController.graph.id) {
+//                                inclusive = true
+//                            }
+//                            launchSingleTop = true
+//                        }
+//                    }
 //                    if (targetCardId != "") {
 //                        SooumApplication().removeVariable("targetCardId")
 //                        navController.navigate(SooumNav.Home.screenRoute) {
@@ -436,23 +459,24 @@ fun DetailScreen(
                                         ),
                                     shape = RoundedCornerShape(40.dp),
                                     onClick = {
-                                        var flag = 0
-                                        navController.backQueue.forEach { backStackEntry ->
-                                            Log.d(
-                                                "BackStack",
-                                                "Destination: ${backStackEntry.destination.route}"
-                                            )
-                                        }
-                                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
-                                            ?.let {
-                                                flag = 1
-                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
-                                            }
-                                        Log.d("BackStack2", "2")
-                                        // 백스택 팝
-                                        if (flag == 0) {
-                                            navController.popBackStack()
-                                        }
+//                                        var flag = 0
+//                                        navController.backQueue.forEach { backStackEntry ->
+//                                            Log.d(
+//                                                "BackStack",
+//                                                "Destination: ${backStackEntry.destination.route}"
+//                                            )
+//                                        }
+//                                        navController.backQueue.find { it.destination.route == MyProfile.MyCommentHistory.screenRoute }
+//                                            ?.let {
+//                                                flag = 1
+//                                                navController.navigate("${PostNav.Detail.screenRoute}/${data.previousCardId}")
+//                                            }
+//                                        Log.d("BackStack2", "2")
+//                                        // 백스택 팝
+//                                        if (flag == 0) {
+//                                            navController.popBackStack()
+//                                        }
+                                        navController.popBackStack()
                                     }
                                 ) {
                                     Box(
@@ -528,13 +552,13 @@ fun DetailScreen(
                                     .fillMaxWidth()
                                     .height(60.dp)
                                     .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            Color(0x00000000), // 투명한 검정
-                                            Color(0x99000000)  // 약간 불투명한 검정
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                Color(0x00000000), // 투명한 검정
+                                                Color(0x99000000)  // 약간 불투명한 검정
+                                            )
                                         )
                                     )
-                                )
                                     .align(Alignment.BottomCenter)
                             )
                             Box(
@@ -781,20 +805,20 @@ fun DetailLike(
     if (isData) {
         Row(verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.clickable {
-            Log.e("cardId", cardId.toString())
-            if (likeState) {
-                cardId?.let {
-                    viewModel.likeOff(it.toLong())
-                    likeCount -= 1
+                Log.e("cardId", cardId.toString())
+                if (likeState) {
+                    cardId?.let {
+                        viewModel.likeOff(it.toLong())
+                        likeCount -= 1
+                    }
+                } else {
+                    cardId?.let {
+                        viewModel.likeOn(it.toLong())
+                        likeCount += 1
+                    }
                 }
-            } else {
-                cardId?.let {
-                    viewModel.likeOn(it.toLong())
-                    likeCount += 1
-                }
-            }
-            likeState = !likeState
-        })
+                likeState = !likeState
+            })
         {
             Icon(
                 modifier = Modifier

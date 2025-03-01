@@ -6,6 +6,8 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -37,9 +39,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -107,99 +112,126 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import kotlin.system.exitProcess
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen(navController: NavHostController) {
+
+    // 뒤로가기 2번 눌렀을 때 앱 종료
+    BackPressExitHandler()
+
+    // 화면에서 스크롤 위/아래에 따라 헤더(필터 등)를 보이거나 숨김
     var isVisible by remember { mutableStateOf(true) }
 
     val homeViewModel: HomeViewModel = hiltViewModel()
 
+    // 위치/거리 관련 State
     var latitude = User.userInfo.latitude
     var longitude = User.userInfo.longitude
 
     Log.d("HomeScreen", "${latitude}, ${longitude}")
 
+    // 다이얼로그 state
     var openLocationDialog by remember { mutableStateOf(false) }
     var openSystemLocationDialog by remember { mutableStateOf(false) }
 
+    // 각각의 리스트(LazyColumn) 상태 (최신/인기/거리)
     val latestScrollState = rememberLazyListState()
     val popularityScrollState = rememberLazyListState()
     val distanceScrollState = rememberLazyListState()
 
+    // 스크롤 위치가 특정 조건 이상이면 "맨 위로" 버튼 보이기
     val showMoveToTopButtonForLatest by remember {
         derivedStateOf {
             latestScrollState.firstVisibleItemIndex > 0 || latestScrollState.firstVisibleItemScrollOffset > 0
         }
     }
-
     val showMoveToTopButtonForPopularity by remember {
         derivedStateOf {
             popularityScrollState.firstVisibleItemIndex > 0 || popularityScrollState.firstVisibleItemScrollOffset > 0
         }
     }
-
     val showMoveToTopButtonForDistance by remember {
         derivedStateOf {
             distanceScrollState.firstVisibleItemIndex > 0 || distanceScrollState.firstVisibleItemScrollOffset > 0
         }
     }
 
+    // 이전 인덱스 추적 -> 스크롤 아래로 내리면 헤더 숨김, 위로 올리면 헤더 보임
     var latestPreviousIndex by remember { mutableStateOf(0) }
     var popularityPreviousIndex by remember { mutableStateOf(0) }
     var distancePreviousIndex by remember { mutableStateOf(0) }
 
-    var selected by remember { mutableStateOf(HomeSelectEnum.LATEST) }
+    // 거리 필터 값
     var distance by remember { mutableStateOf(DistanceEnum.UNDER_1) }
 
+    // 코루틴 스코프 (Pager 이동 시 애니메이션을 위해)
+    val coroutineScope = rememberCoroutineScope()
+
+    // 페이지 수: 최신(0), 인기(1), 거리(2) 총 3개
+    val pagerState = rememberPagerState(
+        initialPage = HomeSelectEnum.LATEST.ordinal,
+        pageCount = { 3 }
+    )
+
+    // 스크롤 상태별 헤더 표시/숨김 로직
     LaunchedEffect(latestScrollState) {
         snapshotFlow { latestScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
-                isVisible = currentIndex <= latestPreviousIndex
+                isVisible = (currentIndex <= latestPreviousIndex)
                 latestPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(popularityScrollState) {
         snapshotFlow { popularityScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
-                isVisible = currentIndex <= popularityPreviousIndex
+                isVisible = (currentIndex <= popularityPreviousIndex)
                 popularityPreviousIndex = currentIndex
             }
     }
     LaunchedEffect(distanceScrollState) {
         snapshotFlow { distanceScrollState.firstVisibleItemIndex }
             .collect { currentIndex ->
-                isVisible = currentIndex <= distancePreviousIndex
+                isVisible = (currentIndex <= distancePreviousIndex)
                 distancePreviousIndex = currentIndex
             }
     }
 
-    LaunchedEffect(selected) {
-        if (selected == HomeSelectEnum.POPULARITY && homeViewModel.popularityCardList.isEmpty()) {
-            homeViewModel.fetchPopularityCardList(latitude, longitude, {})
-        }
+    // Pager가 이동 완료될 때마다 툴바(헤더) 보이기
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }
+            .collect {
+                // 페이지가 바뀌었으니 툴바 다시 보이기
+                isVisible = true
+            }
     }
+
 
     LaunchedEffect(Unit) {
         homeViewModel.fetchUnreadNotificationCount()
     }
 
     val context = LocalContext.current
-//    LaunchedEffect(Unit) {
-//        val targetCardId = SooumApplication().getVariable("targetCardId")
-//        val notificationId = SooumApplication().getVariable("notificationId")
-//        Log.e(
-//            "targetCardId",
-//            "$targetCardId+$notificationId"
-//        )
-//        if (notificationId != "") {
-//            if (targetCardId != "") {
-//                navController.navigate("${PostNav.Detail.screenRoute}/${targetCardId}")
-//            } else {
-//                navController.navigate(NotificationNav.Notification.screenRoute)
-//            }
-//        }
-//    }
+
+    // pagerState.currentPage가 바뀔 때마다 실행
+    LaunchedEffect(pagerState.currentPage) {
+        // "인기순" 탭에 진입 시, 데이터가 없다면 최초 fetch
+        if (pagerState.currentPage == HomeSelectEnum.POPULARITY.ordinal &&
+            homeViewModel.popularityCardList.isEmpty()
+        ) {
+            homeViewModel.fetchPopularityCardList(latitude, longitude) {
+                // fetch 완료 콜백
+            }
+        }
+
+        // "거리순" 탭으로 이동 시, 아직 위치값이 없다면 위치 다이얼로그 오픈
+        if (pagerState.currentPage == HomeSelectEnum.DISTANCE.ordinal &&
+            (latitude == null || longitude == null)
+        ) {
+            openLocationDialog = true
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -229,89 +261,109 @@ fun HomeScreen(navController: NavHostController) {
                         navController.navigate(NotificationNav.Notification.screenRoute)
                     })
             }
+            // 상단 탭 + 거리 필터 (isVisible 상태에 따라 보이거나 숨김)
             AnimatedVisibility(
                 visible = isVisible
             ) {
                 Column {
+                    // 최신 / 인기 / 거리 탭 UI
                     HomeSelect(
-                        selected = selected,
+                        selected = HomeSelectEnum.values()[pagerState.currentPage],
                         onSelectedChange = { newSelectedEnum ->
-                            selected = newSelectedEnum
-                            if (selected == HomeSelectEnum.DISTANCE && latitude == null && longitude == null) {
-                                openLocationDialog = true
+                            coroutineScope.launch {
+                                // animateScrollToPage -> scrollToPage 로 변경
+                                pagerState.scrollToPage(newSelectedEnum.ordinal)
                             }
                         }
                     )
+
                     Divider(
                         Modifier
                             .fillMaxWidth()
                             .height(1.dp)
                     )
-                    if (selected == HomeSelectEnum.DISTANCE) {
-                        LocationFilter(distance, onDistanceChange = { newDistance ->
-                            distance = newDistance
-                        })
+
+                    // "거리 순"일 때만 거리 필터 표시
+                    if (pagerState.currentPage == HomeSelectEnum.DISTANCE.ordinal) {
+                        LocationFilter(
+                            distance = distance,
+                            onDistanceChange = { newDistance ->
+                                distance = newDistance
+                            }
+                        )
                     }
                 }
             }
 
-            when (selected) {
-                HomeSelectEnum.LATEST -> {
-                    LatestFeedList(
-                        navController,
-                        homeViewModel,
-                        latestScrollState,
-                        showMoveToTopButtonForLatest
-                    )
-                }
+            // pageIndex에 따라 3가지 화면(최신 / 인기 / 거리)을 보여줌
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { pageIndex ->
+                when (pageIndex) {
+                    HomeSelectEnum.LATEST.ordinal -> {
+                        LatestFeedList(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            scrollState = latestScrollState,
+                            showMoveToTopButton = showMoveToTopButtonForLatest
+                        )
+                    }
 
-                HomeSelectEnum.POPULARITY -> {
-                    PopularityFeedList(
-                        navController,
-                        homeViewModel,
-                        popularityScrollState,
-                        showMoveToTopButtonForPopularity
-                    )
-                }
+                    HomeSelectEnum.POPULARITY.ordinal -> {
+                        PopularityFeedList(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            scrollState = popularityScrollState,
+                            showMoveToTopButton = showMoveToTopButtonForPopularity
+                        )
+                    }
 
-                HomeSelectEnum.DISTANCE -> {
-                    DistanceFeedList(
-                        navController,
-                        homeViewModel,
-                        distanceScrollState,
-                        showMoveToTopButtonForDistance,
-                        distance
-                    )
+                    HomeSelectEnum.DISTANCE.ordinal -> {
+                        DistanceFeedList(
+                            navController = navController,
+                            homeViewModel = homeViewModel,
+                            scrollState = distanceScrollState,
+                            showMoveToTopButton = showMoveToTopButtonForDistance,
+                            distance = distance
+                        )
+                    }
                 }
             }
 
+            // 위치 설정 다이얼로그
             if (openLocationDialog) {
-                LocationDialog(openLocationDialog = { isOpen ->
-                    openLocationDialog = isOpen
-                },
+                LocationDialog(
+                    openLocationDialog = { isOpen ->
+                        openLocationDialog = isOpen
+                    },
                     onLocationResulted = { isGrant ->
+                        // 권한 허용 시 openSystemLocationDialog = true
                         openSystemLocationDialog = isGrant
                     }
                 )
             }
-            if (openSystemLocationDialog) {
 
-                if (ActivityCompat.shouldShowRequestPermissionRationale(
+            // 시스템 위치 설정 다이얼로그
+            if (openSystemLocationDialog) {
+                if (
+                    ActivityCompat.shouldShowRequestPermissionRationale(
                         context as Activity,
                         android.Manifest.permission.ACCESS_FINE_LOCATION
                     )
                 ) {
+                    // 권한 재요청
                     GetUserLocation { location ->
                         latitude = location?.latitude
                         longitude = location?.longitude
                     }
                 } else {
+                    // 사용자가 "다시 묻지 않음"을 체크한 경우, 설정 화면으로 유도
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     val uri = Uri.fromParts("package", context.packageName, null)
                     intent.data = uri
                     context.startActivity(intent)
                 }
-
             }
         }
     }
@@ -341,14 +393,15 @@ fun LatestFeedList(
     )
 
     LaunchedEffect(lazyLatestFeed.loadState.refresh) {
-        delay(300)
         if (lazyLatestFeed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentAlignment = Alignment.Center
     ) {
         if (lazyLatestFeed.itemCount == 0) {
@@ -357,7 +410,6 @@ fun LatestFeedList(
             LazyColumn(
                 state = scrollState,
                 modifier = Modifier
-                    .pullRefresh(pullRefreshState)
                     .fillMaxSize()
             ) {
                 items(count = lazyLatestFeed.itemCount,
@@ -414,11 +466,23 @@ fun PopularityFeedList(
     )
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentAlignment = Alignment.Center
     ) {
         if (homeViewModel.popularityCardList.isEmpty()) {
-            ReplaceHomeList()
+            //스크롤 가능한 영역(VerticalScroll)으로 감싸주기
+            //    => 이를 통해 Pull-to-Refresh 제스처를 인식할 수 있게 함
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ReplaceHomeList()
+            }
         } else {
             LazyColumn(
                 state = scrollState,
@@ -447,8 +511,8 @@ fun PopularityFeedList(
                     MoveToTop()
                 }
             }
-            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
+        RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
     }
 }
 
@@ -464,159 +528,179 @@ fun DistanceFeedList(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
+    // distance 값에 따라 Flow를 한 번만 생성 (재composition 시 재생성 방지)
+    val lazyDistanceFeedFlow = remember(distance) {
+        homeViewModel.getLazyDistanceFeed(distance)
+    }
+    val lazyDistanceFeed = lazyDistanceFeedFlow.collectAsLazyPagingItems()
+
+    // Loading 여부를 체크
     var isRefreshing by remember { mutableStateOf(false) }
 
-    val lazyDistance1Feed = homeViewModel.lazyDistance1Feed.collectAsLazyPagingItems()
-    val lazyDistance5Feed = homeViewModel.lazyDistance5Feed.collectAsLazyPagingItems()
-    val lazyDistance10Feed = homeViewModel.lazyDistance10Feed.collectAsLazyPagingItems()
-    val lazyDistance20Feed = homeViewModel.lazyDistance20Feed.collectAsLazyPagingItems()
-    val lazyDistance50Feed = homeViewModel.lazyDistance50Feed.collectAsLazyPagingItems()
-
+    // Pull-to-Refresh 상태 관리
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
-            isRefreshing = true
-            when (distance) {
-                DistanceEnum.UNDER_1 -> {
-                    lazyDistance1Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_5 -> {
-                    lazyDistance5Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_10 -> {
-                    lazyDistance10Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_20 -> {
-                    lazyDistance20Feed.refresh()
-                }
-
-                DistanceEnum.UNDER_50 -> {
-                    lazyDistance50Feed.refresh()
-                }
+            // 이미 로딩중이면 refresh 호출을 방지
+            if (lazyDistanceFeed.loadState.refresh !is LoadState.Loading) {
+                isRefreshing = true
+                lazyDistanceFeed.refresh()
             }
         }
     )
 
-    LaunchedEffect(lazyDistance1Feed) {
-        delay(300)
-        if (lazyDistance1Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(lazyDistance5Feed) {
-        delay(300)
-        if (lazyDistance5Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(lazyDistance10Feed) {
-        delay(300)
-        if (lazyDistance10Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(lazyDistance20Feed) {
-        delay(300)
-        if (lazyDistance20Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
-    }
-
-    LaunchedEffect(lazyDistance50Feed) {
-        delay(300)
-        if (lazyDistance50Feed.loadState.refresh !is LoadState.Loading) {
-            isRefreshing = false
-        }
+    // refresh 상태 변화 감지 (Paging3 loadState.refresh)
+    LaunchedEffect(lazyDistanceFeed) {
+        snapshotFlow { lazyDistanceFeed.loadState.refresh }
+            .collect { refreshState ->
+                // 로딩이 종료되면 isRefreshing=false
+                if (refreshState !is LoadState.Loading) {
+                    isRefreshing = false
+                }
+            }
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .pullRefresh(pullRefreshState),
         contentAlignment = Alignment.Center
     ) {
-        if ((distance == DistanceEnum.UNDER_1 && lazyDistance1Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_5 && lazyDistance5Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_10 && lazyDistance10Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_20 && lazyDistance20Feed.itemCount == 0) ||
-            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)
-        ) {
-            ReplaceHomeList()
+        // 데이터가 없는지 확인
+        if (lazyDistanceFeed.itemCount == 0) {
+            //스크롤 가능한 영역(VerticalScroll)으로 감싸주기
+            //    => 이를 통해 Pull-to-Refresh 제스처를 인식할 수 있게 함
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 기존 ReplaceHomeList() 내용
+                ReplaceHomeList()
+            }
         } else {
             LazyColumn(
                 state = scrollState,
-                modifier = Modifier.pullRefresh(pullRefreshState)
+                modifier = Modifier.fillMaxSize()
             ) {
-                when (distance) {
-                    DistanceEnum.UNDER_1 -> {
-                        items(lazyDistance1Feed.itemCount) { index ->
-                            val feedItem = lazyDistance1Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_5 -> {
-                        items(lazyDistance5Feed.itemCount) { index ->
-                            val feedItem = lazyDistance5Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_10 -> {
-                        items(lazyDistance10Feed.itemCount) { index ->
-                            val feedItem = lazyDistance10Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_20 -> {
-                        items(lazyDistance20Feed.itemCount) { index ->
-                            val feedItem = lazyDistance20Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
-                    }
-
-                    DistanceEnum.UNDER_50 -> {
-                        items(lazyDistance50Feed.itemCount) { index ->
-                            val feedItem = lazyDistance50Feed[index]
-                            feedItem?.let {
-                                DistanceContentCard(it, navController)
-                            }
-                        }
+                items(lazyDistanceFeed.itemCount) { index ->
+                    val feedItem = lazyDistanceFeed[index]
+                    feedItem?.let {
+                        DistanceContentCard(it, navController)
                     }
                 }
             }
             if (showMoveToTopButton) {
-                Box(modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 120.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        coroutineScope.launch {
-                            scrollState.animateScrollToItem(0)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 120.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            coroutineScope.launch {
+                                scrollState.animateScrollToItem(0)
+                            }
                         }
-                    }
                 ) {
                     MoveToTop()
                 }
             }
-            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
         }
+
+        RefreshIndicator(
+            state = pullRefreshState,
+            refreshing = isRefreshing,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
+
+
+//    Box(
+//        modifier = Modifier.fillMaxSize(),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        if ((distance == DistanceEnum.UNDER_1 && lazyDistance1Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_5 && lazyDistance5Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_10 && lazyDistance10Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_20 && lazyDistance20Feed.itemCount == 0) ||
+//            (distance == DistanceEnum.UNDER_50 && lazyDistance50Feed.itemCount == 0)
+//        ) {
+//            ReplaceHomeList()
+//        } else {
+//            LazyColumn(
+//                state = scrollState,
+//                modifier = Modifier.pullRefresh(pullRefreshState)
+//            ) {
+//                when (distance) {
+//                    DistanceEnum.UNDER_1 -> {
+//                        items(lazyDistance1Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance1Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_5 -> {
+//                        items(lazyDistance5Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance5Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_10 -> {
+//                        items(lazyDistance10Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance10Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_20 -> {
+//                        items(lazyDistance20Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance20Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//
+//                    DistanceEnum.UNDER_50 -> {
+//                        items(lazyDistance50Feed.itemCount) { index ->
+//                            val feedItem = lazyDistance50Feed[index]
+//                            feedItem?.let {
+//                                DistanceContentCard(it, navController)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            if (showMoveToTopButton) {
+//                Box(modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(bottom = 120.dp)
+//                    .clickable(
+//                        interactionSource = remember { MutableInteractionSource() },
+//                        indication = null
+//                    ) {
+//                        coroutineScope.launch {
+//                            scrollState.animateScrollToItem(0)
+//                        }
+//                    }
+//                ) {
+//                    MoveToTop()
+//                }
+//            }
+//            RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -728,7 +812,8 @@ fun LatestContentCard(
                     lineHeight = 28.8.sp,
                     fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
                         FontFamily(
-                            Font(R.font.handwrite))
+                            Font(R.font.handwrite)
+                        )
                     } else {
                         FontFamily.Default
                     }
@@ -739,13 +824,13 @@ fun LatestContentCard(
                     .fillMaxWidth()
                     .height(60.dp)
                     .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0x00000000), // 투명한 검정
-                            Color(0x99000000)  // 약간 불투명한 검정
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0x00000000), // 투명한 검정
+                                Color(0x99000000)  // 약간 불투명한 검정
+                            )
                         )
                     )
-                )
                     .align(Alignment.BottomCenter)
             )
             Box(
@@ -824,11 +909,11 @@ fun PopularityContentCard(
                     fontSize = 16.sp,
                     fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
                         FontFamily(
-                            Font(R.font.handwrite))
+                            Font(R.font.handwrite)
+                        )
                     } else {
                         FontFamily.Default
-                    }
-             ,
+                    },
                     fontWeight = FontWeight.Bold,
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
@@ -929,7 +1014,8 @@ fun DistanceContentCard(
                     lineHeight = 28.8.sp,
                     fontFamily = if (item.font == "SCHOOL_SAFE_CHALKBOARD_ERASER") {
                         FontFamily(
-                            Font(R.font.handwrite))
+                            Font(R.font.handwrite)
+                        )
                     } else {
                         FontFamily.Default
                     }
@@ -1227,10 +1313,23 @@ fun formatTimeDifference(timeString: String): String {
 
 fun formatDistanceInKm(distance: Double): String {
     return when {
-        distance < 0.1 -> "${(distance * 1000).toInt()}m 이내" // 0~99m
-        distance < 1.0 -> "${(distance * 1000).toInt() / 100 * 100}m" // 100~999m
-        distance < 100.0 -> "${distance.toInt()}km" // 1km~100km
-        else -> "${(distance / 100).toInt() * 100}km" // 100km 이상
+        distance == 0.0 -> "100m 이내" // 0일경우
+        distance < 0.1 -> "100m 이내" // 0.1km 미만
+        distance < 1.0 -> {
+            val roundedDistance = ((distance * 1000) / 100).toInt() * 100 // 100m 단위
+            "${roundedDistance}m"
+        }
+
+        distance < 100.0 -> {
+            // 5km 단위로 반올림
+            val roundedDistance = (Math.round(distance / 5) * 5).toInt()
+            "${roundedDistance}km"
+        }
+
+        else -> {
+            val roundedDistance = (distance / 100).toInt() * 100 // 100km 단위
+            "${roundedDistance}km"
+        }
     }
 }
 
@@ -1617,6 +1716,29 @@ fun LocationDialog(openLocationDialog: (Boolean) -> Unit, onLocationResulted: (B
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun BackPressExitHandler() {
+    val context = LocalContext.current
+    var backPressedOnce by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // 뒤로가기 버튼 핸들링
+    BackHandler {
+        if (backPressedOnce) {
+            exitProcess(0)
+        } else {
+            backPressedOnce = true
+            Toast.makeText(context, "뒤로 가기 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+
+            coroutineScope.launch {
+                delay(3000)
+                backPressedOnce = false
             }
         }
     }

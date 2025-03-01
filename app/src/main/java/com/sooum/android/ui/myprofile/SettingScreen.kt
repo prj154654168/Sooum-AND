@@ -42,7 +42,7 @@ import com.sooum.android.ui.viewmodel.SettingViewModel
 fun SettingScreen(navController: NavHostController) {
     val context = LocalContext.current
     val settingViewModel : SettingViewModel = hiltViewModel()
-   // var isChecked by remember { mutableStateOf(settingViewModel.isNotify.value) }
+    // var isChecked by remember { mutableStateOf(settingViewModel.isNotify.value) }
 
     Box(
         modifier = Modifier
@@ -114,7 +114,7 @@ fun SettingScreen(navController: NavHostController) {
                         .align(Alignment.CenterEnd)
                 )
             }
-            SettingRow("작성된 덧글 히스토리") {
+            SettingRow("작성된 답카드 히스토리") {
                 navController.navigate(MyProfile.MyCommentHistory.screenRoute)
             }
 

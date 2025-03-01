@@ -1,11 +1,13 @@
 package com.sooum.android.di
 
+import com.sooum.android.data.repository.AppVersionRepositoryImpl
 import com.sooum.android.data.repository.PostCardRepositoryImpl
 import com.sooum.android.data.repository.HomeFeedRepositoryImpl
 import com.sooum.android.data.repository.DetailRepositoryImpl
 import com.sooum.android.data.repository.MyProfileRepositoryImpl
 import com.sooum.android.data.repository.NotificationRepositoryImpl
 import com.sooum.android.data.repository.TagRepositoryImpl
+import com.sooum.android.domain.repository.AppVersionRepository
 import com.sooum.android.domain.repository.PostCardRepository
 import com.sooum.android.domain.repository.HomeFeedRepository
 import com.sooum.android.domain.repository.DetailRepository
@@ -45,4 +47,8 @@ abstract class RepositoryModule {
     @Singleton
     @Binds
     abstract fun notificationRepository(notificationRepositoryImpl: NotificationRepositoryImpl) : NotificationRepository
+
+    @Singleton
+    @Binds
+    abstract fun appVersionRepositoryRepository(appVersionRepositoryImpl: AppVersionRepositoryImpl) : AppVersionRepository
 }

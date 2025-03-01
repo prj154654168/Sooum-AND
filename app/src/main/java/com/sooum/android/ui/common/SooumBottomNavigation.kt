@@ -49,7 +49,7 @@ fun SooumBottomNavigation(navController: NavHostController) {
                 )
                 clip = true
             }
-            .height(70.dp), containerColor = White70
+            .height(75.dp), containerColor = White70
     ) {
 
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -63,8 +63,9 @@ fun SooumBottomNavigation(navController: NavHostController) {
                     Text(
                         text = stringResource(id = screen.title),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontSize = 11.sp,
+                        modifier = Modifier
+                            .padding(top = 5.dp)
                     )
                 },
                 selected = isSelected,
@@ -88,7 +89,9 @@ fun SooumBottomNavigation(navController: NavHostController) {
                     Icon(
                         painter = painterResource(id = screen.icon),
                         contentDescription = screen.screenRoute,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier
+                            .size(27.dp)
+                            .padding(bottom = 4.dp)
                     )
                 },
                 modifier = Modifier
