@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
                 Settings.Secure.ANDROID_ID
             )
             mainViewModel.login(android_id, {
-                mainViewModel.fetchUnreadNotificationCount()
+//                mainViewModel.fetchUnreadNotificationCount()
             })
 
 //            val targetCardId = intent.getStringExtra("targetCardId")
@@ -406,42 +406,42 @@ fun Main(mainViewModel: MainViewModel) {
                 }
             },
 
-            topBar = {//top bar 추후 수정 필요
-                if (SooumNav.isMainRoute(currentRoute) == 1) {
-                    TopAppBar(
-                        title = {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_logo),
-                                contentDescription = "앱 로고",
-                                modifier = Modifier
-                                    .width(93.dp)
-                                    .height(18.dp)
-                            )
-                        },
-                        actions = {
-                            Image(
-                                painter = if (mainViewModel.unreadNotificationCount.value == 0) {
-                                    painterResource(R.drawable.ic_alarm)
-                                } else {
-                                    painterResource(R.drawable.ic_alarm_2)
-                                },
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(end = 20.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) {
-                                        navController.navigate(NotificationNav.Notification.screenRoute)
-                                    }
-                            )
-                        },
-                        modifier = Modifier.padding(
-                            horizontal = 4.dp,
-                            vertical = 2.dp
-                        )
-                    )
-                }
+            topBar = {
+//                if (SooumNav.isMainRoute(currentRoute) == 1) {
+//                    TopAppBar(
+//                        title = {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.ic_logo),
+//                                contentDescription = "앱 로고",
+//                                modifier = Modifier
+//                                    .width(93.dp)
+//                                    .height(18.dp)
+//                            )
+//                        },
+//                        actions = {
+//                            Image(
+//                                painter = if (mainViewModel.unreadNotificationCount.value == 0) {
+//                                    painterResource(R.drawable.ic_alarm)
+//                                } else {
+//                                    painterResource(R.drawable.ic_alarm_2)
+//                                },
+//                                contentDescription = null,
+//                                modifier = Modifier
+//                                    .padding(end = 20.dp)
+//                                    .clickable(
+//                                        interactionSource = remember { MutableInteractionSource() },
+//                                        indication = null
+//                                    ) {
+//                                        navController.navigate(NotificationNav.Notification.screenRoute)
+//                                    }
+//                            )
+//                        },
+//                        modifier = Modifier.padding(
+//                            horizontal = 4.dp,
+//                            vertical = 2.dp
+//                        )
+//                    )
+//                }
             },
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding))

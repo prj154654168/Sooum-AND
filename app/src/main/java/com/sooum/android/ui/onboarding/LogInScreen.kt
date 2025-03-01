@@ -86,7 +86,7 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
             colors = ButtonDefaults.buttonColors(containerColor = Primary),
             onClick = {
                 mainViewModel.login(android_id, {
-                    mainViewModel.fetchUnreadNotificationCount()
+//                    mainViewModel.fetchUnreadNotificationCount()
                 })
                 navController.navigate(LogInNav.Agree.screenRoute) {
                 }
