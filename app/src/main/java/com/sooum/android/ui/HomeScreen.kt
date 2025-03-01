@@ -97,6 +97,7 @@ import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.enums.DistanceEnum
 import com.sooum.android.enums.HomeSelectEnum
+import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.delay
@@ -178,6 +179,11 @@ fun HomeScreen(navController: NavHostController) {
             homeViewModel.fetchPopularityCardList(latitude, longitude, {})
         }
     }
+
+    LaunchedEffect(Unit) {
+        homeViewModel.fetchUnreadNotificationCount()
+    }
+
     val context = LocalContext.current
 //    LaunchedEffect(Unit) {
 //        val targetCardId = SooumApplication().getVariable("targetCardId")
@@ -198,11 +204,31 @@ fun HomeScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 64.dp)
+//            .padding(top = 64.dp)
     ) {
         Column(
             modifier = Modifier.animateContentSize()
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().
+                padding(top = 15.dp, bottom = 15.dp, start = 20.dp, end = 20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_logo),
+                    contentDescription = null
+                )
+                Image(painter = if (homeViewModel.unreadNotificationCount.value == 0) painterResource(R.drawable.ic_alarm)
+                    else painterResource(R.drawable.ic_alarm_2),
+                    contentDescription = null,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        navController.navigate(NotificationNav.Notification.screenRoute)
+                    })
+            }
             AnimatedVisibility(
                 visible = isVisible
             ) {
