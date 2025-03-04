@@ -605,7 +605,7 @@ fun DetailScreen(
 
                                     Text(
                                         text = data.member.nickname,
-                                        fontSize = 10.sp,
+                                        fontSize = 13.sp,
                                         color = Color.White,
                                         fontWeight = FontWeight(600),
                                         modifier = Modifier

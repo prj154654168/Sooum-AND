@@ -1362,7 +1362,7 @@ fun InfoElement(painter: Painter, description: String, count: String, isTrue: Bo
         Spacer(modifier = Modifier.width(2.dp))
         Text(
             text = count,
-            fontSize = 10.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight(600),
             lineHeight = 12.sp,
             color = Color.White
