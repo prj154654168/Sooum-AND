@@ -1221,7 +1221,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
                     modifier = Modifier.padding(start = 2.dp),
                     text = if (count < 10) "0$count" else "$count",
                     color = Primary,
-                    fontWeight = FontWeight.Medium
+                    //fontWeight = FontWeight.Medium
                 )
             }
         }
