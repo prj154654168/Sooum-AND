@@ -1,12 +1,15 @@
 package com.sooum.android.ui
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -91,7 +94,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.google.accompanist.flowlayout.FlowRow
 import com.sooum.android.R
@@ -104,9 +106,11 @@ import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AddPostViewModel
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.io.File
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -182,36 +186,80 @@ fun AddPostScreen(
 
     var selectedImageBitmap: Bitmap? by remember { mutableStateOf(null) }
 
-    val imageCropLauncher =
-        rememberLauncherForActivityResult(contract = CropImageContract()) { result ->
-            if (result.isSuccessful) {
-                result.uriContent?.let {
-                    //getBitmap method is deprecated in Android SDK 29 or above so we need to do this check here
-                    selectedImageBitmap = if (Build.VERSION.SDK_INT < 28) {
-                        MediaStore.Images
-                            .Media.getBitmap(context.contentResolver, it)
-                    } else {
-                        val source = ImageDecoder
-                            .createSource(context.contentResolver, it)
-                        ImageDecoder.decodeBitmap(source)
-                    }
+    // (A) uCrop 결과 처리 런처
+    val uCropLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { activityResult ->
+        // UCrop 액티비티에서 돌아온 결과
+        if (activityResult.resultCode == Activity.RESULT_OK) {
+            val data = activityResult.data
+            // 크롭된 이미지의 Uri 획득
+            val croppedUri = data?.let { UCrop.getOutput(it) }
+            if (croppedUri != null) {
+                // Uri -> Bitmap
+                selectedImageBitmap = if (Build.VERSION.SDK_INT < 28) {
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, croppedUri)
+                } else {
+                    val source = ImageDecoder.createSource(context.contentResolver, croppedUri)
+                    ImageDecoder.decodeBitmap(source)
+                }
+                selectedImageForGallery = selectedImageBitmap
 
-                    selectedImageForGallery = selectedImageBitmap
-
+                // 압축 후 ViewModel로 전달
+                selectedImageBitmap?.let { bitmap ->
                     val byteArrayOutputStream = ByteArrayOutputStream()
-                    selectedImageBitmap?.compress(
-                        Bitmap.CompressFormat.JPEG,
-                        100,
-                        byteArrayOutputStream
-                    )
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
                     val byteArray = byteArrayOutputStream.toByteArray()
+
                     addPostViewModel.getImageUrl(byteArray)
                 }
-
-            } else {
-                Log.d("AddPostScreen", "ImageCropping error: ${result.error}")
             }
+        } else if (activityResult.resultCode == UCrop.RESULT_ERROR) {
+            val cropError = activityResult.data?.let { UCrop.getError(it) }
+            Log.e("AddPostScreen", "uCrop error: $cropError")
         }
+    }
+
+    // (B) 갤러리에서 이미지 선택 런처
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { sourceUri ->
+            // uCrop을 실행할 때, 결과물을 저장할 임시 파일(URI)이 필요
+            val destinationUri = Uri.fromFile(
+                File(context.cacheDir, "cropped_${System.currentTimeMillis()}.jpg")
+            )
+
+            // (1) uCrop 옵션 설정
+            val uCropOptions = UCrop.Options().apply {
+                // 10:9 비율
+                setFreeStyleCropEnabled(false)  // 자유 비율이 아닌 고정 비율
+                withAspectRatio(10f, 9f)        // (아래 .withAspectRatio 대신 여기서도 가능)
+
+                // 툴바/스타일 설정
+                setToolbarTitle("") // 툴바 제목 제거
+                setToolbarColor(android.graphics.Color.parseColor("#ffffff"))     // 툴바 배경색
+                setStatusBarColor(android.graphics.Color.parseColor("#ffffff"))  // 상태바 색상
+                setToolbarWidgetColor(android.graphics.Color.parseColor("#000000")) // 툴바 글씨/아이콘 색상
+                setActiveControlsWidgetColor(android.graphics.Color.parseColor("#000000"))
+
+                // 하단 컨트롤(회전/화면전환 등) 숨길지 여부
+                setHideBottomControls(true)      // false면 회전 등 버튼이 나타남
+
+                // 오버레이 색상, 가이드 라인, 등등
+                setDimmedLayerColor(android.graphics.Color.parseColor("#AA000000")) // 반투명 배경
+                setShowCropGrid(true)// 크롭 그리드 표시
+            }
+
+            // (2) uCrop 빌드
+            val uCrop = UCrop.of(sourceUri, destinationUri)
+                .withAspectRatio(10f, 9f)   // 10:9
+                .withOptions(uCropOptions)
+
+            // (3) uCrop 액티비티 실행
+            uCropLauncher.launch(uCrop.getIntent(context))
+        }
+    }
 
     val scaffoldState = androidx.compose.material3.rememberBottomSheetScaffoldState()
 
@@ -395,7 +443,7 @@ fun AddPostScreen(
                                         Utils.cropOption
                                     )
 
-                                    imageCropLauncher.launch(cropOptions)
+                                    imagePickerLauncher.launch("image/*")
                                 }
                             )
                         }
@@ -479,7 +527,7 @@ fun AddPostScreen(
                                     Utils.cropOption
                                 )
 
-                                imageCropLauncher.launch(cropOptions)
+                                imagePickerLauncher.launch("image/*")
                             }
                         ) {
                             Box(

@@ -117,4 +117,7 @@ dependencies {
 
     //webvie
     implementation("com.google.accompanist:accompanist-webview:0.24.13-rc")
+
+    // ucrop
+    implementation("com.github.yalantis:ucrop:2.2.10")
 }
