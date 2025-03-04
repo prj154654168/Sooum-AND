@@ -909,8 +909,12 @@ fun DeatilCommentItem(
             )
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 26.dp, bottom = 24.dp)
+                    // 기존 코드
+//                    .align(Alignment.BottomEnd)
+//                    .padding(end = 26.dp, bottom = 24.dp)
+                    // 중앙 정렬 코드
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
             ) {
                 Row(
                     modifier = Modifier,
