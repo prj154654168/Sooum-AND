@@ -960,12 +960,12 @@ fun TagItem(item: Tag, onClick: (String) -> Unit) {
                 onClick(item.id)
             },
         shape = RoundedCornerShape(4.dp),
-        color = Gray3
+        color =  Color(android.graphics.Color.parseColor("#E5E5E5"))
     ) {
         Text(
             text = "#${item.content}",
             fontSize = 14.sp,
-            color = Gray1,
+            color = Gray500,
             modifier = Modifier
                 .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp)
         )
