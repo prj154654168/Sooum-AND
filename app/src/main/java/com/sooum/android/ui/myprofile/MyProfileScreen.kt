@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -188,7 +189,8 @@ fun MyProfileScreen(navController: NavHostController) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "카드",
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
+                                    fontFamily = FontFamily.Default,
                                     lineHeight = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = colorResource(R.color.gray500)
@@ -212,7 +214,8 @@ fun MyProfileScreen(navController: NavHostController) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "팔로잉",
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
+                                    fontFamily = FontFamily.Default,
                                     lineHeight = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = colorResource(R.color.gray500)
@@ -236,7 +239,8 @@ fun MyProfileScreen(navController: NavHostController) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "팔로워",
-                                    fontSize = 10.sp,
+                                    fontSize = 11.sp,
+                                    fontFamily = FontFamily.Default,
                                     lineHeight = 14.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = colorResource(R.color.gray500)
