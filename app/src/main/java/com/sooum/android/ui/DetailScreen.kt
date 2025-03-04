@@ -605,7 +605,7 @@ fun DetailScreen(
 
                                     Text(
                                         text = data.member.nickname,
-                                        fontSize = 10.sp,
+                                        fontSize = 13.sp,
                                         color = Color.White,
                                         fontWeight = FontWeight(600),
                                         modifier = Modifier
@@ -909,8 +909,14 @@ fun DeatilCommentItem(
             )
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 26.dp, bottom = 24.dp)
+                    // 기존 코드
+//                    .align(Alignment.BottomEnd)
+//                    .padding(end = 26.dp, bottom = 24.dp)
+                    //.padding(bottom = 24.dp)
+
+                    // 중앙 정렬 코드
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 14.dp)
             ) {
                 Row(
                     modifier = Modifier,
@@ -960,12 +966,12 @@ fun TagItem(item: Tag, onClick: (String) -> Unit) {
                 onClick(item.id)
             },
         shape = RoundedCornerShape(4.dp),
-        color = Gray3
+        color =  Color(android.graphics.Color.parseColor("#E5E5E5"))
     ) {
         Text(
             text = "#${item.content}",
             fontSize = 14.sp,
-            color = Gray1,
+            color = Gray500,
             modifier = Modifier
                 .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 4.dp)
         )

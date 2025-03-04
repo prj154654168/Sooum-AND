@@ -65,7 +65,6 @@ fun SooumBottomNavigation(navController: NavHostController) {
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp,
                         modifier = Modifier
-                            .padding(top = 5.dp)
                     )
                 },
                 selected = isSelected,
@@ -91,7 +90,7 @@ fun SooumBottomNavigation(navController: NavHostController) {
                         contentDescription = screen.screenRoute,
                         modifier = Modifier
                             .size(27.dp)
-                            .padding(bottom = 4.dp)
+                            .padding(bottom = 6.dp)
                     )
                 },
                 modifier = Modifier

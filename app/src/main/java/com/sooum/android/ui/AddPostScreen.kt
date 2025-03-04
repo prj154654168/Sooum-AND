@@ -44,6 +44,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -162,7 +163,6 @@ fun AddPostScreen(
     var selectedImage by remember { mutableStateOf(0) }
 
     var selectedImageForGallery by remember { mutableStateOf<Bitmap?>(null) }
-
 
 
     //태그 텍스트 필드
@@ -296,7 +296,7 @@ fun AddPostScreen(
         sheetContent = {
             Column(
                 modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
+                    .padding(bottom = 20.dp)
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
@@ -308,7 +308,9 @@ fun AddPostScreen(
                     color = colorResource(R.color.gray400)
                 ) { }
                 Spacer(modifier = Modifier.height(20.dp))
-                Row {
+                Row(
+                    Modifier.padding(start = 20.dp, end = 20.dp)
+                ) {
                     androidx.compose.material3.Text(
                         text = "기본이미지",
                         fontSize = 16.sp,
@@ -402,7 +404,9 @@ fun AddPostScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 if (imgType == ImgTypeEnum.DEFAULT) {
                     Surface(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, end = 20.dp),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         LazyVerticalGrid(
@@ -420,7 +424,7 @@ fun AddPostScreen(
                                             } else if (imageIndex == 7) {
                                                 RoundedCornerShape(bottomEnd = 10.dp)
                                             } else {
-                                                RoundedCornerShape(0.dp,)
+                                                RoundedCornerShape(0.dp)
                                             }
                                         } else {
                                             RoundedCornerShape(0.dp)
@@ -453,7 +457,7 @@ fun AddPostScreen(
                             }
                         )
 
-                        }
+                    }
 
                 } else {
                     Box(
@@ -461,6 +465,7 @@ fun AddPostScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(2f)
+                            .padding(start = 20.dp, end = 20.dp)
                     ) {
                         Card(
                             modifier = Modifier
@@ -508,12 +513,15 @@ fun AddPostScreen(
                     text = "글씨체",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = colorResource(R.color.gray700)
+                    color = colorResource(R.color.gray700),
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Surface(
                         color = if (fontType == FontEnum.PRETENDARD) {
@@ -580,10 +588,16 @@ fun AddPostScreen(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(15.dp))
+                Divider(
+                    modifier = Modifier.height(5.dp),
+                    color = Color(android.graphics.Color.parseColor("#E5E5E5"))
+                )
+                Spacer(modifier = Modifier.height(15.dp))
                 if (cardId == null) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp)
                     ) {
                         Column {
                             androidx.compose.material3.Text(
@@ -626,7 +640,8 @@ fun AddPostScreen(
                     Spacer(modifier = Modifier.height(20.dp))
                 }
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp)
                 ) {
                     Column {
                         androidx.compose.material3.Text(
@@ -669,7 +684,8 @@ fun AddPostScreen(
                 if (cardId == null) {
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp)
                     ) {
                         androidx.compose.material3.Text(
                             text = "나만보기",
@@ -1221,7 +1237,7 @@ fun TagHintChip(tagHint: String, count: Int, onTagClick: (String) -> Unit) {
                     modifier = Modifier.padding(start = 2.dp),
                     text = if (count < 10) "0$count" else "$count",
                     color = Primary,
-                    fontWeight = FontWeight.Medium
+                    //fontWeight = FontWeight.Medium
                 )
             }
         }
