@@ -1181,7 +1181,7 @@ fun CreatedTimeElement(createdTime: String) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = formatTimeDifference(createdTime),
-            fontSize = 12.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Normal,
             lineHeight = 16.8.sp,
             color = colorResource(R.color.gray_white)
@@ -1205,7 +1205,7 @@ fun DistanceElement(distance: Double) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = formatDistanceInKm(distance),
-            fontSize = 12.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Normal,
             lineHeight = 16.8.sp,
             color = colorResource(R.color.gray_white)
@@ -1237,7 +1237,7 @@ fun LikeElement(isLiked: Boolean, likeCount: Int) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = likeCount.toString(),
-            fontSize = 12.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Normal,
             lineHeight = 16.8.sp,
             color = if (isLiked) {
@@ -1273,7 +1273,7 @@ fun CommentElement(isCommentWritten: Boolean, commentCount: Int) {
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = commentCount.toString(),
-            fontSize = 12.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Normal,
             lineHeight = 16.8.sp,
             color = if (isCommentWritten) {
