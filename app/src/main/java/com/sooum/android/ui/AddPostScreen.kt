@@ -1155,16 +1155,16 @@ fun AddPostScreen(
                             ) {
                                 if (calculateRemainingTime(parentStoryExpirationTime) != "시간이 이미 지났습니다.") {
                                     PungTime(calculateRemainingTime(parentStoryExpirationTime))
+                                    Spacer(modifier = Modifier.width(3.dp))
+                                    Text(
+                                        text = "이후에 카드가 삭제될 예정이에요",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        lineHeight = 19.6.sp,
+                                        color = colorResource(R.color.gray700)
+                                    )
                                 }
-                                Spacer(modifier = Modifier.width(3.dp))
-                                Log.e("asd","펑 타임 : $parentStoryExpirationTime")
-                                Text(
-                                    text = "이후에 카드가 삭제될 예정이에요",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    lineHeight = 19.6.sp,
-                                    color = colorResource(R.color.gray700)
-                                )
+
                             }
                         }
                     }
@@ -1213,7 +1213,6 @@ fun AddPostScreen(
                             else null,
                             onStatusChanged = {
                                 if (it == 201) {
-                                    Log.e("asd","11111111111")
                                     navController.navigate(SooumNav.Home.screenRoute)
                                 }
                             }
@@ -1247,7 +1246,7 @@ fun AddPostScreen(
                             ),
                             onStatusChanged = {
                                 if (it == 201) {
-                                    Log.e("asd","2222222222")
+                                    // 임시로 popBackStack() 두번 처리 -> 후에 최적화 필요
                                     navController.popBackStack()
                                     navController.popBackStack()
                                    navController.navigate("${PostNav.Detail.screenRoute}/${parentCardId}")
