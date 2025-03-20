@@ -455,7 +455,7 @@ fun DetailScreen(
                                         .width(50.dp)
                                         .border(
                                             BorderStroke(2.dp, Color.White), // 흰색 테두리
-                                            shape = RoundedCornerShape(16.dp) // 테두리 모양을 Card의 shape에 맞춤
+                                            shape = RoundedCornerShape(20.dp) // 테두리 모양을 Card의 shape에 맞춤
                                         ),
                                     shape = RoundedCornerShape(40.dp),
                                     onClick = {
