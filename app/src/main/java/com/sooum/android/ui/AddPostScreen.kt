@@ -1157,6 +1157,7 @@ fun AddPostScreen(
                                     PungTime(calculateRemainingTime(parentStoryExpirationTime))
                                 }
                                 Spacer(modifier = Modifier.width(3.dp))
+                                Log.e("asd","펑 타임 : $parentStoryExpirationTime")
                                 Text(
                                     text = "이후에 카드가 삭제될 예정이에요",
                                     fontSize = 14.sp,
@@ -1212,6 +1213,7 @@ fun AddPostScreen(
                             else null,
                             onStatusChanged = {
                                 if (it == 201) {
+                                    Log.e("asd","11111111111")
                                     navController.navigate(SooumNav.Home.screenRoute)
                                 }
                             }
@@ -1245,7 +1247,10 @@ fun AddPostScreen(
                             ),
                             onStatusChanged = {
                                 if (it == 201) {
-                                    navController.navigate("${PostNav.Detail.screenRoute}/${parentCardId}")
+                                    Log.e("asd","2222222222")
+                                    navController.popBackStack()
+                                    navController.popBackStack()
+                                   navController.navigate("${PostNav.Detail.screenRoute}/${parentCardId}")
                                 }
                             }
                         )
