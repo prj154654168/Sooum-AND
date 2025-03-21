@@ -3,6 +3,7 @@ package com.sooum.android.ui.myprofile
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -118,9 +119,12 @@ fun MyProfileScreen(navController: NavHostController) {
                         tint = Color.Black,
                         modifier = Modifier
                             .padding(20.dp)
-                            .clickable {
+                            .clickable(
+                                indication = null, // 리플 효과 제거
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
                                 navController.navigate(MyProfile.Setting.screenRoute)
-                            }
+                            },
                     )
                 }
             )

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -64,7 +65,10 @@ fun SettingScreen(navController: NavHostController) {
                     contentDescription = null,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .clickable {
+                        .clickable(
+                            indication = null, // 리플 효과 제거
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
                             navController.popBackStack()
                         }
                 )
@@ -135,7 +139,10 @@ fun SettingScreen(navController: NavHostController) {
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
-                    .clickable {
+                    .clickable(
+                        indication = null, // 리플 효과 제거
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
                         navController.navigate(MyProfile.UserDelete.screenRoute)
                     }
             ) {
@@ -188,7 +195,10 @@ fun SettingRow(text: String, function: () -> Unit) {
         modifier = Modifier
             .padding(vertical = 15.dp)
             .fillMaxWidth()
-            .clickable {
+            .clickable (
+                indication = null, // 리플 효과 제거
+                interactionSource = remember { MutableInteractionSource() }
+            ){
                 function()
             }
     ) {
