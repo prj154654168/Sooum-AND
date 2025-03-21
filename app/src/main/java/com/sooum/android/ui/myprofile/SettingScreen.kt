@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -112,6 +113,7 @@ fun SettingScreen(navController: NavHostController) {
                         .height(24.dp)
                         .padding(end = 10.dp)
                         .align(Alignment.CenterEnd)
+                        .scale(0.9f)
                 )
             }
             SettingRow("작성된 답카드 히스토리") {
