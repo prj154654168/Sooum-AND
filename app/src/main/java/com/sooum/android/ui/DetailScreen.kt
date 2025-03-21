@@ -79,6 +79,7 @@ import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
+import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
@@ -1037,11 +1038,33 @@ fun DeleteDialog(
                     Button(
                         onClick = {
                             viewModel.deleteCard(cardId)
-                            navController.navigate(SooumNav.Home.screenRoute) {
-                                popUpTo(navController.graph.id) {
-                                    inclusive = true
+                            val previousBackStackEntry = navController.previousBackStackEntry
+
+                            // 나중 백스택 처리용으로 남겨둠
+                            previousBackStackEntry?.destination?.route?.let { previousRoute ->
+                                Log.e("Navigation", "이전 화면: $previousRoute\n 카드 값 : $cardId")
+                                when (previousRoute) {
+                                    "메인홈" -> {
+                                        navController.navigate(SooumNav.Home.screenRoute) {
+                                            popUpTo(navController.graph.id) {
+                                                inclusive = true
+                                            }
+                                            launchSingleTop = true
+                                        }
+                                    }
+
+                                    "프로필" -> {
+                                     navController.popBackStack()
+                                    }
+
+                                    "덧글 히스토리" -> {
+                                       navController.popBackStack()
+                                    }
+
+                                    else -> {
+                                        navController.popBackStack()
+                                    }
                                 }
-                                launchSingleTop = true
                             }
                         },
                         modifier = Modifier
