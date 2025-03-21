@@ -68,6 +68,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -645,7 +646,9 @@ fun AddPostScreen(
                 if (cardId == null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp)
+                        modifier = Modifier
+                            .padding(start = 20.dp, end = 20.dp)
+                            .fillMaxWidth()
                     ) {
                         Column {
                             androidx.compose.material3.Text(
@@ -683,13 +686,16 @@ fun AddPostScreen(
                             modifier = Modifier
                                 .width(40.dp)
                                 .height(24.dp)
+                                .scale(0.9f)
                         )
                     }
                     Spacer(modifier = Modifier.height(20.dp))
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp)
+                    modifier = Modifier
+                        .padding(start = 20.dp, end = 20.dp)
+                        .fillMaxWidth()
                 ) {
                     Column {
                         androidx.compose.material3.Text(
@@ -727,6 +733,7 @@ fun AddPostScreen(
                         modifier = Modifier
                             .width(40.dp)
                             .height(24.dp)
+                            .scale(0.9f)
                     )
                 }
                 if (cardId == null) {
@@ -734,6 +741,7 @@ fun AddPostScreen(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp)
+                            .fillMaxWidth()
                     ) {
                         androidx.compose.material3.Text(
                             text = "나만보기",
@@ -762,6 +770,7 @@ fun AddPostScreen(
                             modifier = Modifier
                                 .width(40.dp)
                                 .height(24.dp)
+                                .scale(0.9f)
                         )
                     }
                 }
@@ -1218,7 +1227,8 @@ fun AddPostScreen(
                             }
                         )
                     } else {
-                        addPostViewModel.postCommentCard(cardId = parentCardId,
+                        addPostViewModel.postCommentCard(
+                            cardId = parentCardId,
                             commentCardRequest = PostCommentCardRequestDataModel(
                                 isDistanceShared = !distanceChecked,
                                 latitude = if (!distanceChecked) User.userInfo.latitude else null,
@@ -1249,7 +1259,7 @@ fun AddPostScreen(
                                     // 임시로 popBackStack() 두번 처리 -> 후에 최적화 필요
                                     navController.popBackStack()
                                     navController.popBackStack()
-                                   navController.navigate("${PostNav.Detail.screenRoute}/${parentCardId}")
+                                    navController.navigate("${PostNav.Detail.screenRoute}/${parentCardId}")
                                 }
                             }
                         )
