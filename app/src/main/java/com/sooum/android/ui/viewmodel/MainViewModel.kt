@@ -145,7 +145,7 @@ class MainViewModel @Inject constructor(
                 val packageManager = context.packageManager
                 val packageName = context.packageName
                 val packageInfo = packageManager.getPackageInfo(packageName, 0)
-                getAppVersionUseCase(packageInfo.packageName)
+                getAppVersionUseCase(packageInfo.versionName)
             }
                 .onSuccess { result ->
                     if (result == "\"UPDATE\"") {
@@ -155,6 +155,7 @@ class MainViewModel @Inject constructor(
                 }
                 .onFailure { error ->
                     Log.e("error ", "versionError : ${error.message}")
+                    // 에러 방지로 실패시 그냥 통과
                 }
         }
     }

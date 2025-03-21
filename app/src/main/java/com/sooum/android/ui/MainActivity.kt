@@ -160,6 +160,7 @@ fun SplashScreen(
             // 업데이트 진행할 시
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}"))
             context.startActivity(intent)
+            exitProcess(0)
         }else {
             // 업데이트 진행 안할 시
             exitProcess(0)
