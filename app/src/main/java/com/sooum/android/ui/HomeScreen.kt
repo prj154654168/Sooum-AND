@@ -393,7 +393,7 @@ fun LatestFeedList(
     )
 
     LaunchedEffect(lazyLatestFeed.loadState.refresh) {
-        delay(300)
+        delay(500)
         if (lazyLatestFeed.loadState.refresh !is LoadState.Loading) {
             isRefreshing = false
         }
