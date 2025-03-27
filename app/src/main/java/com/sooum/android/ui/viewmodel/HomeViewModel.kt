@@ -78,7 +78,7 @@ class HomeViewModel @Inject constructor(
     fun fetchPopularityCardList(latitude: Double?, longitude: Double?, onFetchFinished: () -> Unit) {
         viewModelScope.launch {
             try {
-                delay(300)
+                delay(500)
                 val cardList = getPopularityFeedUseCase(latitude, longitude)
                 popularityCardList.clear()
                 popularityCardList.addAll(cardList)
@@ -95,6 +95,7 @@ class HomeViewModel @Inject constructor(
     fun fetchUnreadNotificationCount() {
         viewModelScope.launch {
             try {
+                delay(500)
                 val unreadCount = getAllUnreadCountUseCase()
                 unreadNotificationCount.value = unreadCount
             } catch (e: Exception) {

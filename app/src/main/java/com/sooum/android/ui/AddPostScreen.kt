@@ -156,6 +156,8 @@ fun AddPostScreen(
     val isButtonEnabled = isTextNotEmpty && isImageNotEmpty
     var showDialog by remember { mutableStateOf(false) }
 
+    var showInappropriatePhotoDialog by remember {mutableStateOf(false)}
+
 
     //스위치 상태
     var storyChecked by remember { mutableStateOf(false) }  //백엔드와 동일
@@ -1187,6 +1189,11 @@ fun AddPostScreen(
                 )
             }
         }
+        if(showInappropriatePhotoDialog) {
+            InappropriatePhotoDialog() {
+                showInappropriatePhotoDialog = false
+            }
+        }
         if (showDialog) {
             ConfirmDialog { confirm ->
                 if (confirm) {
@@ -1223,6 +1230,9 @@ fun AddPostScreen(
                             onStatusChanged = {
                                 if (it == 201) {
                                     navController.navigate(SooumNav.Home.screenRoute)
+                                }else if(it == 400) {
+                                    // Log.e("asd","View에서 400 애러")
+                                    showInappropriatePhotoDialog = true
                                 }
                             }
                         )
@@ -1488,6 +1498,64 @@ fun ConfirmDialog(
                             color = Color.White
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+// 부적절한 사진 다이얼 로그
+fun InappropriatePhotoDialog(
+    onButtonClick: () -> Unit,
+) {
+    Dialog(onDismissRequest = {
+
+    }) {
+        Card(
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    top = 22.dp,
+                    bottom = 14.dp,
+                    start = 14.dp,
+                    end = 14.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                androidx.compose.material3.Text(
+                    text = "부적절한 사진으로 보여져요",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorResource(R.color.gray800),
+                    lineHeight = 24.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                androidx.compose.material3.Text(
+                    text = "적절한 사진으로 바꾸거나\n기본 이미지를 사용해주세요.",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(R.color.gray600),
+                    lineHeight = 19.6.sp
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                    onClick = {
+                        onButtonClick()
+                    },
+                    modifier = Modifier
+                        .width(264.dp)
+                        .height(46.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary_color)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    androidx.compose.material3.Text(
+                        text = "확인",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             }
         }

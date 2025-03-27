@@ -165,6 +165,11 @@ class AddPostViewModel @Inject constructor(
                 Log.d("AddPostViewModel", postFeedCardStatus?.httpCode.toString())
             } catch (e: Exception) {
                 Log.e("AddPostViewModel", e.toString())
+                // 예외 메시지에서 "400 Bad Request"를 포함하는 경우 처리
+                if (e.message?.contains("400") == true) {
+                    Log.d("AddPostViewModel","부적절한 사진 발생")
+                    onStatusChanged(400)
+                }
             }
         }
     }
