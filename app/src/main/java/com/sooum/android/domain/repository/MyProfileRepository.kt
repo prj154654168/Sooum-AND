@@ -16,6 +16,7 @@ import com.sooum.android.domain.model.NoticeDataModel
 import com.sooum.android.domain.model.NotifyBody
 import com.sooum.android.domain.model.NotifyDataModel
 import com.sooum.android.domain.model.SuspensionResponse
+import com.sooum.android.domain.model.UserActiveStatusDataModel
 import com.sooum.android.domain.model.UserCodeBody
 
 interface MyProfileRepository {
@@ -50,4 +51,6 @@ interface MyProfileRepository {
     suspend fun suspension(encryptedDeviceId: EncryptedDeviceId): SuspensionResponse?
 
     suspend fun nicknameAvailable(nicknameBody: NicknameBody): NicknameAvailableResponse
+
+    suspend fun getUserActiveStatus(): UserActiveStatusDataModel
 }

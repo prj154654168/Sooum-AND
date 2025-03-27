@@ -17,6 +17,7 @@ import com.sooum.android.domain.model.NoticeDataModel
 import com.sooum.android.domain.model.NotifyBody
 import com.sooum.android.domain.model.NotifyDataModel
 import com.sooum.android.domain.model.SuspensionResponse
+import com.sooum.android.domain.model.UserActiveStatusDataModel
 import com.sooum.android.domain.model.UserCodeBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -100,4 +101,8 @@ interface ProfileApi {
     suspend fun nicknameAvailable(
         @Body nicknameBody: NicknameBody,
     ): Response<NicknameAvailableResponse>
+
+    @GET("/settings/status")
+    suspend fun getUserActiveStatus(
+    ): Response<UserActiveStatusDataModel>
 }
