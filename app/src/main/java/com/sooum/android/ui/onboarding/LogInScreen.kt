@@ -38,6 +38,7 @@ import com.sooum.android.R
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.MainViewModel
+import kotlin.system.exitProcess
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -57,6 +58,7 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
     }
     if (showDialog) {
         LoginDialog(mainViewModel.login, mainViewModel.date) {
+            exitProcess(0)
             showDialog = false
         }
     }
