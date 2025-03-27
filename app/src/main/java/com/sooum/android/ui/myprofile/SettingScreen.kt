@@ -6,8 +6,10 @@ import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,11 +42,12 @@ import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.viewmodel.SettingViewModel
+import java.nio.file.WatchEvent
 
 @Composable
 fun SettingScreen(navController: NavHostController) {
     val context = LocalContext.current
-    val settingViewModel : SettingViewModel = hiltViewModel()
+    val settingViewModel: SettingViewModel = hiltViewModel()
     // var isChecked by remember { mutableStateOf(settingViewModel.isNotify.value) }
 
     Box(
@@ -164,10 +168,15 @@ fun SettingScreen(navController: NavHostController) {
             }
             SettingRow("1:1 문의하기") {
                 val subject = "[문의하기]"
-                val body = "식별 정보 : ${SooumApplication().getVariable("refreshToken")}\n\n문의 내용: 식별 정보 삭제에 주의하여 주시고, 이곳에 자유롭게 문의하실 내용을 적어주세요.\n" +
-                        "단, 본 양식에 비방, 욕설, 허위 사실 유포 등의 부적절한 내용이 포함될 경우, 관련 법령에 따라 민·형사상 법적 조치가 이루어질 수 있음을 알려드립니다."
+                val body =
+                    "식별 정보 : ${SooumApplication().getVariable("refreshToken")}\n\n문의 내용: 식별 정보 삭제에 주의하여 주시고, 이곳에 자유롭게 문의하실 내용을 적어주세요.\n" +
+                            "단, 본 양식에 비방, 욕설, 허위 사실 유포 등의 부적절한 내용이 포함될 경우, 관련 법령에 따라 민·형사상 법적 조치가 이루어질 수 있음을 알려드립니다."
                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:sooum1004@gmail.com?subject=${Uri.encode(subject)}&body=${Uri.encode(body)}") // 이메일 주소
+                    data = Uri.parse(
+                        "mailto:sooum1004@gmail.com?subject=${Uri.encode(subject)}&body=${
+                            Uri.encode(body)
+                        }"
+                    ) // 이메일 주소
                 }
                 if (emailIntent.resolveActivity(context.packageManager) != null) {
                     context.startActivity(emailIntent)
@@ -179,11 +188,19 @@ fun SettingScreen(navController: NavHostController) {
                         "제안 내용: 식별 정보 삭제에 주의하여 주시고, 이곳에 숨 개발팀에 제안할 내용을 자유롭게 작성해 주세요.\n" +
                         "단, 본 양식에 비방, 욕설, 허위 사실 유포 등의 부적절한 내용이 포함될 경우, 관련 법령에 따라 민·형사상 법적 조치가 이루어질 수 있음을 알려드립니다."
                 val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("mailto:sooum1004@gmail.com?subject=${Uri.encode(subject)}&body=${Uri.encode(body)}") // 이메일 주소
+                    data = Uri.parse(
+                        "mailto:sooum1004@gmail.com?subject=${Uri.encode(subject)}&body=${
+                            Uri.encode(body)
+                        }"
+                    ) // 이메일 주소
                 }
                 if (emailIntent.resolveActivity(context.packageManager) != null) {
                     context.startActivity(emailIntent)
                 }
+            }
+
+            if (settingViewModel.banDate.value != "") {
+                ExPlainBannedGuideView(settingViewModel.banDate.value)
             }
         }
     }
@@ -195,10 +212,10 @@ fun SettingRow(text: String, function: () -> Unit) {
         modifier = Modifier
             .padding(vertical = 15.dp)
             .fillMaxWidth()
-            .clickable (
+            .clickable(
                 indication = null, // 리플 효과 제거
                 interactionSource = remember { MutableInteractionSource() }
-            ){
+            ) {
                 function()
             }
     ) {
@@ -213,5 +230,52 @@ fun SettingRow(text: String, function: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.CenterEnd)
         )
+    }
+}
+
+@Composable
+fun ExPlainBannedGuideView(bannedData: String) {
+    Column(
+        modifier = Modifier
+            .height(90.dp)
+            .fillMaxWidth()
+            .padding(top = 30.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                "계정이 ",
+                color = colorResource(R.color.black),
+                fontSize = 16.sp,
+                fontWeight = FontWeight(600)
+            )
+            Text(
+                "정지",
+                color = colorResource(R.color.red),
+                fontSize = 16.sp,
+                fontWeight = FontWeight(600)
+            )
+            Text(
+                "된 상태에요",
+                color = colorResource(R.color.black),
+                fontSize = 16.sp,
+                fontWeight = FontWeight(600)
+            )
+        }
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(top = 10.dp)
+        ) {
+            Text(
+                "차단 해제 날짜: $bannedData",
+                color = colorResource(R.color.gray500),
+                fontSize = 14.sp,
+                fontWeight = FontWeight(500)
+            )
+        }
     }
 }

@@ -18,6 +18,7 @@ import com.sooum.android.domain.model.NoticeDataModel
 import com.sooum.android.domain.model.NotifyBody
 import com.sooum.android.domain.model.NotifyDataModel
 import com.sooum.android.domain.model.SuspensionResponse
+import com.sooum.android.domain.model.UserActiveStatusDataModel
 import com.sooum.android.domain.model.UserCodeBody
 import com.sooum.android.domain.repository.MyProfileRepository
 import javax.inject.Inject
@@ -264,4 +265,17 @@ class MyProfileRepositoryImpl @Inject constructor(private val profileApi: Profil
             throw Exception("Failed to get default image: $errorMessage")
         }
     }
+
+    override suspend fun getUserActiveStatus(): UserActiveStatusDataModel {
+        val response = profileApi.getUserActiveStatus()
+
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("No body found") // 바디가 null인 경우 예외 처리
+        } else {
+            // 실패한 경우의 에러 메시지를 로그로 출력
+            val errorMessage = response.errorBody()?.string() ?: "Unknown error"
+            throw Exception("Failed to get default image: $errorMessage")
+        }
+    }
+
 }

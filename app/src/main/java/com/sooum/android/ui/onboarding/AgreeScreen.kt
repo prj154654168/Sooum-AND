@@ -1,5 +1,6 @@
 package com.sooum.android.ui.onboarding
 
+import android.R.attr.onClick
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +42,7 @@ import com.sooum.android.domain.model.MemberInfo
 import com.sooum.android.domain.model.Policy
 import com.sooum.android.domain.model.signUpModel
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.theme.Gray300
 import com.sooum.android.ui.theme.Gray5
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.AgreeViewModel
@@ -177,24 +180,36 @@ fun AgreeScreen(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(20.dp)
                     .align(Alignment.BottomCenter),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                colors = if (allChecked) {
+                    ButtonDefaults.buttonColors(containerColor = Primary)
+                } else {
+                    ButtonDefaults.buttonColors(containerColor = Gray300)
+                }
+                ,
                 onClick = {
-                    viewModel.signUp(
-                        signUpModel(
-                            memberInfo = MemberInfo(
-                                "ANDROID",
-                                SooumApplication().getVariable("encryptedDeviceId")
-                                    .toString(),
-                                "",
-                                true
-                            ),
-                            policy = Policy(firstChecked, secondChecked, thirdChecked)
+                    if(allChecked) {
+                        viewModel.signUp(
+                            signUpModel(
+                                memberInfo = MemberInfo(
+                                    "ANDROID",
+                                    SooumApplication().getVariable("encryptedDeviceId")
+                                        .toString(),
+                                    "",
+                                    true
+                                ),
+                                policy = Policy(firstChecked, secondChecked, thirdChecked)
+                            )
                         )
-                    )
 
-                    navController.navigate(LogInNav.NickName.screenRoute)
+                        navController.navigate(LogInNav.NickName.screenRoute)
+                    }
+
                 }) {
-                Text(text = "확인")
+                Text(text = "확인", color = if (allChecked) {
+                    colorResource(R.color.white)
+                }else {
+                    colorResource(R.color.gray600)
+                })
             }
         }
 
