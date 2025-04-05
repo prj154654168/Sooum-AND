@@ -1,5 +1,6 @@
 package com.sooum.android.di
 
+import com.sooum.android.Constants
 import com.sooum.android.Constants.BASE_URL
 import com.sooum.android.data.remote.AppVersionApi
 import com.sooum.android.data.remote.AuthInterceptor
@@ -8,6 +9,7 @@ import com.sooum.android.data.remote.NotificationApi
 import com.sooum.android.data.remote.ProfileApi
 import com.sooum.android.data.remote.ReportApi
 import com.sooum.android.data.remote.TagAPI
+import com.sooum.android.data.remote.TokenAuthenticator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,28 +24,32 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-    @Singleton
-    @Provides
-    fun getRetrofitInstance() : Retrofit {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-        val client = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor(AuthInterceptor())
-            // 타임아웃 설정 추가
-            .connectTimeout(30, TimeUnit.SECONDS)  // 연결 타임아웃 30초
-            .readTimeout(30, TimeUnit.SECONDS)     // 읽기 타임아웃 30초
-            .writeTimeout(30, TimeUnit.SECONDS)    // 쓰기 타임아웃 30초
-            .build()
 
-        return Retrofit
-            .Builder()
-            .baseUrl(BASE_URL)
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor()) // accessToken만 붙임
+            .authenticator(TokenAuthenticator()) // 401 나오면 자동 재요청
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }) // 마지막에 추가
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(client: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(Constants.BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
 
     @Singleton
     @Provides
