@@ -51,8 +51,11 @@ class MainViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
+        // Base64 문자열에서 공백이나 줄바꿈 제거
+        val cleanedKey = base64Key.replace("\n", "").replace("\r", "").trim()
+
         // Base64 문자열을 디코딩
-        val keyBytes = Base64.getDecoder().decode(base64Key)
+        val keyBytes = Base64.getDecoder().decode(cleanedKey)
 
         // X509EncodedKeySpec을 생성하여 RSA Public Key로 변환
         val keySpec = X509EncodedKeySpec(keyBytes)
@@ -60,6 +63,7 @@ class MainViewModel @Inject constructor(
 
         return keyFactory.generatePublic(keySpec)
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun encryptWithRSAPublicKey(plainText: String, publicKey: PublicKey): String {
@@ -71,9 +75,15 @@ class MainViewModel @Inject constructor(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun convert(android_id: String): String {
-        val publicKey = base64ToRSAPublicKey(key.toString())
-        // 문자열 암호화
-        return encryptWithRSAPublicKey(android_id, publicKey)
+        try {
+            val publicKey = base64ToRSAPublicKey(key.toString())
+            // 문자열 암호화
+            return encryptWithRSAPublicKey(android_id, publicKey)
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Encryption failed: ${e.message}")
+            e.printStackTrace()
+            return "" // 예외 발생 시 빈 문자열 반환
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -81,47 +91,54 @@ class MainViewModel @Inject constructor(
         Log.e("android_id", android_id)
         viewModelScope.launch {
             try {
+                Log.d("MainViewModel", "MainViewModel Start")
                 val a = retrofitInstance.getRsaKey()
-                key = a.body()!!.publicKey
-                encryptedDeviceId = convert(android_id)
-                SooumApplication().saveVariable(
-                    "encryptedDeviceId",
-                    encryptedDeviceId
-                )
 
-                val suspension = suspensionUseCase(EncryptedDeviceId(encryptedDeviceId))
-                if (suspension != null) {
-                    login = if (suspension.isBanUser) {
-                        3
-                    }//벤 당한사람
-                    else {
-                        4
-                    }//아이디 탈퇴한사람
-                    val dateTime = LocalDateTime.parse(suspension.untilBan)
-                    date = "${dateTime.year}년 ${dateTime.monthValue}월 ${dateTime.dayOfMonth}일"
-                } else {
-                    val b = retrofitInstance.logIn(EncryptedDeviceId(encryptedDeviceId))
-                    Log.e("EncryptedDeviceId", b.body().toString())
+                if (a.isSuccessful) {
+                    key = a.body()!!.publicKey
+                    Log.d("MainViewModel", "${key}")
+                    encryptedDeviceId = convert(android_id)
+                    Log.d("MainViewModel", "${encryptedDeviceId}")
+                    SooumApplication().saveVariable(
+                        "encryptedDeviceId",
+                        encryptedDeviceId
+                    )
 
-                    if (b.body()?.isRegistered == true) {
-                        login = 1
-                        token = b.body()!!.token
-                        token?.let {
-                            SooumApplication().saveVariable(
-                                "accessToken",
-                                it.accessToken
-                            )
-                            SooumApplication().saveVariable(
-                                "refreshToken",
-                                it.refreshToken
-                            )
-                        }
-
-                        onLoginFinished()
+                    val suspension = suspensionUseCase(EncryptedDeviceId(encryptedDeviceId))
+                    if (suspension != null) {
+                        login = if (suspension.isBanUser) {
+                            3
+                        }//벤 당한사람
+                        else {
+                            4
+                        }//아이디 탈퇴한사람
+                        val dateTime = LocalDateTime.parse(suspension.untilBan)
+                        date = "${dateTime.year}년 ${dateTime.monthValue}월 ${dateTime.dayOfMonth}일"
                     } else {
-                        login = 2
+                        val b = retrofitInstance.logIn(EncryptedDeviceId(encryptedDeviceId))
+                        Log.e("EncryptedDeviceId", b.body().toString())
+
+                        if (b.body()?.isRegistered == true) {
+                            login = 1
+                            token = b.body()!!.token
+                            token?.let {
+                                SooumApplication().saveVariable(
+                                    "accessToken",
+                                    it.accessToken
+                                )
+                                SooumApplication().saveVariable(
+                                    "refreshToken",
+                                    it.refreshToken
+                                )
+                            }
+
+                            onLoginFinished()
+                        } else {
+                            login = 2
+                        }
                     }
                 }
+
             } catch (E: Exception) {
                 println(E)
             }
