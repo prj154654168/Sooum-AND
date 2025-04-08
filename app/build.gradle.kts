@@ -14,8 +14,8 @@ android {
         applicationId = "com.sooum.android"
         minSdk = 24
         targetSdk = 34
-        versionCode = 15
-        versionName = "2.20"
+        versionCode = 16
+        versionName = "2.21"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -117,7 +117,4 @@ dependencies {
 
     //webvie
     implementation("com.google.accompanist:accompanist-webview:0.24.13-rc")
-
-    // ucrop
-    implementation("com.github.yalantis:ucrop:2.2.10")
 }
