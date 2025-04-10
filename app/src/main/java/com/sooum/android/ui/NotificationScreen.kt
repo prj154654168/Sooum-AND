@@ -7,6 +7,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,8 +22,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TabRow
@@ -30,12 +36,17 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sooum.android.R
 import com.sooum.android.domain.model.NotificationDataModel
@@ -51,6 +63,7 @@ import com.sooum.android.enums.NotificationTypeEnum
 import com.sooum.android.enums.TabEnum
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.viewmodel.NotificationViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -60,6 +73,11 @@ import java.util.Locale
 fun NotificationScreen(navController: NavController) {
     val notificationViewModel: NotificationViewModel = hiltViewModel()
     val pagerState = rememberPagerState(pageCount = { 3 })
+
+
+//    getAllUnreadCount()
+//    getCardUnreadCount()
+//    getLikeUnreadCount()
 
     BackHandler {
         navController.navigate("main") {
@@ -213,150 +231,212 @@ fun TabLayout(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AllScreen(notificationViewModel: NotificationViewModel, navController: NavController) {
     val lazyAllUnread = notificationViewModel.allUnreadNotificationList.collectAsLazyPagingItems()
     val lazyAllRead = notificationViewModel.allReadNotificationList.collectAsLazyPagingItems()
 
-    Column(
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                val refreshJob = launch {
+                    notificationViewModel.getAllUnreadCount()
+                }
+                delay(500) // 최소 표시 시간 확보
+                refreshJob.join() // 실제 새로고침 끝날 때까지 기다림
+                isRefreshing = false
+            }
+        }
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .pullRefresh(pullRefreshState),
+        contentAlignment = Alignment.Center
     ) {
-        if (notificationViewModel.allUnreadCount.value != 0) {
-            Text(
-                text = "읽지 않음 (${notificationViewModel.allUnreadCount.value}개)",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                lineHeight = 19.6.sp,
-                color = colorResource(R.color.gray_black),
-                modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
-            )
-        }
 
-        Spacer(modifier = Modifier.height(10.dp))
-        if (lazyAllUnread.itemCount == 0 && lazyAllRead.itemCount == 0) {
-            NotExistNotification(notificationViewModel)
-        } else {
-            LazyColumn {
-                items(lazyAllUnread.itemCount) { index ->
-                    val notificationItem = lazyAllUnread[index]
-                    notificationItem?.let {
-                        if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(
-                                notificationViewModel,
-                                notificationItem,
-                                false
-                            )
-                        } else {
-                            CardNotificationElement(
-                                notificationViewModel,
-                                navController,
-                                notificationItem,
-                                false
-                            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (notificationViewModel.allUnreadCount.value != 0) {
+                Text(
+                    text = "읽지 않음 (${notificationViewModel.allUnreadCount.value}개)",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 19.6.sp,
+                    color = colorResource(R.color.gray_black),
+                    modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            if (lazyAllUnread.itemCount == 0 && lazyAllRead.itemCount == 0) {
+                NotExistNotification(notificationViewModel)
+            } else {
+                LazyColumn {
+                    items(lazyAllUnread.itemCount) { index ->
+                        val notificationItem = lazyAllUnread[index]
+                        notificationItem?.let {
+                            if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
+                                WarningNotificationElement(
+                                    notificationViewModel,
+                                    notificationItem,
+                                    false
+                                )
+                            } else {
+                                CardNotificationElement(
+                                    notificationViewModel,
+                                    navController,
+                                    notificationItem,
+                                    false
+                                )
+                            }
                         }
                     }
-                }
-                if (lazyAllUnread.itemCount != 0 && lazyAllRead.itemCount != 0) {
-                    item {
-                        Divider(color = colorResource(R.color.gray100), thickness = 4.dp)
+                    if (lazyAllUnread.itemCount != 0 && lazyAllRead.itemCount != 0) {
+                        item {
+                            Divider(color = colorResource(R.color.gray100), thickness = 4.dp)
+                        }
                     }
-                }
-                items(lazyAllRead.itemCount) { index ->
-                    val notificationItem = lazyAllRead[index]
-                    notificationItem?.let {
-                        if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(
-                                notificationViewModel,
-                                notificationItem,
-                                true
-                            )
-                        } else {
-                            CardNotificationElement(
-                                notificationViewModel,
-                                navController,
-                                notificationItem,
-                                true
-                            )
+                    items(lazyAllRead.itemCount) { index ->
+                        val notificationItem = lazyAllRead[index]
+                        notificationItem?.let {
+                            if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
+                                WarningNotificationElement(
+                                    notificationViewModel,
+                                    notificationItem,
+                                    true
+                                )
+                            } else {
+                                CardNotificationElement(
+                                    notificationViewModel,
+                                    navController,
+                                    notificationItem,
+                                    true
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+        RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ReplyScreen(notificationViewModel: NotificationViewModel, navController: NavController) {
     val lazyCardUnread = notificationViewModel.cardUnreadNotificationList.collectAsLazyPagingItems()
     val lazyCardRead = notificationViewModel.cardReadNotificationList.collectAsLazyPagingItems()
 
-    Column(
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                val refreshJob = launch {
+                    notificationViewModel.getCardUnreadCount()
+                }
+                delay(500) // 최소 표시 시간 확보
+                refreshJob.join() // 실제 새로고침 끝날 때까지 기다림
+                isRefreshing = false
+            }
+        }
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .pullRefresh(pullRefreshState),
+        contentAlignment = Alignment.Center
     ) {
-        if (notificationViewModel.cardUnreadCount.value != 0) {
-            Text(
-                text = "읽지 않음 (${notificationViewModel.cardUnreadCount.value}개)",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                lineHeight = 19.6.sp,
-                color = colorResource(R.color.gray_black),
-                modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        if (lazyCardUnread.itemCount == 0 && lazyCardRead.itemCount == 0) {
-            NotExistNotification(notificationViewModel)
-        } else {
-            LazyColumn {
-                items(lazyCardUnread.itemCount) { index ->
-                    val notificationItem = lazyCardUnread[index]
-                    notificationItem?.let {
-                        if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(
-                                notificationViewModel,
-                                notificationItem,
-                                false
-                            )
-                        } else {
-                            CardNotificationElement(
-                                notificationViewModel,
-                                navController,
-                                notificationItem,
-                                false
-                            )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (notificationViewModel.cardUnreadCount.value != 0) {
+                Text(
+                    text = "읽지 않음 (${notificationViewModel.cardUnreadCount.value}개)",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 19.6.sp,
+                    color = colorResource(R.color.gray_black),
+                    modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            if (lazyCardUnread.itemCount == 0 && lazyCardRead.itemCount == 0) {
+                NotExistNotification(notificationViewModel)
+            } else {
+                LazyColumn {
+                    items(lazyCardUnread.itemCount) { index ->
+                        val notificationItem = lazyCardUnread[index]
+                        notificationItem?.let {
+                            if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
+                                WarningNotificationElement(
+                                    notificationViewModel,
+                                    notificationItem,
+                                    false
+                                )
+                            } else {
+                                CardNotificationElement(
+                                    notificationViewModel,
+                                    navController,
+                                    notificationItem,
+                                    false
+                                )
+                            }
                         }
                     }
-                }
-                if (lazyCardUnread.itemCount != 0 && lazyCardRead.itemCount != 0) {
-                    item {
-                        Divider(color = colorResource(R.color.gray100), thickness = 4.dp)
+                    if (lazyCardUnread.itemCount != 0 && lazyCardRead.itemCount != 0) {
+                        item {
+                            Divider(color = colorResource(R.color.gray100), thickness = 4.dp)
+                        }
                     }
-                }
-                items(lazyCardRead.itemCount) { index ->
-                    val notificationItem = lazyCardRead[index]
-                    notificationItem?.let {
-                        if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(
-                                notificationViewModel,
-                                notificationItem,
-                                true
-                            )
-                        } else {
-                            CardNotificationElement(
-                                notificationViewModel,
-                                navController,
-                                notificationItem,
-                                true
-                            )
+                    items(lazyCardRead.itemCount) { index ->
+                        val notificationItem = lazyCardRead[index]
+                        notificationItem?.let {
+                            if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
+                                WarningNotificationElement(
+                                    notificationViewModel,
+                                    notificationItem,
+                                    true
+                                )
+                            } else {
+                                CardNotificationElement(
+                                    notificationViewModel,
+                                    navController,
+                                    notificationItem,
+                                    true
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+        RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
     }
 }
 
@@ -370,77 +450,108 @@ inline fun Modifier.noRippleClickable(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun LikeScreen(notificationViewModel: NotificationViewModel, navController: NavController) {
     val lazyLikeUnread = notificationViewModel.likeUnreadNotificationList.collectAsLazyPagingItems()
     val lazyLikeRead = notificationViewModel.likeReadNotificationList.collectAsLazyPagingItems()
 
-    Column(
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            coroutineScope.launch {
+                isRefreshing = true
+                val refreshJob = launch {
+                    notificationViewModel.getAllUnreadCount()
+                }
+                delay(500) // 최소 표시 시간 확보
+                refreshJob.join() // 실제 새로고침 끝날 때까지 기다림
+                isRefreshing = false
+            }
+        }
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .pullRefresh(pullRefreshState),
+        contentAlignment = Alignment.Center
     ) {
-        if (notificationViewModel.likeUnreadCount.value != 0) {
-            Text(
-                text = "읽지 않음 (${notificationViewModel.likeUnreadCount.value}개)",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                lineHeight = 19.6.sp,
-                color = colorResource(R.color.gray_black),
-                modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
-            )
-        }
 
-        Spacer(modifier = Modifier.height(10.dp))
-        if (lazyLikeUnread.itemCount == 0 && lazyLikeRead.itemCount == 0) {
-            NotExistNotification(notificationViewModel)
-        } else {
-            LazyColumn {
-                items(lazyLikeUnread.itemCount) { index ->
-                    val notificationItem = lazyLikeUnread[index]
-                    notificationItem?.let {
-                        if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(
-                                notificationViewModel,
-                                notificationItem,
-                                false
-                            )
-                        } else {
-                            CardNotificationElement(
-                                notificationViewModel,
-                                navController,
-                                notificationItem,
-                                false
-                            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (notificationViewModel.likeUnreadCount.value != 0) {
+                Text(
+                    text = "읽지 않음 (${notificationViewModel.likeUnreadCount.value}개)",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 19.6.sp,
+                    color = colorResource(R.color.gray_black),
+                    modifier = Modifier.padding(top = 16.dp, start = 20.dp, end = 20.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            if (lazyLikeUnread.itemCount == 0 && lazyLikeRead.itemCount == 0) {
+                NotExistNotification(notificationViewModel)
+            } else {
+                LazyColumn {
+                    items(lazyLikeUnread.itemCount) { index ->
+                        val notificationItem = lazyLikeUnread[index]
+                        notificationItem?.let {
+                            if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
+                                WarningNotificationElement(
+                                    notificationViewModel,
+                                    notificationItem,
+                                    false
+                                )
+                            } else {
+                                CardNotificationElement(
+                                    notificationViewModel,
+                                    navController,
+                                    notificationItem,
+                                    false
+                                )
+                            }
                         }
                     }
-                }
-                if (lazyLikeUnread.itemCount != 0 && lazyLikeRead.itemCount != 0) {
-                    item {
-                        Divider(color = colorResource(R.color.gray100), thickness = 4.dp)
+                    if (lazyLikeUnread.itemCount != 0 && lazyLikeRead.itemCount != 0) {
+                        item {
+                            Divider(color = colorResource(R.color.gray100), thickness = 4.dp)
+                        }
                     }
-                }
-                items(lazyLikeRead.itemCount) { index ->
-                    val notificationItem = lazyLikeRead[index]
-                    notificationItem?.let {
-                        if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
-                            WarningNotificationElement(
-                                notificationViewModel,
-                                notificationItem,
-                                true
-                            )
-                        } else {
-                            CardNotificationElement(
-                                notificationViewModel,
-                                navController,
-                                notificationItem,
-                                true
-                            )
+                    items(lazyLikeRead.itemCount) { index ->
+                        val notificationItem = lazyLikeRead[index]
+                        notificationItem?.let {
+                            if (notificationItem is NotificationDataModel.BlockedNotification || notificationItem is NotificationDataModel.DeletedNotification) {
+                                WarningNotificationElement(
+                                    notificationViewModel,
+                                    notificationItem,
+                                    true
+                                )
+                            } else {
+                                CardNotificationElement(
+                                    notificationViewModel,
+                                    navController,
+                                    notificationItem,
+                                    true
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+        RefreshIndicator(Modifier.align(Alignment.TopCenter), pullRefreshState, isRefreshing)
     }
 }
 
