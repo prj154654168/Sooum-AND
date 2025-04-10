@@ -1,5 +1,6 @@
 package com.sooum.android.ui.myprofile
 
+import android.R.attr.data
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,6 +60,8 @@ import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.MyProfileViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -79,7 +82,11 @@ fun MyProfileScreen(navController: NavHostController) {
         onRefresh = {
             isRefreshing = true
             coroutineScope.launch {
-                myProfileViewModel.getMyProfile()
+                val refreshJob = launch {
+                    myProfileViewModel.getMyProfile()
+                }
+                delay(500) // 최소 표시 시간 확보
+                refreshJob.join() // 실제 새로고침 끝날 때까지 기다림
                 isRefreshing = false
             }
         }
