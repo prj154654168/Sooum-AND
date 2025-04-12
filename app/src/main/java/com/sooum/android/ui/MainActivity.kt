@@ -209,6 +209,33 @@ fun SplashScreen(
         }
     }
 
+    // POST_NOTIFICATIONS 권한 런처
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        // 알림 권한 결과 이후 → 위치 권한 확인 후 위치 요청 또는 바로 이동
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+                if (location != null) {
+                    Log.d("123", "위치 가져왔음")
+                    User.userInfo.latitude = location.latitude
+                    User.userInfo.longitude = location.longitude
+                }
+                if (!mainViewModel.showDialogVersion.value) {
+                    navController.navigate("main") {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
+
+
 
 
     Box(
@@ -235,27 +262,81 @@ fun SplashScreen(
 //    }
 
     // 권한 요청 실행
+//    LaunchedEffect(Unit) {
+//        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+//            != PackageManager.PERMISSION_GRANTED
+//        ) {
+//            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+//        } else {
+//            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+//                if (location != null) {
+//                    Log.d("123", "위치 가져왔음")
+//                    User.userInfo.latitude = location.latitude
+//                    User.userInfo.longitude = location.longitude
+//                }
+//                if (!mainViewModel.showDialogVersion.value) {
+//                    navController.navigate("main") {
+//                        popUpTo(navController.graph.id) { inclusive = true }
+//                        launchSingleTop = true
+//                    }
+//                }
+//            }
+//        }
+//    }
+
     LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
-                if (location != null) {
-                    Log.d("123", "위치 가져왔음")
-                    User.userInfo.latitude = location.latitude
-                    User.userInfo.longitude = location.longitude
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // 알림 권한부터 요청
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                // 알림 권한이 이미 있는 경우 → 위치 권한 확인
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED
+                ) {
+                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                } else {
+                    fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+                        if (location != null) {
+                            Log.d("123", "위치 가져왔음")
+                            User.userInfo.latitude = location.latitude
+                            User.userInfo.longitude = location.longitude
+                        }
+                        if (!mainViewModel.showDialogVersion.value) {
+                            navController.navigate("main") {
+                                popUpTo(navController.graph.id) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
                 }
-                if (!mainViewModel.showDialogVersion.value) {
-                    navController.navigate("main") {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                        launchSingleTop = true
+            }
+        } else {
+            // Android 13 미만 → 바로 위치 권한만 처리
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            } else {
+                fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+                    if (location != null) {
+                        Log.d("123", "위치 가져왔음")
+                        User.userInfo.latitude = location.latitude
+                        User.userInfo.longitude = location.longitude
+                    }
+                    if (!mainViewModel.showDialogVersion.value) {
+                        navController.navigate("main") {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 }
             }
         }
     }
+
 
 }
 
