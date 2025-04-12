@@ -114,6 +114,7 @@ class MainViewModel @Inject constructor(
                         }//아이디 탈퇴한사람
                         val dateTime = LocalDateTime.parse(suspension.untilBan)
                         date = "${dateTime.year}년 ${dateTime.monthValue}월 ${dateTime.dayOfMonth}일"
+                        onLoginFinished()
                     } else {
                         val b = retrofitInstance.logIn(EncryptedDeviceId(encryptedDeviceId))
                         Log.e("EncryptedDeviceId", b.body().toString())

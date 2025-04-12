@@ -24,9 +24,13 @@ class UserDeleteViewModel @Inject constructor(
                         SooumApplication().getVariable("refreshToken")
                     )
                 )
-            } catch (E: Exception) {
-                println(E)
+            } catch (e: Exception) {
+                println(e)
+            } finally {
+                // 작업이 끝난 뒤 무조건 실행됨
+                function()
             }
         }
     }
+
 }
