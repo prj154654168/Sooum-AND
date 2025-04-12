@@ -51,6 +51,15 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
         Settings.Secure.ANDROID_ID
     )
 
+    // 임시 탈퇴용 로그인 함수 재호출
+    LaunchedEffect(Unit) {
+        mainViewModel.login(android_id, {
+            if (mainViewModel.login == 3 || mainViewModel.login == 4) {
+                showDialog = true
+            }
+        })
+    }
+
     LaunchedEffect(Unit) {
         if (mainViewModel.login == 3 || mainViewModel.login == 4) {
             showDialog = true
