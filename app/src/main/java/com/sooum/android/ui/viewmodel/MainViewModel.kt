@@ -142,30 +142,31 @@ class MainViewModel @Inject constructor(
 
                     Log.d("tryLogin", "${tryLogin}")
 
-//                    if (tryLogin.isRegistered) {
-//                        //토큰 저장하고 바로 메인화면으로 넘어가면 됨
-//                        val accessToken = tryLogin.token?.accessToken ?: ""
-//                        val refreshToken = tryLogin.token?.refreshToken ?: ""
-//                        tokenManager.saveTokens(accessToken, refreshToken)
-//                        onLoginFinished(UserStatusEnum.MEMBER, null)
-//                    } else {
-//                        //이 유저 가입 가능한 유저인지 판단하고 3, 4에 따라 dialog 띄우고 만약 가입 가능한 유저면 온보딩 화면으로 넘어가면 됨
-//                        val suspensionResponse = postMemberSuspensionUseCase(encryptedDeviceId)
-//
-//                        if (suspensionResponse.isBanUser) {
-//                            onLoginFinished(UserStatusEnum.SUSPENDED, suspensionResponse.untilBan)
-//                            //밴유저임 정지 팝업 띄우면됨
-//                        } else {
-//                            if (suspensionResponse.status.responseMessage == "가입 가능한 유저입니다.") {
-//                                onLoginFinished(UserStatusEnum.NON_MEMBER, null)
-//                                //가입 가능, 온보딩 화면 이동
-//                            } else {
-//                                onLoginFinished(UserStatusEnum.RESTRICTED, suspensionResponse.untilBan)
-//                                //탈퇴 유저임 재가입 불가 팝업 띄우면됨
-//                            }
-//
-//                        }
-//                    }
+                    if (tryLogin.isRegistered) {
+                        //토큰 저장하고 바로 메인화면으로 넘어가면 됨
+                        val accessToken = tryLogin.token?.accessToken ?: ""
+                        val refreshToken = tryLogin.token?.refreshToken ?: ""
+                        SooumApplication().saveVariable("accessToken", accessToken)
+                        SooumApplication().saveVariable("refreshToken", refreshToken)
+                        onLoginFinished(UserStatusEnum.MEMBER, null)
+                    } else {
+                        //이 유저 가입 가능한 유저인지 판단하고 3, 4에 따라 dialog 띄우고 만약 가입 가능한 유저면 온보딩 화면으로 넘어가면 됨
+                        val suspensionResponse = postMemberSuspensionUseCase(encryptedDeviceId)
+
+                        if (suspensionResponse.isBanUser) {
+                            onLoginFinished(UserStatusEnum.SUSPENDED, suspensionResponse.untilBan)
+                            //밴유저임 정지 팝업 띄우면됨
+                        } else {
+                            if (suspensionResponse.status.responseMessage == "가입 가능한 유저입니다.") {
+                                onLoginFinished(UserStatusEnum.NON_MEMBER, null)
+                                //가입 가능, 온보딩 화면 이동
+                            } else {
+                                onLoginFinished(UserStatusEnum.RESTRICTED, suspensionResponse.untilBan)
+                                //탈퇴 유저임 재가입 불가 팝업 띄우면됨
+                            }
+
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 println(e)
