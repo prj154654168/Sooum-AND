@@ -183,16 +183,19 @@ fun SplashScreen(
             Log.d("UserStatus", "${status}")
             when (status) {
                 UserStatusEnum.MEMBER -> {
+                    Log.d("Splash", "member")
                     navController.navigate("main") {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
                 UserStatusEnum.NON_MEMBER -> {
+                    Log.d("Splash", "nonMember")
                     navController.navigate(LogInNav.LogIn.screenRoute) {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
                 UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
+                    Log.d("Splash", "그 외")
                     val encodedStatus = Uri.encode(status.name)
                     val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
 

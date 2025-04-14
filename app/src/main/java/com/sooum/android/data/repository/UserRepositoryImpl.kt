@@ -6,7 +6,6 @@ import com.sooum.android.domain.model.EncryptedDeviceId
 import com.sooum.android.domain.model.KeyModel
 import com.sooum.android.domain.model.LoginModel
 import com.sooum.android.domain.model.RecommendTagDataModel
-import com.sooum.android.domain.model.RefreshTokenResponseModel
 import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.model.SuspensionResponse
 import com.sooum.android.domain.repository.UserRepository
@@ -64,20 +63,6 @@ class UserRepositoryImpl @Inject constructor(private val userApi: UserApi) : Use
                     throw Exception()
                 }
 
-            } else {
-                throw Exception()
-            }
-        } catch (e: Exception) {
-            throw Exception()
-        }
-    }
-
-    override fun postRefreshToken(): RefreshTokenResponseModel {
-        try {
-            val response = userApi.postRefreshToken()
-
-            if (response.isSuccessful && response.code() == 200) {
-                return response.body() ?: throw Exception()
             } else {
                 throw Exception()
             }
