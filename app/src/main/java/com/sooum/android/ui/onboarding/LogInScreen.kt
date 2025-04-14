@@ -43,7 +43,7 @@ import kotlin.system.exitProcess
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) {
+fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel, status: String?, dateTime : String?) {
 
     var showDialog by remember { mutableStateOf(false) }
     val android_id = Settings.Secure.getString(
