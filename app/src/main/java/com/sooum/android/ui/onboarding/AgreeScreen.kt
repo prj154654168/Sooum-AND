@@ -42,6 +42,7 @@ import com.sooum.android.domain.model.MemberInfo
 import com.sooum.android.domain.model.Policy
 import com.sooum.android.domain.model.signUpModel
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.noRippleClickable
 import com.sooum.android.ui.theme.Gray300
 import com.sooum.android.ui.theme.Gray5
 import com.sooum.android.ui.theme.Primary
@@ -99,7 +100,8 @@ fun AgreeScreen(navController: NavHostController) {
                         .padding(top = 20.dp)
                         .clickable {
                             //allChecked = !allChecked
-                        },
+                        }
+                        .noRippleClickable{},
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
@@ -125,7 +127,8 @@ fun AgreeScreen(navController: NavHostController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { firstChecked = !firstChecked },
+                        .clickable { firstChecked = !firstChecked }
+                        .noRippleClickable{},
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
@@ -143,7 +146,8 @@ fun AgreeScreen(navController: NavHostController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { secondChecked = !secondChecked },
+                        .clickable { secondChecked = !secondChecked }
+                        .noRippleClickable{},
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
@@ -160,7 +164,8 @@ fun AgreeScreen(navController: NavHostController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { thirdChecked = !thirdChecked },
+                        .clickable { thirdChecked = !thirdChecked }
+                        .noRippleClickable{},
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
