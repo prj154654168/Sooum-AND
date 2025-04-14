@@ -50,6 +50,7 @@ import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.Utils
 import com.sooum.android.ui.common.SooumNav
+import com.sooum.android.ui.noRippleClickable
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.LogInProfileViewModel
 import java.io.ByteArrayOutputStream
@@ -149,7 +150,8 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     imageCropLauncher.launch(cropOptions)
                                 }
                                 .size(128.dp)
-                                .align(Alignment.Center),
+                                .align(Alignment.Center)
+                                .noRippleClickable{},
                         )
                     } else {
                         AsyncImage(
@@ -168,7 +170,8 @@ fun LogInProfileScreen(navController: NavHostController) {
                                 }
                                 .size(128.dp)
                                 .aspectRatio(1f)
-                                .clip(CircleShape),
+                                .clip(CircleShape)
+                                .noRippleClickable{},
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -217,7 +220,8 @@ fun LogInProfileScreen(navController: NavHostController) {
                                 } // 백 스택 비우기
                                 launchSingleTop = true // 중복된 화면 생성 방지
                             }
-                        },
+                        }
+                        .noRippleClickable{},
                     text = "다음에 변경하기",
                     textDecoration = TextDecoration.Underline,
                     color = Primary
