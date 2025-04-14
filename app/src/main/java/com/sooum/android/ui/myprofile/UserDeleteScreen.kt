@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.noRippleClickable
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.UserDeleteViewModel
 
@@ -67,6 +68,7 @@ fun UserDeleteScreen(navController: NavHostController) {
                         .clickable {
                             navController.popBackStack()
                         }
+                        .noRippleClickable{}
                         .padding(15.dp)
                 )
                 Text(
