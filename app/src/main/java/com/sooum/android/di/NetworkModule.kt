@@ -10,6 +10,7 @@ import com.sooum.android.data.remote.ProfileApi
 import com.sooum.android.data.remote.ReportApi
 import com.sooum.android.data.remote.TagAPI
 import com.sooum.android.data.remote.TokenAuthenticator
+import com.sooum.android.data.remote.UserApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -85,5 +86,11 @@ object NetworkModule {
     @Provides
     fun getAppVersionApiInstance(retrofit: Retrofit) : AppVersionApi {
         return retrofit.create(AppVersionApi::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun getUserApiInstance(retrofit: Retrofit): UserApi {
+        return retrofit.create(UserApi::class.java)
     }
 }

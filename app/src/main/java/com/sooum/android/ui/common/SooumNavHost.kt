@@ -21,6 +21,7 @@ import com.sooum.android.ui.HomeScreen
 import com.sooum.android.ui.Main
 import com.sooum.android.ui.NotificationScreen
 import com.sooum.android.ui.ReportScreen
+import com.sooum.android.ui.SplashScreen
 import com.sooum.android.ui.TagListScreen
 import com.sooum.android.ui.TagScreen
 import com.sooum.android.ui.myprofile.EnterUserCodeScreen
@@ -58,6 +59,9 @@ fun SooumNavHost(
         navController = navController,
         startDestination = startDestination
     ) {
+        composable("splash") {
+            SplashScreen(navController, mainViewModel)
+        }
         composable("main") {
             Main(mainViewModel)
         }
@@ -116,9 +120,27 @@ fun SooumNavHost(
             val cardId = backStackEntry.arguments?.getString("cardId").toString()
             ReportScreen(navController, cardId)
         }
-        composable(route = LogInNav.LogIn.screenRoute) {
-            LogInScreen(navController, mainViewModel)
+        composable(
+            route = "${LogInNav.LogIn.screenRoute}?status={status}&extraInfo={extraInfo}",
+            arguments = listOf(
+                navArgument("status") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("extraInfo") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val status = backStackEntry.arguments?.getString("status")
+            val extraInfo = backStackEntry.arguments?.getString("extraInfo")
+
+            LogInScreen(navController, mainViewModel, status, extraInfo)
         }
+
         composable(route = LogInNav.Agree.screenRoute) {
             AgreeScreen(navController)
         }

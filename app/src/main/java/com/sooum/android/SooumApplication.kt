@@ -31,6 +31,11 @@ class SooumApplication : Application() {
         prefs.edit().remove(item).apply()
     }
 
+    fun clearAllPrefs() {
+        prefs.edit().clear().apply()
+    }
+
+
     private fun getPreference(context: Context): SharedPreferences {
         return context.getSharedPreferences(prefsFilename, Context.MODE_PRIVATE)
     }

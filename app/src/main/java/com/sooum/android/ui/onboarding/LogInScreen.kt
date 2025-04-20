@@ -38,12 +38,14 @@ import com.sooum.android.R
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.MainViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.system.exitProcess
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) {
+fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel, status: String?, dateTime : String?) {
 
     var showDialog by remember { mutableStateOf(false) }
     val android_id = Settings.Secure.getString(
@@ -51,23 +53,33 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
         Settings.Secure.ANDROID_ID
     )
 
-    // 임시 탈퇴용 로그인 함수 재호출
-    LaunchedEffect(Unit) {
-        mainViewModel.login(android_id, {
-            if (mainViewModel.login == 3 || mainViewModel.login == 4) {
-                showDialog = true
-            }
-        })
-    }
+//    // 임시 탈퇴용 로그인 함수 재호출
+//    LaunchedEffect(Unit) {
+//        mainViewModel.login(android_id, {
+//            if (mainViewModel.login == 3 || mainViewModel.login == 4) {
+//                showDialog = true
+//            }
+//        })
+//    }
+//
+//    LaunchedEffect(Unit) {
+//        if (mainViewModel.login == 3 || mainViewModel.login == 4) {
+//            showDialog = true
+//        }
+//    }
 
-    LaunchedEffect(Unit) {
-        if (mainViewModel.login == 3 || mainViewModel.login == 4) {
-            showDialog = true
-        }
-    }
+    // ISO 포맷 문자열을 LocalDateTime 객체로 파싱
+    val dateTime2 = if (dateTime != null) LocalDateTime.parse(dateTime)
+    else null
+
+    // 원하는 출력 형식 지정
+    val formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
+
+    // 포맷 적용
+    val formatted = dateTime2?.format(formatter) ?: ""
     if (showDialog) {
-        LoginDialog(mainViewModel.login, mainViewModel.date) {
-            exitProcess(0)
+        LoginDialog(status, formatted) {
+//            exitProcess(0)
             showDialog = false
         }
     }
@@ -96,10 +108,14 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
                 .padding(start = 20.dp, end = 20.dp, top = 100.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Primary),
             onClick = {
-                mainViewModel.login(android_id, {
+                if (status != null && dateTime != null) {
+                    showDialog = true
+                } else {
+                    mainViewModel.login(android_id, {
 //                    mainViewModel.fetchUnreadNotificationCount()
-                })
-                navController.navigate(LogInNav.Agree.screenRoute) {
+                    })
+                    navController.navigate(LogInNav.Agree.screenRoute) {
+                    }
                 }
             }) {
             Text(text = "숨 시작하기")
@@ -117,7 +133,7 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel) 
 
 @Composable
 fun LoginDialog(
-    mode: Int,
+    status: String?,
     date: String,
     showDialog: () -> Unit,
 ) {
@@ -135,7 +151,7 @@ fun LoginDialog(
                 ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (mode == 3) {
+                if (status != null && status == "SUSPENDED") {
                     Text(
                         text = "기존 정지된 계정으로",
                         fontSize = 16.sp,

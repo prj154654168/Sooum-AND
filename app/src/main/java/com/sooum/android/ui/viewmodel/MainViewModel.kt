@@ -17,9 +17,16 @@ import com.sooum.android.domain.model.Token
 import com.sooum.android.domain.usecase.notification.AllUnreadCountUseCase
 import com.sooum.android.domain.usecase.notification.ReadNotificationUseCase
 import com.sooum.android.domain.usecase.profile.SuspensionUseCase
+import com.sooum.android.domain.usecase.user.PostLoginUseCase
+import com.sooum.android.domain.usecase.user.PostMemberSuspensionUseCase
+import com.sooum.android.domain.usecase.user.RsaKeyUseCase
 import com.sooum.android.domain.usecase.version.AppVersionUseCase
+import com.sooum.android.enums.UserStatusEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
@@ -33,7 +40,10 @@ class MainViewModel @Inject constructor(
     private val getAllUnreadCountUseCase: AllUnreadCountUseCase,
     private val readNotificationUseCase: ReadNotificationUseCase,
     private val suspensionUseCase: SuspensionUseCase,
-    private val getAppVersionUseCase: AppVersionUseCase
+    private val getAppVersionUseCase: AppVersionUseCase,
+    private val getRsaKeyUseCase: RsaKeyUseCase,
+    private val postLoginUseCase: PostLoginUseCase,
+    private val postMemberSuspensionUseCase: PostMemberSuspensionUseCase
 ) : ViewModel() {
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
@@ -83,6 +93,86 @@ class MainViewModel @Inject constructor(
             Log.e("MainViewModel", "Encryption failed: ${e.message}")
             e.printStackTrace()
             return "" // 예외 발생 시 빈 문자열 반환
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun refactConvert(androidId: String, rsaKey: String): String {
+        val publicKey = base64ToRSAPublicKey(rsaKey)
+        Log.d("MainViewModel", "publicKey : ${publicKey}")
+
+        return encryptWithRSAPublicKey(androidId, publicKey)
+    }
+
+    suspend fun getRsaKey() : String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val keyModel = getRsaKeyUseCase()
+                keyModel.publicKey
+            } catch (e: Exception) {
+                println(e)
+                ""
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun refactLogin(androidId: String, onLoginFinished: (UserStatusEnum, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val accessToken = SooumApplication().getVariable("accessToken")
+                val refreshToken = SooumApplication().getVariable("refreshToken")
+
+                Log.d("MainViewModel", "accessToken : $accessToken")
+                Log.d("MainViewModel", "refreshToken : $refreshToken")
+
+                if (!accessToken.isNullOrEmpty() && !refreshToken.isNullOrEmpty()) {
+                    Log.d("MainViewModel", "token is not empty")
+                    onLoginFinished(UserStatusEnum.MEMBER, null)
+                } else {
+                    val rsaKey = getRsaKey()
+
+                    Log.d("MainViewModel", "rsaKey : ${rsaKey}")
+
+                    val encryptedDeviceId = refactConvert(androidId, rsaKey)
+
+                    Log.d("MainViewModel", "android ID : ${androidId}")
+
+                    Log.d("MainViewModel", "encryptedDeviceId : ${encryptedDeviceId}")
+
+                    val tryLogin = postLoginUseCase(encryptedDeviceId)
+
+                    Log.d("tryLogin", "${tryLogin}")
+
+                    if (tryLogin.isRegistered) {
+                        //토큰 저장하고 바로 메인화면으로 넘어가면 됨
+                        val accessToken = tryLogin.token?.accessToken ?: ""
+                        val refreshToken = tryLogin.token?.refreshToken ?: ""
+                        SooumApplication().saveVariable("accessToken", accessToken)
+                        SooumApplication().saveVariable("refreshToken", refreshToken)
+                        onLoginFinished(UserStatusEnum.MEMBER, null)
+                    } else {
+                        //이 유저 가입 가능한 유저인지 판단하고 3, 4에 따라 dialog 띄우고 만약 가입 가능한 유저면 온보딩 화면으로 넘어가면 됨
+                        val suspensionResponse = postMemberSuspensionUseCase(encryptedDeviceId)
+
+                        if (suspensionResponse.isBanUser) {
+                            onLoginFinished(UserStatusEnum.SUSPENDED, suspensionResponse.untilBan)
+                            //밴유저임 정지 팝업 띄우면됨
+                        } else {
+                            if (suspensionResponse.status.responseMessage == "가입 가능한 유저입니다.") {
+                                onLoginFinished(UserStatusEnum.NON_MEMBER, null)
+                                //가입 가능, 온보딩 화면 이동
+                            } else {
+                                onLoginFinished(UserStatusEnum.RESTRICTED, suspensionResponse.untilBan)
+                                //탈퇴 유저임 재가입 불가 팝업 띄우면됨
+                            }
+
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                println(e)
+            }
         }
     }
 
@@ -142,17 +232,6 @@ class MainViewModel @Inject constructor(
 
             } catch (E: Exception) {
                 println(E)
-            }
-        }
-    }
-
-    fun fetchUnreadNotificationCount() {
-        viewModelScope.launch {
-            try {
-                val unreadCount = getAllUnreadCountUseCase()
-                unreadNotificationCount.value = unreadCount
-            } catch (e: Exception) {
-                Log.e("HomeViewModel", e.printStackTrace().toString())
             }
         }
     }

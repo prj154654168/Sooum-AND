@@ -9,6 +9,7 @@ import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.FeedCardDataModel
 import com.sooum.android.domain.model.ImageIssueDataModel
 import com.sooum.android.domain.model.KeyModel
+import com.sooum.android.domain.model.LoginModel
 import com.sooum.android.domain.model.PostCommentCardRequestDataModel
 import com.sooum.android.domain.model.PostFeedRequestDataModel
 import com.sooum.android.domain.model.SortedByDistanceDataModel
@@ -16,7 +17,6 @@ import com.sooum.android.domain.model.SortedByLatestDataModel
 import com.sooum.android.domain.model.SortedByPopularityDataModel
 import com.sooum.android.domain.model.Status
 import com.sooum.android.domain.model.TagFeedDataModel
-import com.sooum.android.domain.model.logInModel
 import com.sooum.android.domain.model.profileBody
 import com.sooum.android.domain.model.signUpModel
 import com.sooum.android.domain.model.signUpResponse
@@ -139,7 +139,7 @@ interface CardApi {
     @POST("/users/login")
     suspend fun logIn(
         @Body encryptedDeviceId: EncryptedDeviceId,
-    ): Response<logInModel>
+    ): Response<LoginModel>
 
     @POST("/users/sign-up")
     suspend fun signUp(

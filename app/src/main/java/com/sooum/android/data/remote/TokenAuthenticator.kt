@@ -1,5 +1,6 @@
 package com.sooum.android.data.remote
 
+import android.util.Log
 import com.sooum.android.Constants
 import com.sooum.android.SooumApplication
 import okhttp3.Authenticator
@@ -12,6 +13,7 @@ import org.json.JSONObject
 
 class TokenAuthenticator : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
+        Log.d("TokenAuthenticator", "start authenticate")
         // 2번 이상 재시도 방지
         if (responseCount(response) >= 2) return null
 
@@ -44,9 +46,16 @@ class TokenAuthenticator : Authenticator {
             .post(FormBody.Builder().add("refresh_token", refreshToken).build())
             .build()
 
+        Log.d("TokenAuthenticator", "getNewAccessToken")
+
         return try {
             val response = client.newCall(request).execute()
+            // 응답 코드부터 확인
+            Log.d("TokenAuthenticator", "🔁 HTTP status = ${response.code}")
+
             val body = response.body?.string()
+            Log.d("TokenAuthenticator", "🔐 응답 바디 = $body")
+
             if (response.isSuccessful && !body.isNullOrEmpty()) {
                 val json = JSONObject(body)
                 val statusCode = json.getJSONObject("status").getInt("code")

@@ -70,7 +70,9 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.User
+import com.sooum.android.enums.UserStatusEnum
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.SooumBottomNavigation
@@ -86,42 +88,67 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
+        //로그인 성공했음 화면 네비 다시 이어서 시작
 
         setContent {
             val mainViewModel: MainViewModel = hiltViewModel()
             val navController = rememberNavController()
 
-            val android_id = Settings.Secure.getString(
-                LocalContext.current.getContentResolver(),
-                Settings.Secure.ANDROID_ID
+//            mainViewModel.fetchAppVersion(this) // 앱 버전 체크
+
+            SooumNavHost(
+                navController = navController,
+                startDestination = "splash",
+                mainViewModel = mainViewModel,
             )
 
-            mainViewModel.fetchAppVersion(this)
-            mainViewModel.login(android_id, {
-//                mainViewModel.fetchUnreadNotificationCount()
-            })
+//            if (mainViewModel.isLoading == 1) {
+//                SooumNavHost(
+//                    navController = navController,
+//                    startDestination = NotificationNav.Notification.screenRoute,
+//                    mainViewModel
+//                )
+//                mainViewModel.isLoading = 2
+//            } else {
+//                NavHost(
+//                    navController = navController,
+//                    startDestination = "splash"
+//                ) {
+//                    composable("splash") {
+//                        SplashScreen(navController, mainViewModel)
+//                    }
+//                    composable("main") {
+//                        Main(mainViewModel)
+//                    }
+//                }
+//            }
+        }
 
-            if (mainViewModel.isLoading == 1) {
-                SooumNavHost(
-                    navController = navController,
-                    startDestination = NotificationNav.Notification.screenRoute,
-                    mainViewModel
-                )
-                mainViewModel.isLoading = 2
-            } else {
-                NavHost(
-                    navController = navController,
-                    startDestination = "splash"
-                ) {
-                    composable("splash") {
-                        SplashScreen(navController, mainViewModel)
-                    }
-                    composable("main") {
-                        Main(mainViewModel)
-                    }
-                }
+//        requestNotificationPermission()
+    }
+    fun ComponentActivity.requestNotificationPermission() {
+        // Android 13(API 33) 이상인지 확인
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // 권한 요청 다이얼로그 띄우기
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+    }
+
+    // 권한 요청 결과 처리
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // 사용자가 알림 권한을 허용함
+            Log.d("Permission", "알림 권한 허용됨")
+        } else {
+            // 사용자가 알림 권한을 거부함
+            Log.d("Permission", "알림 권한 거부됨")
         }
     }
 
@@ -143,14 +170,47 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SplashScreen(
     navController: NavController,
-    mainViewModel: MainViewModel,
+    mainViewModel: MainViewModel
 ) {
-    val android_id = Settings.Secure.getString(
-        LocalContext.current.getContentResolver(),
+    val context = LocalContext.current
+
+    val androidId = Settings.Secure.getString(
+        context.getContentResolver(),
         Settings.Secure.ANDROID_ID
     )
 
-    val context = LocalContext.current
+    Log.d("DeviceId", "$androidId")
+
+    LaunchedEffect(Unit) {
+        mainViewModel.refactLogin(androidId, onLoginFinished = { status, dateTime ->
+            Log.d("UserStatus", "${status}")
+            when (status) {
+                UserStatusEnum.MEMBER -> {
+                    Log.d("Splash", "member")
+                    navController.navigate("main") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+                UserStatusEnum.NON_MEMBER -> {
+                    Log.d("Splash", "nonMember")
+                    navController.navigate(LogInNav.LogIn.screenRoute) {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+                UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
+                    Log.d("Splash", "그 외")
+                    val encodedStatus = Uri.encode(status.name)
+                    val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
+
+                    Log.d("Splash", "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo")
+
+                    navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
+                        popUpTo("splash") { inclusive = true }
+                    }
+                }
+            }
+        })
+    }
     val permissions =
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
 
@@ -165,14 +225,6 @@ fun SplashScreen(
             // 업데이트 진행 안할 시
             exitProcess(0)
         }
-    }
-
-    LaunchedEffect(Unit) {
-        // 서버 호출 (예시로 delay로 가정)
-//        mainViewModel.login(android_id, context, {
-//            mainViewModel.fetchUnreadNotificationCount()
-//        })
-
     }
 
 
@@ -200,12 +252,12 @@ fun SplashScreen(
             }
         } else {
             Log.d("123", "권한 거부됨")
-            if (!mainViewModel.showDialogVersion.value) {
-                navController.navigate("main") {
-                    popUpTo(navController.graph.id) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
+//            if (!mainViewModel.showDialogVersion.value) {
+//                navController.navigate("main") {
+//                    popUpTo(navController.graph.id) { inclusive = true }
+//                    launchSingleTop = true
+//                }
+//            }
         }
     }
 
@@ -225,12 +277,12 @@ fun SplashScreen(
                     User.userInfo.latitude = location.latitude
                     User.userInfo.longitude = location.longitude
                 }
-                if (!mainViewModel.showDialogVersion.value) {
-                    navController.navigate("main") {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
+//                if (!mainViewModel.showDialogVersion.value) {
+//                    navController.navigate("main") {
+//                        popUpTo(navController.graph.id) { inclusive = true }
+//                        launchSingleTop = true
+//                    }
+//                }
             }
         }
     }
@@ -304,12 +356,12 @@ fun SplashScreen(
                             User.userInfo.latitude = location.latitude
                             User.userInfo.longitude = location.longitude
                         }
-                        if (!mainViewModel.showDialogVersion.value) {
-                            navController.navigate("main") {
-                                popUpTo(navController.graph.id) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
+//                        if (!mainViewModel.showDialogVersion.value) {
+//                            navController.navigate("main") {
+//                                popUpTo(navController.graph.id) { inclusive = true }
+//                                launchSingleTop = true
+//                            }
+//                        }
                     }
                 }
             }
@@ -326,12 +378,12 @@ fun SplashScreen(
                         User.userInfo.latitude = location.latitude
                         User.userInfo.longitude = location.longitude
                     }
-                    if (!mainViewModel.showDialogVersion.value) {
-                        navController.navigate("main") {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
+//                    if (!mainViewModel.showDialogVersion.value) {
+//                        navController.navigate("main") {
+//                            popUpTo(navController.graph.id) { inclusive = true }
+//                            launchSingleTop = true
+//                        }
+//                    }
                 }
             }
         }
@@ -459,75 +511,25 @@ fun Main(mainViewModel: MainViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-//    SoonumTheme {
-    // A surface container using the 'background' color from the theme
+    val bottomBarRoute = listOf(SooumNav.Home.screenRoute, SooumNav.Tag.screenRoute, SooumNav.Profile.screenRoute)
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Scaffold(
             bottomBar = {
-                if (SooumNav.isMainRoute(currentRoute) == 1) {
+                if (currentRoute in bottomBarRoute) {
                     SooumBottomNavigation(navController)
                 }
-                if (SooumNav.isMainRoute(currentRoute) == 4) {
-                    SooumBottomNavigation(navController)
-                }
-            },
-
-            topBar = {
-//                if (SooumNav.isMainRoute(currentRoute) == 1) {
-//                    TopAppBar(
-//                        title = {
-//                            Image(
-//                                painter = painterResource(id = R.drawable.ic_logo),
-//                                contentDescription = "앱 로고",
-//                                modifier = Modifier
-//                                    .width(93.dp)
-//                                    .height(18.dp)
-//                            )
-//                        },
-//                        actions = {
-//                            Image(
-//                                painter = if (mainViewModel.unreadNotificationCount.value == 0) {
-//                                    painterResource(R.drawable.ic_alarm)
-//                                } else {
-//                                    painterResource(R.drawable.ic_alarm_2)
-//                                },
-//                                contentDescription = null,
-//                                modifier = Modifier
-//                                    .padding(end = 20.dp)
-//                                    .clickable(
-//                                        interactionSource = remember { MutableInteractionSource() },
-//                                        indication = null
-//                                    ) {
-//                                        navController.navigate(NotificationNav.Notification.screenRoute)
-//                                    }
-//                            )
-//                        },
-//                        modifier = Modifier.padding(
-//                            horizontal = 4.dp,
-//                            vertical = 2.dp
-//                        )
-//                    )
-//                }
             },
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding))
-
-            if (mainViewModel.login == 1) {
-                SooumNavHost(
-                    navController = navController,
-                    startDestination = SooumNav.Home.screenRoute,
-                    mainViewModel
-                )
-            } else {
-                SooumNavHost(
-                    navController = navController,
-                    startDestination = LogInNav.LogIn.screenRoute,
-                    mainViewModel
-                )
-            }
+            SooumNavHost(
+                navController = navController,
+                startDestination = SooumNav.Home.screenRoute,
+                mainViewModel
+            )
         }
     }
 }

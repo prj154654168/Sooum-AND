@@ -97,7 +97,7 @@ fun LogInProfileScreen(navController: NavHostController) {
             }
         }
     if (viewModel.isLoading == 1) {
-        navController.navigate(SooumNav.Home.screenRoute) {
+        navController.navigate("main") {
             popUpTo(navController.graph.id) {
                 inclusive = true
             } // 백 스택 비우기
@@ -214,7 +214,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                                     .getVariable("nickName")
                                     .toString(), 2
                             )
-                            navController.navigate(SooumNav.Home.screenRoute) {
+                            navController.navigate("main") {
                                 popUpTo(navController.graph.id) {
                                     inclusive = true
                                 } // 백 스택 비우기

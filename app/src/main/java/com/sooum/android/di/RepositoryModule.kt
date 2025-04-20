@@ -7,6 +7,7 @@ import com.sooum.android.data.repository.DetailRepositoryImpl
 import com.sooum.android.data.repository.MyProfileRepositoryImpl
 import com.sooum.android.data.repository.NotificationRepositoryImpl
 import com.sooum.android.data.repository.TagRepositoryImpl
+import com.sooum.android.data.repository.UserRepositoryImpl
 import com.sooum.android.domain.repository.AppVersionRepository
 import com.sooum.android.domain.repository.PostCardRepository
 import com.sooum.android.domain.repository.HomeFeedRepository
@@ -14,6 +15,7 @@ import com.sooum.android.domain.repository.DetailRepository
 import com.sooum.android.domain.repository.MyProfileRepository
 import com.sooum.android.domain.repository.NotificationRepository
 import com.sooum.android.domain.repository.TagRepository
+import com.sooum.android.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -51,4 +53,8 @@ abstract class RepositoryModule {
     @Singleton
     @Binds
     abstract fun appVersionRepositoryRepository(appVersionRepositoryImpl: AppVersionRepositoryImpl) : AppVersionRepository
+
+    @Singleton
+    @Binds
+    abstract  fun userRepository(userRepositoryImpl: UserRepositoryImpl) : UserRepository
 }
