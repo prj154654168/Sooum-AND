@@ -121,18 +121,26 @@ fun SooumNavHost(
             ReportScreen(navController, cardId)
         }
         composable(
-//            route = "${LogInNav.LogIn.screenRoute}/{status}/{extraInfo}",
-            route = LogInNav.LogIn.screenRoute,
-//            arguments = listOf(
-//                navArgument("status") { type = NavType.StringType },
-//                navArgument("extraInfo") { type = NavType.StringType }
-//            )
+            route = "${LogInNav.LogIn.screenRoute}?status={status}&extraInfo={extraInfo}",
+            arguments = listOf(
+                navArgument("status") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("extraInfo") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
         ) { backStackEntry ->
             val status = backStackEntry.arguments?.getString("status")
             val extraInfo = backStackEntry.arguments?.getString("extraInfo")
 
             LogInScreen(navController, mainViewModel, status, extraInfo)
         }
+
         composable(route = LogInNav.Agree.screenRoute) {
             AgreeScreen(navController)
         }

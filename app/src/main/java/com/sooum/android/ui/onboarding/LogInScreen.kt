@@ -69,13 +69,14 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel, 
 //    }
 
     // ISO 포맷 문자열을 LocalDateTime 객체로 파싱
-    val dateTime = LocalDateTime.parse(dateTime)
+    val dateTime2 = if (dateTime != null) LocalDateTime.parse(dateTime)
+    else null
 
     // 원하는 출력 형식 지정
     val formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
 
     // 포맷 적용
-    val formatted = dateTime.format(formatter)
+    val formatted = dateTime2?.format(formatter) ?: ""
     if (showDialog) {
         LoginDialog(status, formatted) {
 //            exitProcess(0)

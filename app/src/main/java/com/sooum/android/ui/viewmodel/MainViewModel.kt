@@ -136,6 +136,8 @@ class MainViewModel @Inject constructor(
 
                     val encryptedDeviceId = refactConvert(androidId, rsaKey)
 
+                    Log.d("MainViewModel", "android ID : ${androidId}")
+
                     Log.d("MainViewModel", "encryptedDeviceId : ${encryptedDeviceId}")
 
                     val tryLogin = postLoginUseCase(encryptedDeviceId)

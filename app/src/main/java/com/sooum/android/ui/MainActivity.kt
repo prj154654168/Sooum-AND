@@ -70,6 +70,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.enums.UserStatusEnum
 import com.sooum.android.ui.common.LogInNav
@@ -178,6 +179,8 @@ fun SplashScreen(
         Settings.Secure.ANDROID_ID
     )
 
+    Log.d("DeviceId", "$androidId")
+
     LaunchedEffect(Unit) {
         mainViewModel.refactLogin(androidId, onLoginFinished = { status, dateTime ->
             Log.d("UserStatus", "${status}")
@@ -199,7 +202,9 @@ fun SplashScreen(
                     val encodedStatus = Uri.encode(status.name)
                     val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
 
-                    navController.navigate("${LogInNav.LogIn.screenRoute}/$encodedStatus/$encodedExtraInfo") {
+                    Log.d("Splash", "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo")
+
+                    navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
                         popUpTo("splash") { inclusive = true }
                     }
                 }
@@ -247,12 +252,12 @@ fun SplashScreen(
             }
         } else {
             Log.d("123", "권한 거부됨")
-            if (!mainViewModel.showDialogVersion.value) {
-                navController.navigate("main") {
-                    popUpTo(navController.graph.id) { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
+//            if (!mainViewModel.showDialogVersion.value) {
+//                navController.navigate("main") {
+//                    popUpTo(navController.graph.id) { inclusive = true }
+//                    launchSingleTop = true
+//                }
+//            }
         }
     }
 
@@ -272,12 +277,12 @@ fun SplashScreen(
                     User.userInfo.latitude = location.latitude
                     User.userInfo.longitude = location.longitude
                 }
-                if (!mainViewModel.showDialogVersion.value) {
-                    navController.navigate("main") {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
+//                if (!mainViewModel.showDialogVersion.value) {
+//                    navController.navigate("main") {
+//                        popUpTo(navController.graph.id) { inclusive = true }
+//                        launchSingleTop = true
+//                    }
+//                }
             }
         }
     }
@@ -351,12 +356,12 @@ fun SplashScreen(
                             User.userInfo.latitude = location.latitude
                             User.userInfo.longitude = location.longitude
                         }
-                        if (!mainViewModel.showDialogVersion.value) {
-                            navController.navigate("main") {
-                                popUpTo(navController.graph.id) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
+//                        if (!mainViewModel.showDialogVersion.value) {
+//                            navController.navigate("main") {
+//                                popUpTo(navController.graph.id) { inclusive = true }
+//                                launchSingleTop = true
+//                            }
+//                        }
                     }
                 }
             }
@@ -373,12 +378,12 @@ fun SplashScreen(
                         User.userInfo.latitude = location.latitude
                         User.userInfo.longitude = location.longitude
                     }
-                    if (!mainViewModel.showDialogVersion.value) {
-                        navController.navigate("main") {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }
+//                    if (!mainViewModel.showDialogVersion.value) {
+//                        navController.navigate("main") {
+//                            popUpTo(navController.graph.id) { inclusive = true }
+//                            launchSingleTop = true
+//                        }
+//                    }
                 }
             }
         }
@@ -503,6 +508,10 @@ fun GetUserLocation(onLocationReceived: (Location?) -> Unit) {
 @Composable
 fun Main(mainViewModel: MainViewModel) {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val bottomBarRoute = listOf(SooumNav.Home.screenRoute, SooumNav.Tag.screenRoute, SooumNav.Profile.screenRoute)
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -510,7 +519,9 @@ fun Main(mainViewModel: MainViewModel) {
     ) {
         Scaffold(
             bottomBar = {
-                SooumBottomNavigation(navController)
+                if (currentRoute in bottomBarRoute) {
+                    SooumBottomNavigation(navController)
+                }
             },
         ) { innerPadding ->
             Box(modifier = Modifier.padding(innerPadding))
