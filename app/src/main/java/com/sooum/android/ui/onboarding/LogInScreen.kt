@@ -2,6 +2,7 @@ package com.sooum.android.ui.onboarding
 
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.sooum.android.R
 import com.sooum.android.ui.common.LogInNav
+import com.sooum.android.ui.common.MyProfile
+import com.sooum.android.ui.noRippleClickable
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.MainViewModel
 import java.time.LocalDateTime
@@ -109,6 +112,7 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel, 
             colors = ButtonDefaults.buttonColors(containerColor = Primary),
             onClick = {
                 if (status != null && dateTime != null) {
+                    Log.e("asd","널 아님")
                     showDialog = true
                 } else {
                     mainViewModel.login(android_id, {
@@ -123,9 +127,12 @@ fun LogInScreen(navController: NavHostController, mainViewModel: MainViewModel, 
         Text(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 20.dp),
+                .padding(top = 20.dp)
+                .noRippleClickable{
+                    navController.navigate(MyProfile.EnterUserCode.screenRoute)
+                },
             text = "기존 계정이 있으신가요?",
-            textDecoration = TextDecoration.Underline
+            textDecoration = TextDecoration.Underline,
         )
     }
 

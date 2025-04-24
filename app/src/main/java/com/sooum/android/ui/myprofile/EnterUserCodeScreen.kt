@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
+import com.sooum.android.ui.MainActivity
 import com.sooum.android.ui.viewmodel.EnterUserCodeViewModel
 import kotlin.system.exitProcess
 
@@ -56,10 +60,34 @@ fun EnterUserCodeScreen(navController: NavHostController) {
     )
     val viewModel: EnterUserCodeViewModel = hiltViewModel()
 
+    // 계정 이관 완료 후 재시작을 위한
+    val registerState by viewModel.registerState.collectAsState()
+
     LaunchedEffect(Unit) {
         viewModel.getEncryptedDeviceId(android_id)
     }
     val context = LocalContext.current
+
+    LaunchedEffect(registerState) {
+        when(registerState) {
+            0 -> {
+                // Idle
+            }
+            1 -> {
+                // Loading
+            }
+            2 -> {
+                // 성공
+                restartToMain(context)
+            }
+            3 -> {
+                // 실패
+                Toast.makeText(context,"번호를 다시 한번 확인해주세요.",Toast.LENGTH_SHORT).show()
+                viewModel.resetRegisterState()
+            }
+        }
+    }
+
 
     var code by remember { mutableStateOf("") }
     Box(
@@ -156,10 +184,7 @@ fun EnterUserCodeScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                code = ""
-                viewModel.postUserCode(code){
-                    restartApp(context = context)
-                }
+                viewModel.postUserCode(code)
             },
             modifier = Modifier
                 .padding(20.dp)
@@ -175,11 +200,19 @@ fun EnterUserCodeScreen(navController: NavHostController) {
     }
 }
 
-fun restartApp(context: Context) {
-    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-    intent?.let {
-        it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(it)
-        exitProcess(0)
+fun restartToMain(context: Context) {
+    val intent = Intent(context, MainActivity::class.java).apply {
+        SooumApplication().clearAllPrefs()
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
+    context.startActivity(intent)
 }
+//
+//fun restartApp(context: Context) {
+//    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+//    intent?.let {
+//        it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+//        context.startActivity(it)
+//        exitProcess(0)
+//    }
+//}

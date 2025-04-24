@@ -12,7 +12,11 @@ import com.sooum.android.data.remote.CardApi
 import com.sooum.android.domain.model.UserCodeBody
 import com.sooum.android.domain.usecase.profile.PostUserCodeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.security.spec.X509EncodedKeySpec
@@ -28,6 +32,13 @@ class EnterUserCodeViewModel @Inject constructor(
     val retrofitInstance = SooumApplication().instance.create(CardApi::class.java)
     var key by mutableStateOf<String?>(null)
     var encryptedDeviceId: String = ""
+
+    private val _registerState = MutableStateFlow(0)
+    val registerState: StateFlow<Int> = _registerState
+    // 0 : Idle
+    // 1: 로딩중
+    // 2: 성공
+    // 3: 실패
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun base64ToRSAPublicKey(base64Key: String): PublicKey {
@@ -65,18 +76,25 @@ class EnterUserCodeViewModel @Inject constructor(
         }
     }
 
-    fun postUserCode(code: String, function: () -> Unit) {
+    fun postUserCode(code: String) {
         viewModelScope.launch {
+            _registerState.value = 1
             try {
                 postUserCodeUseCase(
                     UserCodeBody(
-                        "ANDORID", code, encryptedDeviceId
+                        "ANDROID", code, encryptedDeviceId
                     )
                 )
-                function()
-            } catch (E: Exception) {
-                println(E)
+                _registerState.value = 2
+            } catch (e: Exception) {
+                println(e)
+                _registerState.value = 3
             }
         }
     }
+    // 성공 이나 실패후 상태값 변경을 위해 적용
+    fun resetRegisterState() {
+        _registerState.value = 0
+    }
+
 }
