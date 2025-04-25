@@ -22,4 +22,6 @@ interface PostCardRepository {
                              imgType: ImgTypeEnum,
                              imgName: String,
                              feedTags: List<String>?) : Status
+
+    suspend fun updateFcmToken(token: String)
 }

@@ -17,10 +17,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -58,9 +54,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -69,12 +64,12 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.sooum.android.FcmEventBus
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.enums.UserStatusEnum
 import com.sooum.android.ui.common.LogInNav
-import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.SooumBottomNavigation
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
@@ -85,8 +80,30 @@ import kotlin.system.exitProcess
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleIntent(intent)
+
+        // 계정 이관
+        lifecycleScope.launchWhenStarted {
+            FcmEventBus.transferEventFlow.collect {
+                Log.d("FCM", "MainActivity에서 계정 이관 이벤트 감지")
+
+                // 전체 데이터 삭제
+                SooumApplication().clearAllPrefs()
+                val intent = Intent(this@MainActivity, MainActivity::class.java).apply {
+                    SooumApplication().clearAllPrefs()
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                this@MainActivity.startActivity(intent)
+            }
+        }
 
         //로그인 성공했음 화면 네비 다시 이어서 시작
 
@@ -136,6 +153,19 @@ class MainActivity : ComponentActivity() {
                 // 권한 요청 다이얼로그 띄우기
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+    }
+
+
+    private fun handleIntent(intent: Intent?) {
+        intent ?: return
+        Log.d("MainActivity", "handleIntent 호출됨, extras=${intent.extras}")
+        if (intent.getBooleanExtra("fromPush", false)) {
+            val type = intent.getStringExtra("notificationType")
+            val notificationId = intent.getStringExtra("notificationId")
+            val targetCardId = intent.getStringExtra("targetCardId")
+            Log.d("MainActivity", "푸시 클릭으로 진입: type=$type, id=$notificationId, cardId=$targetCardId")
+            // TODO: 여기서 딥링크/화면 이동 처리
         }
     }
 
@@ -197,12 +227,16 @@ fun SplashScreen(
                         popUpTo("splash") { inclusive = true }
                     }
                 }
+
                 UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
                     Log.d("Splash", "그 외")
                     val encodedStatus = Uri.encode(status.name)
                     val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
 
-                    Log.d("Splash", "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo")
+                    Log.d(
+                        "Splash",
+                        "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo"
+                    )
 
                     navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
                         popUpTo("splash") { inclusive = true }
@@ -216,12 +250,13 @@ fun SplashScreen(
 
     // 앱 버전 다이얼로그
     AppVersionDialog(mainViewModel.showDialogVersion) { updateValue ->
-        if(updateValue) {
+        if (updateValue) {
             // 업데이트 진행할 시
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}"))
+            val intent =
+                Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}"))
             context.startActivity(intent)
             exitProcess(0)
-        }else {
+        } else {
             // 업데이트 진행 안할 시
             exitProcess(0)
         }
@@ -345,7 +380,10 @@ fun SplashScreen(
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             } else {
                 // 알림 권한이 이미 있는 경우 → 위치 권한 확인
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    )
                     != PackageManager.PERMISSION_GRANTED
                 ) {
                     permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -511,7 +549,8 @@ fun Main(mainViewModel: MainViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val bottomBarRoute = listOf(SooumNav.Home.screenRoute, SooumNav.Tag.screenRoute, SooumNav.Profile.screenRoute)
+    val bottomBarRoute =
+        listOf(SooumNav.Home.screenRoute, SooumNav.Tag.screenRoute, SooumNav.Profile.screenRoute)
 
     Surface(
         modifier = Modifier.fillMaxSize(),

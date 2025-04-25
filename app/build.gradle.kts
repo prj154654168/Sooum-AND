@@ -120,4 +120,11 @@ dependencies {
 
     // ucrop
     implementation("com.github.yalantis:ucrop:2.2.10")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
+    // fcm
+    implementation("com.google.firebase:firebase-messaging-ktx")
 }
