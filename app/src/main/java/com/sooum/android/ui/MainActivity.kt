@@ -54,7 +54,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -75,6 +77,7 @@ import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
 import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 @AndroidEntryPoint
@@ -91,27 +94,32 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
 
         // 계정 이관
-        lifecycleScope.launchWhenStarted {
-            FcmEventBus.transferEventFlow.collect {
-                Log.d("FCM", "MainActivity에서 계정 이관 이벤트 감지")
+        // MainActivity (or any LifecycleOwner)
+        lifecycleScope.launch {
+            // STARTED 이상 상태가 유지되는 동안에만 블록이 실행
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // transferEventFlow 가 emit 될 때마다 처리
+                FcmEventBus.transferEventFlow.collect { event ->
+                    Log.d("FCM", "MainActivity에서 계정 이관 이벤트 감지")
 
-                // 전체 데이터 삭제
-                SooumApplication().clearAllPrefs()
-                val intent = Intent(this@MainActivity, MainActivity::class.java).apply {
+                    // 전체 데이터 삭제
                     SooumApplication().clearAllPrefs()
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                    // MainActivity 재실행 (모두 클리어)
+                    val intent = Intent(this@MainActivity, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
                 }
-                this@MainActivity.startActivity(intent)
             }
         }
+
 
         //로그인 성공했음 화면 네비 다시 이어서 시작
 
         setContent {
             val mainViewModel: MainViewModel = hiltViewModel()
             val navController = rememberNavController()
-
-//            mainViewModel.fetchAppVersion(this) // 앱 버전 체크
 
             SooumNavHost(
                 navController = navController,
@@ -156,7 +164,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
+    // TODO: 알림 타고 들어왔을때 처리
     private fun handleIntent(intent: Intent?) {
         intent ?: return
         Log.d("MainActivity", "handleIntent 호출됨, extras=${intent.extras}")
@@ -209,42 +217,55 @@ fun SplashScreen(
         Settings.Secure.ANDROID_ID
     )
 
+
     Log.d("DeviceId", "$androidId")
 
+
     LaunchedEffect(Unit) {
-        mainViewModel.refactLogin(androidId, onLoginFinished = { status, dateTime ->
-            Log.d("UserStatus", "${status}")
-            when (status) {
-                UserStatusEnum.MEMBER -> {
-                    Log.d("Splash", "member")
-                    navController.navigate("main") {
-                        popUpTo("splash") { inclusive = true }
+        /**
+         * 앱 버전 체크
+         * 성공 시 로그인 로직
+         * 실패 시 앱 업데이트 다이얼로그 출력
+         */
+        val needUpdate = mainViewModel.checkAppVersion(context)
+        if (needUpdate) {
+            mainViewModel.showDialogVersion.value = true
+        }else {
+            mainViewModel.refactLogin(androidId, onLoginFinished = { status, dateTime ->
+                Log.d("UserStatus", "${status}")
+                when (status) {
+                    UserStatusEnum.MEMBER -> {
+                        Log.d("Splash", "member")
+                        navController.navigate("main") {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    }
+                    UserStatusEnum.NON_MEMBER -> {
+                        Log.d("Splash", "nonMember")
+                        navController.navigate(LogInNav.LogIn.screenRoute) {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    }
+
+                    UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
+                        Log.d("Splash", "그 외")
+                        val encodedStatus = Uri.encode(status.name)
+                        val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
+
+                        Log.d(
+                            "Splash",
+                            "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo"
+                        )
+
+                        navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
+                            popUpTo("splash") { inclusive = true }
+                        }
                     }
                 }
-                UserStatusEnum.NON_MEMBER -> {
-                    Log.d("Splash", "nonMember")
-                    navController.navigate(LogInNav.LogIn.screenRoute) {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                }
-
-                UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
-                    Log.d("Splash", "그 외")
-                    val encodedStatus = Uri.encode(status.name)
-                    val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
-
-                    Log.d(
-                        "Splash",
-                        "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo"
-                    )
-
-                    navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                }
-            }
-        })
+            })
+        }
     }
+
     val permissions =
         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
 
