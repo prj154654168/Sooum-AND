@@ -15,6 +15,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -30,16 +31,19 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor()) // accessToken만 붙임
-            .authenticator(TokenAuthenticator()) // 401 나오면 자동 재요청
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }) // 마지막에 추가
+            .dns(Dns.SYSTEM) // 명시적 DNS 사용 (UnknownHostException 방지)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true) // 연결 실패시 재시도 켜주기
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }) //가장 먼저 추가 (요청/응답 로깅)
+            .addInterceptor(AuthInterceptor()) // accessToken 붙이는 인터셉터
+            .authenticator(TokenAuthenticator()) // 인증 실패시 새 토큰 발급
             .build()
     }
+
 
     @Provides
     @Singleton

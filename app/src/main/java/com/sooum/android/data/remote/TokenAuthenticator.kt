@@ -20,6 +20,7 @@ class TokenAuthenticator : Authenticator {
         val refreshToken = SooumApplication().getVariable("refreshToken")
         val newToken = getNewAccessToken(refreshToken) ?: return null
 
+        Log.d("AuthInterceptor", "AccessToken: $newToken")
         // 새 토큰 저장
         SooumApplication().saveVariable("accessToken", newToken)
 
@@ -45,23 +46,20 @@ class TokenAuthenticator : Authenticator {
             .url("${Constants.BASE_URL}/users/token")
             .post(FormBody.Builder().add("refresh_token", refreshToken).build())
             .build()
-
-        Log.d("TokenAuthenticator", "getNewAccessToken")
-
         return try {
             val response = client.newCall(request).execute()
             // 응답 코드부터 확인
-            Log.d("TokenAuthenticator", "🔁 HTTP status = ${response.code}")
 
             val body = response.body?.string()
-            Log.d("TokenAuthenticator", "🔐 응답 바디 = $body")
 
             if (response.isSuccessful && !body.isNullOrEmpty()) {
                 val json = JSONObject(body)
                 val statusCode = json.getJSONObject("status").getInt("code")
+                Log.e("TokenAuthenticator","asdState: $statusCode")
                 if (statusCode == 200) json.getString("accessToken") else null
             } else null
         } catch (e: Exception) {
+            Log.e("TokenAuthenticator","새토큰 발급 에러 발생 : ${e.message}")
             null
         }
     }
