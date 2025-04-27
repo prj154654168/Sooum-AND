@@ -18,6 +18,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -273,6 +274,10 @@ fun SplashScreen(
                     UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
                         val encodedStatus = Uri.encode(status.name)
                         val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
+                        Log.d(
+                            "Splash",
+                            "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo"
+                        )
                         navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
                             popUpTo("splash") { inclusive = true }
                         }
@@ -291,7 +296,7 @@ var MainViewModel.nextScreen: String
     }
 private val _nextScreen = mutableStateOf("")
 
-// 권한 요청 순서 (알림 → 위치)
+// 권한 요청 흐름 (알림 → 위치 순서로 요청)
 private fun requestPermissions(
     context: Context,
     notificationPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
@@ -310,7 +315,7 @@ private fun requestPermissions(
     }
 }
 
-// 위치 권한 요청
+// 알림 권한 이후 → 위치 권한 요청
 private fun requestLocationPermission(
     context: Context,
     permissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
@@ -327,7 +332,7 @@ private fun requestLocationPermission(
     }
 }
 
-// 위치 수집 후 다음 화면으로 이동
+// 위치 수집 완료 후 다음 화면으로 이동
 private fun fetchLocationAndProceed(
     context: Context,
     fusedLocationProviderClient: FusedLocationProviderClient,
@@ -347,14 +352,16 @@ private fun fetchLocationAndProceed(
 }
 
 
+
+
+// 위치 수집 로직
 private fun fetchSingleLocation(
     context: Context,
     fusedLocationProviderClient: FusedLocationProviderClient,
     onLocationReceived: (Location?) -> Unit
 ) {
     if (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED
     ) {
         onLocationReceived(null)
@@ -362,49 +369,69 @@ private fun fetchSingleLocation(
         return
     }
 
-    // 우선 getCurrentLocation 시도
-    fusedLocationProviderClient.getCurrentLocation(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        null
-    ).addOnSuccessListener { location ->
-        if (location != null) {
-            Log.d("fetchSingleLocation", "위도: ${location.latitude}, 경도: ${location.longitude}")
-            onLocationReceived(location)
-        } else {
-            Log.d("fetchSingleLocation", "getCurrentLocation 실패, requestLocationUpdates 시도")
-            // 만약 최근 위치가 없다면 requestLocationUpdates 사용
-            val locationRequest = LocationRequest.create().apply {
-                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-                interval = 5000
-                fastestInterval = 2000
-            }
-
-            val locationCallback = object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult) {
-                    val newLocation = locationResult.lastLocation
-                    if (newLocation != null) {
-                        Log.d(
-                            "fetchSingleLocation",
-                            "새 위치 가져옴: ${newLocation.latitude}, ${newLocation.longitude}"
-                        )
-                        onLocationReceived(newLocation)
-                        // 위치 요청 중지
-                        fusedLocationProviderClient.removeLocationUpdates(this)
+    // 1. lastLocation 먼저 시도
+    fusedLocationProviderClient.lastLocation
+        .addOnSuccessListener { location ->
+            if (location != null) {
+                Log.d("fetchSingleLocation", "lastLocation 가져옴: ${location.latitude}, ${location.longitude}")
+                onLocationReceived(location)
+            } else {
+                // 2. 없으면 currentLocation 시도
+                fusedLocationProviderClient.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY, null
+                ).addOnSuccessListener { currentLocation ->
+                    if (currentLocation != null) {
+                        Log.d("fetchSingleLocation", "currentLocation 가져옴: ${currentLocation.latitude}, ${currentLocation.longitude}")
+                        onLocationReceived(currentLocation)
+                    } else {
+                        // 3. 그래도 실패하면 새 위치 요청
+                        requestNewLocation(context, fusedLocationProviderClient, onLocationReceived)
                     }
+                }.addOnFailureListener {
+                    onLocationReceived(null)
                 }
             }
-
-            fusedLocationProviderClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
+        }.addOnFailureListener {
+            onLocationReceived(null)
         }
-    }.addOnFailureListener { exception ->
-        Log.e("fetchSingleLocation", "위치를 가져오는 중 오류 발생: ${exception.message}")
-        onLocationReceived(null)
-    }
 }
+
+
+// 새 위치 요청
+@RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+private fun requestNewLocation(
+    context: Context,
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    onLocationReceived: (Location?) -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY, // 우선 정확도 높게
+        2000L // 2초 요청 주기
+    ).apply {
+        setWaitForAccurateLocation(true) // 정확한 GPS 잡힐 때까지 기다려라
+        setMaxUpdates(1) // 딱 1번만 위치 받아오기
+    }.build()
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            val location = locationResult.lastLocation
+            if (location != null) {
+                Log.d("requestNewLocation", "새 위치 가져옴: ${location.latitude}, ${location.longitude}")
+                onLocationReceived(location)
+            } else {
+                onLocationReceived(null)
+            }
+            fusedLocationProviderClient.removeLocationUpdates(this)
+        }
+    }
+
+    fusedLocationProviderClient.requestLocationUpdates(
+        locationRequest,
+        locationCallback,
+        Looper.getMainLooper()
+    )
+}
+
 
 @Composable
 fun RequestLocationPermission(onGranted: () -> Unit, onDenied: () -> Unit) {
