@@ -41,8 +41,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -217,18 +217,21 @@ fun SplashScreen(
     val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
     val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
+    // nextScreen 관찰
+    val nextScreen by mainViewModel.nextScreen.collectAsState()
+
     // 위치 권한 런처
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) {
-        fetchLocationAndProceed(context, fusedLocationProviderClient, navController, mainViewModel.nextScreen)
+        fetchLocationAndProceed(context, fusedLocationProviderClient, navController, nextScreen)
     }
 
     // 알림 권한 런처
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) {
-        requestLocationPermission(context, permissionLauncher, fusedLocationProviderClient, navController, mainViewModel.nextScreen)
+        requestLocationPermission(context, permissionLauncher, fusedLocationProviderClient, navController, nextScreen)
     }
 
     // 앱 버전 다이얼로그
@@ -264,11 +267,11 @@ fun SplashScreen(
             mainViewModel.refactLogin(androidId) { status, dateTime ->
                 when (status) {
                     UserStatusEnum.MEMBER -> {
-                        mainViewModel.nextScreen = "main"
+                        mainViewModel.setNextScreen("main")
                         requestPermissions(context, notificationPermissionLauncher, permissionLauncher)
                     }
                     UserStatusEnum.NON_MEMBER -> {
-                        mainViewModel.nextScreen = LogInNav.LogIn.screenRoute
+                        mainViewModel.setNextScreen(LogInNav.LogIn.screenRoute)
                         requestPermissions(context, notificationPermissionLauncher, permissionLauncher)
                     }
                     UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
@@ -287,14 +290,6 @@ fun SplashScreen(
         }
     }
 }
-
-// 다음 이동할 스크린 기억하기 위해 MainViewModel에 추가
-var MainViewModel.nextScreen: String
-    get() = _nextScreen.value
-    set(value) {
-        _nextScreen.value = value
-    }
-private val _nextScreen = mutableStateOf("")
 
 // 권한 요청 흐름 (알림 → 위치 순서로 요청)
 private fun requestPermissions(
@@ -321,7 +316,7 @@ private fun requestLocationPermission(
     permissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
     fusedLocationProviderClient: FusedLocationProviderClient,
     navController: NavController,
-    nextScreen: String
+    nextScreen: String?
 ) {
     if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
         != PackageManager.PERMISSION_GRANTED
@@ -337,31 +332,28 @@ private fun fetchLocationAndProceed(
     context: Context,
     fusedLocationProviderClient: FusedLocationProviderClient,
     navController: NavController,
-    nextScreen: String
+    nextScreen: String?
 ) {
     fetchSingleLocation(context, fusedLocationProviderClient) { location ->
         if (location != null) {
-
             var latitude = location.latitude
             var longitude = location.longitude
 
-            // 경도가 음수면 무조건 양수로 변경
             if (longitude < 0) {
-                longitude = longitude * -1
+                longitude *= -1
             }
 
             User.userInfo.latitude = latitude
             User.userInfo.longitude = longitude
         }
-        navController.navigate(nextScreen) {
-            popUpTo("splash") { inclusive = true }
-            launchSingleTop = true
+        nextScreen?.let {
+            navController.navigate(it) {
+                popUpTo("splash") { inclusive = true }
+                launchSingleTop = true
+            }
         }
     }
 }
-
-
-
 
 // 위치 수집 로직
 private fun fetchSingleLocation(

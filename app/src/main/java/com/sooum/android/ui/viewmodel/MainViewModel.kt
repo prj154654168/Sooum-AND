@@ -25,6 +25,9 @@ import com.sooum.android.enums.UserStatusEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.security.KeyFactory
@@ -56,6 +59,15 @@ class MainViewModel @Inject constructor(
 
     var unreadNotificationCount = mutableStateOf(0)
         private set
+
+    // 다음 화면 설정
+    private val _nextScreen = MutableStateFlow<String?>(null)
+    val nextScreen: StateFlow<String?> = _nextScreen.asStateFlow()
+
+    fun setNextScreen(screen: String) {
+        _nextScreen.value = screen
+    }
+
 
     // 버전 비교용 다이얼로그
     val showDialogVersion = mutableStateOf(false)
