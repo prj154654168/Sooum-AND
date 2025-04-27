@@ -341,8 +341,17 @@ private fun fetchLocationAndProceed(
 ) {
     fetchSingleLocation(context, fusedLocationProviderClient) { location ->
         if (location != null) {
-            User.userInfo.latitude = location.latitude
-            User.userInfo.longitude = location.longitude
+
+            var latitude = location.latitude
+            var longitude = location.longitude
+
+            // 경도가 음수면 무조건 양수로 변경
+            if (longitude < 0) {
+                longitude = longitude * -1
+            }
+
+            User.userInfo.latitude = latitude
+            User.userInfo.longitude = longitude
         }
         navController.navigate(nextScreen) {
             popUpTo("splash") { inclusive = true }
