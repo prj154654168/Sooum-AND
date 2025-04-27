@@ -150,10 +150,11 @@ class FirebaseMessagingService : FirebaseMessagingService() {
         )
 
         val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_sooum_logo)
             .setLargeIcon(
                 BitmapFactory.decodeResource(
                     this.resources,
-                    R.mipmap.ic_launcher
+                    R.drawable.ic_sooum_logo
                 )
             )
             .setContentTitle(title)
@@ -163,6 +164,7 @@ class FirebaseMessagingService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .build()
+
 
 
         notificationManager.notify(type.hashCode(), notification)
