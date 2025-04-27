@@ -57,11 +57,11 @@ class NotificationViewModel @Inject constructor(
 
     val cardReadNotificationList = cardReadNotificationUseCase().cachedIn(viewModelScope)
 
-    init {
-        getAllUnreadCount()
-        getCardUnreadCount()
-        getLikeUnreadCount()
-    }
+//    init {
+//        getAllUnreadCount()
+//        getCardUnreadCount()
+//        getLikeUnreadCount()
+//    }
 
     fun getAllUnreadCount() {
         viewModelScope.launch {

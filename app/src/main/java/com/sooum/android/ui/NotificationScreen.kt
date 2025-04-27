@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sooum.android.R
@@ -67,6 +68,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.text.get
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -136,6 +138,21 @@ fun TabLayout(
     val coroutineScope = rememberCoroutineScope()
     val tabList = listOf(TabEnum.ALL, TabEnum.REPLY, TabEnum.LIKE)
     val selectedIndex = pagerState.currentPage
+
+    // NavController의 back-stack 변화를 구독
+    val backStackEntry by navController.currentBackStackEntryAsState()
+
+    // 탭 인덱스가 바뀌거나, 네비게이션 상태가 바뀔 때마다 실행
+    LaunchedEffect(selectedIndex, backStackEntry) {
+        // 포그라운드에 복귀할 때만
+        if (backStackEntry?.destination?.route == "notificationScreen") {
+            when (tabList[selectedIndex]) {
+                TabEnum.ALL   -> notificationViewModel.getAllUnreadCount()
+                TabEnum.REPLY -> notificationViewModel.getCardUnreadCount()
+                TabEnum.LIKE  -> notificationViewModel.getLikeUnreadCount()
+            }
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth()
