@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,6 +52,7 @@ import com.sooum.android.SooumApplication
 import com.sooum.android.Utils
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.noRippleClickable
+import com.sooum.android.ui.theme.Gray300
 import com.sooum.android.ui.theme.Primary
 import com.sooum.android.ui.viewmodel.LogInProfileViewModel
 import java.io.ByteArrayOutputStream
@@ -142,16 +144,15 @@ fun LogInProfileScreen(navController: NavHostController) {
                             contentDescription = "Background Image",
                             modifier = Modifier
                                 .padding(top = 100.dp)
-                                .clickable {
+                                .size(128.dp)
+                                .align(Alignment.Center)
+                                .noRippleClickable{
                                     val cropOptions = CropImageContractOptions(
                                         null,
                                         Utils.cropOption
                                     )
                                     imageCropLauncher.launch(cropOptions)
-                                }
-                                .size(128.dp)
-                                .align(Alignment.Center)
-                                .noRippleClickable{},
+                                },
                         )
                     } else {
                         AsyncImage(
@@ -161,17 +162,16 @@ fun LogInProfileScreen(navController: NavHostController) {
                             contentDescription = "카드 이미지",
                             modifier = Modifier
                                 .padding(top = 100.dp)
-                                .clickable {
+                                .size(128.dp)
+                                .aspectRatio(1f)
+                                .clip(CircleShape)
+                                .noRippleClickable{
                                     val cropOptions = CropImageContractOptions(
                                         null,
                                         Utils.cropOption
                                     )
                                     imageCropLauncher.launch(cropOptions)
-                                }
-                                .size(128.dp)
-                                .aspectRatio(1f)
-                                .clip(CircleShape)
-                                .noRippleClickable{},
+                                },
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -194,13 +194,14 @@ fun LogInProfileScreen(navController: NavHostController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 20.dp, end = 20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    colors = if(selectedImageBitmap != null) ButtonDefaults.buttonColors(containerColor = Primary) else ButtonDefaults.buttonColors(containerColor = Gray300),
                     onClick = {
-                        viewModel.profiles(
-                            SooumApplication().getVariable("nickName").toString(),
-                            if (selectedImageBitmap != null) 1 else 2
-                        )
-
+                        if(selectedImageBitmap != null) {
+                            viewModel.profiles(
+                                SooumApplication().getVariable("nickName").toString(),
+                                if (selectedImageBitmap != null) 1 else 2
+                            )
+                        }
                     }) {
                     Text(text = "확인")
                 }
@@ -208,7 +209,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .padding(20.dp)
-                        .clickable {
+                        .noRippleClickable{
                             viewModel.profiles(
                                 SooumApplication()
                                     .getVariable("nickName")
@@ -220,8 +221,7 @@ fun LogInProfileScreen(navController: NavHostController) {
                                 } // 백 스택 비우기
                                 launchSingleTop = true // 중복된 화면 생성 방지
                             }
-                        }
-                        .noRippleClickable{},
+                        },
                     text = "다음에 변경하기",
                     textDecoration = TextDecoration.Underline,
                     color = Primary
