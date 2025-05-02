@@ -6,14 +6,14 @@ import com.sooum.android.SooumApplication
 import okhttp3.Authenticator
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.Route
 import org.json.JSONObject
 
 class TokenAuthenticator : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
-        Log.e("asd","새 토큰 발급 시도")
+        Log.e("asd", "새 토큰 발급 시도")
         if (responseCount(response) >= 2) return null
 
         //  refreshToken
@@ -23,11 +23,11 @@ class TokenAuthenticator : Authenticator {
         val newToken = getNewAccessToken(refreshToken) ?: return null
 
         // 저장
-        SooumApplication().saveVariable("accessToken",newToken)
+        SooumApplication().saveVariable("accessToken", newToken)
 
         // 재 시도
         return response.request.newBuilder()
-            .header("Authorization", "Bearer $newToken")     // addHeader → header
+            .header("Authorization", "Bearer $newToken")
             .build()
     }
 
@@ -49,24 +49,41 @@ class TokenAuthenticator : Authenticator {
         val request = Request.Builder()
             .url("${Constants.BASE_URL}/users/token")
             .addHeader("Authorization", "Bearer $refreshToken")
-            .post(RequestBody.create(null, ByteArray(0)))
+            // okhttp4 이후 대응 코드 -> RequestBody.create(mediaType,byteArray)는 deprecate 될 예정
+            .post(ByteArray(0).toRequestBody(null))
             .build()
+
 
         return try {
             client.newCall(request).execute().use { res ->
                 val raw = res.body?.string().orEmpty()
 
-                // 새토큰 발급 200
-                if (res.isSuccessful) {
-                    val json = JSONObject(raw)
-                    json.optString("accessToken", null)
-                } else {
-                    // 로그인 처리 필요
-                    null
+                when (res.code) {
+                    200 -> {
+                        // 새 토큰 발급
+                        JSONObject(raw).optString("accessToken", null)
+                    }
+
+                    403 -> {
+                        // refreshToken이 만료됬을 경우
+                        null
+                    }
+
+                    418 -> {
+                        // refresh 토큰이 블랙리스트에 등록 됬을 경우
+                        null
+                    }
+
+                    else -> {
+                        // 500 이나 아예 실패 했을 경우
+                        null
+                    }
                 }
+
             }
+
         } catch (e: Exception) {
-            Log.e("refresh", "exception: ${e.message}")
+            Log.e("refresh", "토큰 발급 에러 : ${e.message}")
             null
         }
     }
