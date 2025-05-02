@@ -95,6 +95,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleIntent(intent)
+        // 테스트용 임시 값 넣기
+        //SooumApplication().saveVariable("accessToken","asd")
 
         // 계정 이관
         // MainActivity (or any LifecycleOwner)

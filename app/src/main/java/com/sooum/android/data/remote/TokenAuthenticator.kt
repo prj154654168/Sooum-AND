@@ -4,29 +4,30 @@ import android.util.Log
 import com.sooum.android.Constants
 import com.sooum.android.SooumApplication
 import okhttp3.Authenticator
-import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
 import okhttp3.Route
 import org.json.JSONObject
 
 class TokenAuthenticator : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
-        Log.d("TokenAuthenticator", "start authenticate")
-        // 2번 이상 재시도 방지
+        Log.e("asd","새 토큰 발급 시도")
         if (responseCount(response) >= 2) return null
 
+        //  refreshToken
         val refreshToken = SooumApplication().getVariable("refreshToken")
+
+        // 새 토큰 받아오기
         val newToken = getNewAccessToken(refreshToken) ?: return null
 
-        Log.d("AuthInterceptor", "AccessToken: $newToken")
-        // 새 토큰 저장
-        SooumApplication().saveVariable("accessToken", newToken)
+        // 저장
+        SooumApplication().saveVariable("accessToken",newToken)
 
+        // 재 시도
         return response.request.newBuilder()
-            .removeHeader("Authorization")
-            .addHeader("Authorization", "Bearer $newToken")
+            .header("Authorization", "Bearer $newToken")     // addHeader → header
             .build()
     }
 
@@ -40,26 +41,32 @@ class TokenAuthenticator : Authenticator {
         return count
     }
 
-    private fun getNewAccessToken(refreshToken: String): String? {
-        val client = OkHttpClient() // interceptor 없는 전용 클라이언트
+    private fun getNewAccessToken(refreshToken: String?): String? {
+        if (refreshToken.isNullOrBlank()) return null
+
+        val client = OkHttpClient()
+
         val request = Request.Builder()
             .url("${Constants.BASE_URL}/users/token")
-            .post(FormBody.Builder().add("refresh_token", refreshToken).build())
+            .addHeader("Authorization", "Bearer $refreshToken")
+            .post(RequestBody.create(null, ByteArray(0)))
             .build()
+
         return try {
-            val response = client.newCall(request).execute()
-            // 응답 코드부터 확인
+            client.newCall(request).execute().use { res ->
+                val raw = res.body?.string().orEmpty()
 
-            val body = response.body?.string()
-
-            if (response.isSuccessful && !body.isNullOrEmpty()) {
-                val json = JSONObject(body)
-                val statusCode = json.getJSONObject("status").getInt("code")
-                Log.e("TokenAuthenticator","asdState: $statusCode")
-                if (statusCode == 200) json.getString("accessToken") else null
-            } else null
+                // 새토큰 발급 200
+                if (res.isSuccessful) {
+                    val json = JSONObject(raw)
+                    json.optString("accessToken", null)
+                } else {
+                    // 로그인 처리 필요
+                    null
+                }
+            }
         } catch (e: Exception) {
-            Log.e("TokenAuthenticator","새토큰 발급 에러 발생 : ${e.message}")
+            Log.e("refresh", "exception: ${e.message}")
             null
         }
     }
