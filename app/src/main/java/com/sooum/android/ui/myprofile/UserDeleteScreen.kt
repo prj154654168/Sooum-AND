@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.sooum.android.R
+import com.sooum.android.SooumApplication
 import com.sooum.android.ui.common.LogInNav
 import com.sooum.android.ui.noRippleClickable
 import com.sooum.android.ui.theme.Primary
@@ -142,7 +143,8 @@ fun UserDeleteScreen(navController: NavHostController) {
         Button(
             onClick = {
                 viewModel.deleteUser {
-                    navController.navigate(LogInNav.LogIn.screenRoute) {
+                    SooumApplication().clearAllPrefs()
+                    navController.navigate("splash") {
                         popUpTo(0) { inclusive = true } // 모든 백스택 제거
                     }
                 }

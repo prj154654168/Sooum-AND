@@ -1,6 +1,5 @@
 package com.sooum.android.ui.onboarding
 
-import android.R.attr.onClick
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +57,11 @@ fun AgreeScreen(navController: NavHostController) {
     var thirdChecked by remember { mutableStateOf(false) }
     val allChecked by remember { derivedStateOf { firstChecked && secondChecked && thirdChecked } }
     val context = LocalContext.current
+
+    // FcmToken 발급
+    LaunchedEffect(Unit) {
+        viewModel.fetchFcmToken()
+    }
 
     // "모두 동의합니다" 선택 시 다른 항목도 체크되도록 처리
     LaunchedEffect(allChecked) {
@@ -199,7 +203,7 @@ fun AgreeScreen(navController: NavHostController) {
                                     "ANDROID",
                                     SooumApplication().getVariable("encryptedDeviceId")
                                         .toString(),
-                                    "",
+                                    viewModel.fcmToken.value,
                                     true
                                 ),
                                 policy = Policy(firstChecked, secondChecked, thirdChecked)

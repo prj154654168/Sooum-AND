@@ -13,14 +13,13 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
+import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,10 +38,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -58,9 +57,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -69,32 +69,62 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.sooum.android.FcmEventBus
 import com.sooum.android.R
 import com.sooum.android.SooumApplication
 import com.sooum.android.User
 import com.sooum.android.enums.UserStatusEnum
 import com.sooum.android.ui.common.LogInNav
-import com.sooum.android.ui.common.NotificationNav
 import com.sooum.android.ui.common.SooumBottomNavigation
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.SooumNavHost
 import com.sooum.android.ui.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlin.system.exitProcess
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleIntent(intent)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleIntent(intent)
+        // 테스트용 임시 값 넣기
+        //SooumApplication().saveVariable("accessToken","asd")
+
+        // 계정 이관
+        // MainActivity (or any LifecycleOwner)
+        lifecycleScope.launch {
+            // STARTED 이상 상태가 유지되는 동안에만 블록이 실행
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // transferEventFlow 가 emit 될 때마다 처리
+                FcmEventBus.transferEventFlow.collect { event ->
+                    Log.d("FCM", "MainActivity에서 계정 이관 이벤트 감지")
+
+                    // 전체 데이터 삭제
+                    SooumApplication().clearAllPrefs()
+
+                    // MainActivity 재실행 (모두 클리어)
+                    val intent = Intent(this@MainActivity, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
+                    startActivity(intent)
+                }
+            }
+        }
+
 
         //로그인 성공했음 화면 네비 다시 이어서 시작
 
         setContent {
             val mainViewModel: MainViewModel = hiltViewModel()
             val navController = rememberNavController()
-
-//            mainViewModel.fetchAppVersion(this) // 앱 버전 체크
 
             SooumNavHost(
                 navController = navController,
@@ -139,6 +169,19 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // TODO: 알림 타고 들어왔을때 처리
+    private fun handleIntent(intent: Intent?) {
+        intent ?: return
+        Log.d("MainActivity", "handleIntent 호출됨, extras=${intent.extras}")
+        if (intent.getBooleanExtra("fromPush", false)) {
+            val type = intent.getStringExtra("notificationType")
+            val notificationId = intent.getStringExtra("notificationId")
+            val targetCardId = intent.getStringExtra("targetCardId")
+            Log.d("MainActivity", "푸시 클릭으로 진입: type=$type, id=$notificationId, cardId=$targetCardId")
+            // TODO: 여기서 딥링크/화면 이동 처리
+        }
+    }
+
     // 권한 요청 결과 처리
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -173,122 +216,36 @@ fun SplashScreen(
     mainViewModel: MainViewModel
 ) {
     val context = LocalContext.current
+    val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+    val fusedLocationProviderClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    val androidId = Settings.Secure.getString(
-        context.getContentResolver(),
-        Settings.Secure.ANDROID_ID
-    )
+    // nextScreen 관찰
+    val nextScreen by mainViewModel.nextScreen.collectAsState()
 
-    Log.d("DeviceId", "$androidId")
-
-    LaunchedEffect(Unit) {
-        mainViewModel.refactLogin(androidId, onLoginFinished = { status, dateTime ->
-            Log.d("UserStatus", "${status}")
-            when (status) {
-                UserStatusEnum.MEMBER -> {
-                    Log.d("Splash", "member")
-                    navController.navigate("main") {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                }
-                UserStatusEnum.NON_MEMBER -> {
-                    Log.d("Splash", "nonMember")
-                    navController.navigate(LogInNav.LogIn.screenRoute) {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                }
-                UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
-                    Log.d("Splash", "그 외")
-                    val encodedStatus = Uri.encode(status.name)
-                    val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
-
-                    Log.d("Splash", "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo")
-
-                    navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
-                        popUpTo("splash") { inclusive = true }
-                    }
-                }
-            }
-        })
+    // 위치 권한 런처
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {
+        fetchLocationAndProceed(context, fusedLocationProviderClient, navController, nextScreen)
     }
-    val permissions =
-        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.POST_NOTIFICATIONS)
+
+    // 알림 권한 런처
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {
+        requestLocationPermission(context, permissionLauncher, fusedLocationProviderClient, navController, nextScreen)
+    }
 
     // 앱 버전 다이얼로그
     AppVersionDialog(mainViewModel.showDialogVersion) { updateValue ->
-        if(updateValue) {
-            // 업데이트 진행할 시
+        if (updateValue) {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${context.packageName}"))
             context.startActivity(intent)
             exitProcess(0)
-        }else {
-            // 업데이트 진행 안할 시
+        } else {
             exitProcess(0)
         }
     }
-
-
-    val fusedLocationProviderClient =
-        remember { LocationServices.getFusedLocationProviderClient(context) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            Log.d("123", "12345") // 권한 허용됨
-            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
-                if (location != null) {
-                    Log.d("123", "위치 가져왔음")
-                    User.userInfo.latitude = location.latitude
-                    User.userInfo.longitude = location.longitude
-                }
-                if (!mainViewModel.showDialogVersion.value) {
-                    navController.navigate("main") {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
-
-            }
-        } else {
-            Log.d("123", "권한 거부됨")
-//            if (!mainViewModel.showDialogVersion.value) {
-//                navController.navigate("main") {
-//                    popUpTo(navController.graph.id) { inclusive = true }
-//                    launchSingleTop = true
-//                }
-//            }
-        }
-    }
-
-    // POST_NOTIFICATIONS 권한 런처
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // 알림 권한 결과 이후 → 위치 권한 확인 후 위치 요청 또는 바로 이동
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
-                if (location != null) {
-                    Log.d("123", "위치 가져왔음")
-                    User.userInfo.latitude = location.latitude
-                    User.userInfo.longitude = location.longitude
-                }
-//                if (!mainViewModel.showDialogVersion.value) {
-//                    navController.navigate("main") {
-//                        popUpTo(navController.graph.id) { inclusive = true }
-//                        launchSingleTop = true
-//                    }
-//                }
-            }
-        }
-    }
-
-
-
 
     Box(
         modifier = Modifier
@@ -299,107 +256,115 @@ fun SplashScreen(
         Icon(
             painter = painterResource(id = R.drawable.ic_logo),
             contentDescription = "Logo 이미지",
-            modifier = Modifier
-                .width(235.dp)
-                .height(45.dp),
+            modifier = Modifier.width(235.dp).height(45.dp),
             tint = Color.White
         )
     }
 
-
-//    GetUserLocation { location ->
-//        User.userInfo.latitude = location?.latitude
-//        User.userInfo.longitude = location?.longitude
-//        navController.navigate("main")
-//    }
-
-    // 권한 요청 실행
-//    LaunchedEffect(Unit) {
-//        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-//            != PackageManager.PERMISSION_GRANTED
-//        ) {
-//            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-//        } else {
-//            fetchSingleLocation(context, fusedLocationProviderClient) { location ->
-//                if (location != null) {
-//                    Log.d("123", "위치 가져왔음")
-//                    User.userInfo.latitude = location.latitude
-//                    User.userInfo.longitude = location.longitude
-//                }
-//                if (!mainViewModel.showDialogVersion.value) {
-//                    navController.navigate("main") {
-//                        popUpTo(navController.graph.id) { inclusive = true }
-//                        launchSingleTop = true
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // 알림 권한부터 요청
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                // 알림 권한이 이미 있는 경우 → 위치 권한 확인
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                    != PackageManager.PERMISSION_GRANTED
-                ) {
-                    permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                } else {
-                    fetchSingleLocation(context, fusedLocationProviderClient) { location ->
-                        if (location != null) {
-                            Log.d("123", "위치 가져왔음")
-                            User.userInfo.latitude = location.latitude
-                            User.userInfo.longitude = location.longitude
-                        }
-//                        if (!mainViewModel.showDialogVersion.value) {
-//                            navController.navigate("main") {
-//                                popUpTo(navController.graph.id) { inclusive = true }
-//                                launchSingleTop = true
-//                            }
-//                        }
-                    }
-                }
-            }
+        val needUpdate = mainViewModel.checkAppVersion(context)
+        if (needUpdate) {
+            mainViewModel.showDialogVersion.value = true
         } else {
-            // Android 13 미만 → 바로 위치 권한만 처리
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            } else {
-                fetchSingleLocation(context, fusedLocationProviderClient) { location ->
-                    if (location != null) {
-                        Log.d("123", "위치 가져왔음")
-                        User.userInfo.latitude = location.latitude
-                        User.userInfo.longitude = location.longitude
+            mainViewModel.refactLogin(androidId) { status, dateTime ->
+                when (status) {
+                    UserStatusEnum.MEMBER -> {
+                        mainViewModel.setNextScreen("main")
+                        requestPermissions(context, notificationPermissionLauncher, permissionLauncher)
                     }
-//                    if (!mainViewModel.showDialogVersion.value) {
-//                        navController.navigate("main") {
-//                            popUpTo(navController.graph.id) { inclusive = true }
-//                            launchSingleTop = true
-//                        }
-//                    }
+                    UserStatusEnum.NON_MEMBER -> {
+                        mainViewModel.setNextScreen(LogInNav.LogIn.screenRoute)
+                        requestPermissions(context, notificationPermissionLauncher, permissionLauncher)
+                    }
+                    UserStatusEnum.SUSPENDED, UserStatusEnum.RESTRICTED -> {
+                        val encodedStatus = Uri.encode(status.name)
+                        val encodedExtraInfo = Uri.encode(dateTime ?: "정보 없음")
+                        Log.d(
+                            "Splash",
+                            "encodedStatus : $encodedStatus, encodedExtraInfo : $encodedExtraInfo"
+                        )
+                        navController.navigate("${LogInNav.LogIn.screenRoute}?status=SUSPENDED&extraInfo=$encodedExtraInfo") {
+                            popUpTo("splash") { inclusive = true }
+                        }
+                    }
                 }
             }
         }
     }
-
-
 }
 
+// 권한 요청 흐름 (알림 → 위치 순서로 요청)
+private fun requestPermissions(
+    context: Context,
+    notificationPermissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
+    permissionLauncher: ManagedActivityResultLauncher<String, Boolean>
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    } else {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+}
+
+// 알림 권한 이후 → 위치 권한 요청
+private fun requestLocationPermission(
+    context: Context,
+    permissionLauncher: ManagedActivityResultLauncher<String, Boolean>,
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    navController: NavController,
+    nextScreen: String?
+) {
+    if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+        != PackageManager.PERMISSION_GRANTED
+    ) {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    } else {
+        fetchLocationAndProceed(context, fusedLocationProviderClient, navController, nextScreen)
+    }
+}
+
+// 위치 수집 완료 후 다음 화면으로 이동
+private fun fetchLocationAndProceed(
+    context: Context,
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    navController: NavController,
+    nextScreen: String?
+) {
+    fetchSingleLocation(context, fusedLocationProviderClient) { location ->
+        if (location != null) {
+            var latitude = location.latitude
+            var longitude = location.longitude
+
+            if (longitude < 0) {
+                longitude *= -1
+            }
+
+            User.userInfo.latitude = latitude
+            User.userInfo.longitude = longitude
+        }
+        nextScreen?.let {
+            navController.navigate(it) {
+                popUpTo("splash") { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+}
+
+// 위치 수집 로직
 private fun fetchSingleLocation(
     context: Context,
     fusedLocationProviderClient: FusedLocationProviderClient,
     onLocationReceived: (Location?) -> Unit
 ) {
     if (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED
     ) {
         onLocationReceived(null)
@@ -407,49 +372,69 @@ private fun fetchSingleLocation(
         return
     }
 
-    // 우선 getCurrentLocation 시도
-    fusedLocationProviderClient.getCurrentLocation(
-        Priority.PRIORITY_HIGH_ACCURACY,
-        null
-    ).addOnSuccessListener { location ->
-        if (location != null) {
-            Log.d("fetchSingleLocation", "위도: ${location.latitude}, 경도: ${location.longitude}")
-            onLocationReceived(location)
-        } else {
-            Log.d("fetchSingleLocation", "getCurrentLocation 실패, requestLocationUpdates 시도")
-            // 만약 최근 위치가 없다면 requestLocationUpdates 사용
-            val locationRequest = LocationRequest.create().apply {
-                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-                interval = 5000
-                fastestInterval = 2000
-            }
-
-            val locationCallback = object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult) {
-                    val newLocation = locationResult.lastLocation
-                    if (newLocation != null) {
-                        Log.d(
-                            "fetchSingleLocation",
-                            "새 위치 가져옴: ${newLocation.latitude}, ${newLocation.longitude}"
-                        )
-                        onLocationReceived(newLocation)
-                        // 위치 요청 중지
-                        fusedLocationProviderClient.removeLocationUpdates(this)
+    // 1. lastLocation 먼저 시도
+    fusedLocationProviderClient.lastLocation
+        .addOnSuccessListener { location ->
+            if (location != null) {
+                Log.d("fetchSingleLocation", "lastLocation 가져옴: ${location.latitude}, ${location.longitude}")
+                onLocationReceived(location)
+            } else {
+                // 2. 없으면 currentLocation 시도
+                fusedLocationProviderClient.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY, null
+                ).addOnSuccessListener { currentLocation ->
+                    if (currentLocation != null) {
+                        Log.d("fetchSingleLocation", "currentLocation 가져옴: ${currentLocation.latitude}, ${currentLocation.longitude}")
+                        onLocationReceived(currentLocation)
+                    } else {
+                        // 3. 그래도 실패하면 새 위치 요청
+                        requestNewLocation(context, fusedLocationProviderClient, onLocationReceived)
                     }
+                }.addOnFailureListener {
+                    onLocationReceived(null)
                 }
             }
-
-            fusedLocationProviderClient.requestLocationUpdates(
-                locationRequest,
-                locationCallback,
-                Looper.getMainLooper()
-            )
+        }.addOnFailureListener {
+            onLocationReceived(null)
         }
-    }.addOnFailureListener { exception ->
-        Log.e("fetchSingleLocation", "위치를 가져오는 중 오류 발생: ${exception.message}")
-        onLocationReceived(null)
-    }
 }
+
+
+// 새 위치 요청
+@RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+private fun requestNewLocation(
+    context: Context,
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    onLocationReceived: (Location?) -> Unit
+) {
+    val locationRequest = LocationRequest.Builder(
+        Priority.PRIORITY_HIGH_ACCURACY, // 우선 정확도 높게
+        2000L // 2초 요청 주기
+    ).apply {
+        setWaitForAccurateLocation(true) // 정확한 GPS 잡힐 때까지 기다려라
+        setMaxUpdates(1) // 딱 1번만 위치 받아오기
+    }.build()
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(locationResult: LocationResult) {
+            val location = locationResult.lastLocation
+            if (location != null) {
+                Log.d("requestNewLocation", "새 위치 가져옴: ${location.latitude}, ${location.longitude}")
+                onLocationReceived(location)
+            } else {
+                onLocationReceived(null)
+            }
+            fusedLocationProviderClient.removeLocationUpdates(this)
+        }
+    }
+
+    fusedLocationProviderClient.requestLocationUpdates(
+        locationRequest,
+        locationCallback,
+        Looper.getMainLooper()
+    )
+}
+
 
 @Composable
 fun RequestLocationPermission(onGranted: () -> Unit, onDenied: () -> Unit) {
@@ -511,7 +496,8 @@ fun Main(mainViewModel: MainViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val bottomBarRoute = listOf(SooumNav.Home.screenRoute, SooumNav.Tag.screenRoute, SooumNav.Profile.screenRoute)
+    val bottomBarRoute =
+        listOf(SooumNav.Home.screenRoute, SooumNav.Tag.screenRoute, SooumNav.Profile.screenRoute)
 
     Surface(
         modifier = Modifier.fillMaxSize(),

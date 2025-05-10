@@ -4,6 +4,7 @@ import android.util.Log
 import com.sooum.android.data.remote.CardApi
 import com.sooum.android.data.remote.TagAPI
 import com.sooum.android.domain.model.DefaultImageDataModel
+import com.sooum.android.domain.model.FcmToken
 import com.sooum.android.domain.model.PostFeedRequestDataModel
 import com.sooum.android.domain.model.RelatedTagDataModel
 import com.sooum.android.domain.model.Status
@@ -139,6 +140,14 @@ class PostCardRepositoryImpl @Inject constructor(
                     throw Exception("HTTP Error ${response.code()}: $errorMessage")
                 }
             }
+        }
+    }
+
+    // FcmToken 업데이트
+    override suspend fun updateFcmToken(token: String) {
+        val response = cardApi.updateFcm(FcmToken(token))
+        if (!response.isSuccessful) {
+            throw Exception("FCM 토큰 업데이트 실패")
         }
     }
 }

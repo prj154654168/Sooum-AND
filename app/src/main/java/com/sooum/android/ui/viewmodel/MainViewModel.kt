@@ -25,6 +25,9 @@ import com.sooum.android.enums.UserStatusEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.security.KeyFactory
@@ -34,6 +37,7 @@ import java.time.LocalDateTime
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.inject.Inject
+import kotlin.coroutines.suspendCoroutine
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -55,6 +59,15 @@ class MainViewModel @Inject constructor(
 
     var unreadNotificationCount = mutableStateOf(0)
         private set
+
+    // 다음 화면 설정
+    private val _nextScreen = MutableStateFlow<String?>(null)
+    val nextScreen: StateFlow<String?> = _nextScreen.asStateFlow()
+
+    fun setNextScreen(screen: String) {
+        _nextScreen.value = screen
+    }
+
 
     // 버전 비교용 다이얼로그
     val showDialogVersion = mutableStateOf(false)
@@ -104,7 +117,7 @@ class MainViewModel @Inject constructor(
         return encryptWithRSAPublicKey(androidId, publicKey)
     }
 
-    suspend fun getRsaKey() : String {
+    suspend fun getRsaKey(): String {
         return withContext(Dispatchers.IO) {
             try {
                 val keyModel = getRsaKeyUseCase()
@@ -163,7 +176,10 @@ class MainViewModel @Inject constructor(
                                 onLoginFinished(UserStatusEnum.NON_MEMBER, null)
                                 //가입 가능, 온보딩 화면 이동
                             } else {
-                                onLoginFinished(UserStatusEnum.RESTRICTED, suspensionResponse.untilBan)
+                                onLoginFinished(
+                                    UserStatusEnum.RESTRICTED,
+                                    suspensionResponse.untilBan
+                                )
                                 //탈퇴 유저임 재가입 불가 팝업 띄우면됨
                             }
 
@@ -236,24 +252,15 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun fetchAppVersion(context: Context) {
-        viewModelScope.launch {
+    suspend fun checkAppVersion(context: Context): Boolean =
+        withContext(Dispatchers.IO) {
             runCatching {
-                val packageManager = context.packageManager
-                val packageName = context.packageName
-                val packageInfo = packageManager.getPackageInfo(packageName, 0)
-                getAppVersionUseCase(packageInfo.versionName)
+                val info = context.packageManager
+                    .getPackageInfo(context.packageName, 0)
+                getAppVersionUseCase(info.versionName)
             }
-                .onSuccess { result ->
-                    if (result == "\"UPDATE\"") {
-                        // 업데이트 진행
-                        showDialogVersion.value = true
-                    }
-                }
-                .onFailure { error ->
-                    Log.e("error ", "versionError : ${error.message}")
-                    // 에러 방지로 실패시 그냥 통과
-                }
+                .mapCatching { it.trim('"') }
+                .onFailure { Log.e("VersionCheck", it.message.orEmpty()) }
+                .getOrNull() == "UPDATE"
         }
-    }
 }

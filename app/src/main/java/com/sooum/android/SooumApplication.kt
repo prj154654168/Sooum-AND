@@ -1,8 +1,12 @@
 package com.sooum.android
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import com.sooum.android.data.remote.AuthInterceptor
 import dagger.hilt.android.HiltAndroidApp
@@ -45,6 +49,7 @@ class SooumApplication : Application() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         prefs = getPreference(applicationContext)
         initialize()
+        createNotificationChannel()
 
     }
 
@@ -66,4 +71,23 @@ class SooumApplication : Application() {
 
     val instance: Retrofit
         get() = retrofitInstance
+
+    // 채널 생성
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = "high_priority_channel"
+            val channelName = "High Priority Notifications"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+
+            val channel = NotificationChannel(channelId, channelName, importance).apply {
+                description = "Heads-up 알림용 채널"
+                enableVibration(true)
+            }
+
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+
+            Log.d("FCM", "high_priority_channel 채널 생성됨")
+        }
+    }
 }

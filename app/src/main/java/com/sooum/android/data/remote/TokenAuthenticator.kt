@@ -4,29 +4,30 @@ import android.util.Log
 import com.sooum.android.Constants
 import com.sooum.android.SooumApplication
 import okhttp3.Authenticator
-import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.Route
 import org.json.JSONObject
 
 class TokenAuthenticator : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
-        Log.d("TokenAuthenticator", "start authenticate")
-        // 2번 이상 재시도 방지
+        Log.e("asd", "새 토큰 발급 시도")
         if (responseCount(response) >= 2) return null
 
+        //  refreshToken
         val refreshToken = SooumApplication().getVariable("refreshToken")
+
+        // 새 토큰 받아오기
         val newToken = getNewAccessToken(refreshToken) ?: return null
 
-        Log.d("AuthInterceptor", "AccessToken: $newToken")
-        // 새 토큰 저장
+        // 저장
         SooumApplication().saveVariable("accessToken", newToken)
 
+        // 재 시도
         return response.request.newBuilder()
-            .removeHeader("Authorization")
-            .addHeader("Authorization", "Bearer $newToken")
+            .header("Authorization", "Bearer $newToken")
             .build()
     }
 
@@ -40,26 +41,49 @@ class TokenAuthenticator : Authenticator {
         return count
     }
 
-    private fun getNewAccessToken(refreshToken: String): String? {
-        val client = OkHttpClient() // interceptor 없는 전용 클라이언트
+    private fun getNewAccessToken(refreshToken: String?): String? {
+        if (refreshToken.isNullOrBlank()) return null
+
+        val client = OkHttpClient()
+
         val request = Request.Builder()
             .url("${Constants.BASE_URL}/users/token")
-            .post(FormBody.Builder().add("refresh_token", refreshToken).build())
+            .addHeader("Authorization", "Bearer $refreshToken")
+            // okhttp4 이후 대응 코드 -> RequestBody.create(mediaType,byteArray)는 deprecate 될 예정
+            .post(ByteArray(0).toRequestBody(null))
             .build()
+
+
         return try {
-            val response = client.newCall(request).execute()
-            // 응답 코드부터 확인
+            client.newCall(request).execute().use { res ->
+                val raw = res.body?.string().orEmpty()
 
-            val body = response.body?.string()
+                when (res.code) {
+                    200 -> {
+                        // 새 토큰 발급
+                        JSONObject(raw).optString("accessToken", null)
+                    }
 
-            if (response.isSuccessful && !body.isNullOrEmpty()) {
-                val json = JSONObject(body)
-                val statusCode = json.getJSONObject("status").getInt("code")
-                Log.e("TokenAuthenticator","asdState: $statusCode")
-                if (statusCode == 200) json.getString("accessToken") else null
-            } else null
+                    403 -> {
+                        // refreshToken이 만료됬을 경우
+                        null
+                    }
+
+                    418 -> {
+                        // refresh 토큰이 블랙리스트에 등록 됬을 경우
+                        null
+                    }
+
+                    else -> {
+                        // 500 이나 아예 실패 했을 경우
+                        null
+                    }
+                }
+
+            }
+
         } catch (e: Exception) {
-            Log.e("TokenAuthenticator","새토큰 발급 에러 발생 : ${e.message}")
+            Log.e("refresh", "토큰 발급 에러 : ${e.message}")
             null
         }
     }
