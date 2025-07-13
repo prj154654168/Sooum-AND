@@ -25,55 +25,52 @@ import com.sooum.android.ui.theme.GrayWhite
 
 @Composable
 fun CommonSingleButtonDialog(
-    show: Boolean,
     title: String,
     message : String,
     onDismiss: () -> Unit,
     dismissText : String
 ) {
-    if (show) {
-        Dialog(onDismissRequest = onDismiss) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = GrayWhite
-                )
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = GrayWhite
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    top = 22.dp,
+                    bottom = 14.dp,
+                    start = 14.dp,
+                    end = 14.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(
-                        top = 22.dp,
-                        bottom = 14.dp,
-                        start = 14.dp,
-                        end = 14.dp
-                    ),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Text(
+                    text = title,
+                    style = AppTextStyles.body1Bold,
+                    color = GrayBlack,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = message,
+                    style = AppTextStyles.body2Regular,
+                    color = Gray600,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = title,
-                        style = AppTextStyles.body1Bold,
-                        color = GrayBlack,
-                        textAlign = TextAlign.Center
+                    CommonButton(
+                        text = dismissText,
+                        buttonType = ButtonTypeEnum.Primary,
+                        buttonHeightType = ButtonHeightEnum.PopUp,
+                        onClick = onDismiss,
+                        enabled = true,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = message,
-                        style = AppTextStyles.body2Regular,
-                        color = Gray600,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CommonButton(
-                            text = dismissText,
-                            buttonType = ButtonTypeEnum.Primary,
-                            buttonHeightType = ButtonHeightEnum.PopUp,
-                            onClick = onDismiss,
-                            enabled = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
                 }
             }
         }
@@ -82,7 +79,6 @@ fun CommonSingleButtonDialog(
 
 @Composable
 fun CommonDoubleButtonDialog(
-    show: Boolean,
     title: String,
     message : String,
     onDismiss: () -> Unit,
@@ -90,57 +86,55 @@ fun CommonDoubleButtonDialog(
     dismissText:  String,
     confirmText : String
 ) {
-    if (show) {
-        Dialog(onDismissRequest = onDismiss) {
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = GrayWhite
-                )
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = GrayWhite
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    top = 22.dp,
+                    bottom = 14.dp,
+                    start = 14.dp,
+                    end = 14.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(
-                        top = 22.dp,
-                        bottom = 14.dp,
-                        start = 14.dp,
-                        end = 14.dp
-                    ),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Text(
+                    text = title,
+                    style = AppTextStyles.body1Bold,
+                    color = GrayBlack,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = message,
+                    style = AppTextStyles.body2Regular,
+                    color = Gray600,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = title,
-                        style = AppTextStyles.body1Bold,
-                        color = GrayBlack,
-                        textAlign = TextAlign.Center
+                    CommonButton(
+                        text = dismissText,
+                        buttonType = ButtonTypeEnum.Secondary,
+                        buttonHeightType = ButtonHeightEnum.PopUp,
+                        onClick = onDismiss,
+                        enabled = true,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = message,
-                        style = AppTextStyles.body2Regular,
-                        color = Gray600,
-                        textAlign = TextAlign.Center
+                    CommonButton(
+                        text = confirmText,
+                        buttonType = ButtonTypeEnum.Primary,
+                        buttonHeightType = ButtonHeightEnum.PopUp,
+                        onClick = onConfirm,
+                        enabled = true,
+                        modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CommonButton(
-                            text = dismissText,
-                            buttonType = ButtonTypeEnum.Secondary,
-                            buttonHeightType = ButtonHeightEnum.PopUp,
-                            onClick = onDismiss,
-                            enabled = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                        CommonButton(
-                            text = confirmText,
-                            buttonType = ButtonTypeEnum.Primary,
-                            buttonHeightType = ButtonHeightEnum.PopUp,
-                            onClick = onConfirm,
-                            enabled = true,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
                 }
             }
         }

@@ -82,6 +82,7 @@ import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
 import com.sooum.android.ui.component.CommonBottomSheet
+import com.sooum.android.ui.component.CommonDoubleButtonDialog
 import com.sooum.android.ui.theme.AppTextStyles
 import com.sooum.android.ui.theme.Gray100
 import com.sooum.android.ui.theme.Gray3
@@ -124,8 +125,19 @@ fun DetailScreen(
     var showBlockDialog by remember { mutableStateOf(false) }
     if (showBlockDialog) {
         cardId?.let {
-            BlockDialog(navController, it.toLong(), viewModel) {
+            BlockDialog { isConfirm ->
                 showBlockDialog = false
+
+                if (isConfirm) {
+                    viewModel.userBlocks()
+                    navController.navigate(SooumNav.Home.screenRoute) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+
             }
         }
     }
@@ -1082,85 +1094,18 @@ fun DeleteDialog(
 
 @Composable
 fun BlockDialog(
-    navController: NavHostController,
-    cardId: Long,
-    viewModel: DetailViewModel,
-    showDialog: () -> Unit,
+    isConfirm: (Boolean) -> Unit
 ) {
-    Dialog(onDismissRequest = {
-
-    }) {
-        Card(
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(
-                    top = 24.dp,
-                    bottom = 14.dp,
-                    start = 14.dp,
-                    end = 14.dp
-                ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "해당 사용자를 차단할까요?",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colorResource(R.color.black)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "해당 사용자의 모든 카드를 모두 볼 수 없어요",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colorResource(R.color.gray01)
-                )
-                Spacer(modifier = Modifier.height(22.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            showDialog()
-                        },
-                        modifier = Modifier
-                            .width(130.dp)
-                            .height(46.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.gray03)),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            text = "취소",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Black.copy(alpha = 0.5f)
-                        )
-                    }
-                    Button(
-                        onClick = {
-                            viewModel.userBlocks()
-                            navController.navigate(SooumNav.Home.screenRoute) {
-                                popUpTo(navController.graph.id) {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
-                        },
-                        modifier = Modifier
-                            .width(130.dp)
-                            .height(46.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary_color)),
-                        shape = RoundedCornerShape(10.dp)
-                    ) {
-                        Text(
-                            text = "차단하기",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-        }
-    }
+    CommonDoubleButtonDialog(
+        title = "해당 사용자를 차단할까요?",
+        message = "해당 사용자의 모든 카드를 모두 볼 수 없어요",
+        onDismiss = {
+            isConfirm(false)
+        },
+        onConfirm = {
+            isConfirm(true)
+        },
+        dismissText = "취소",
+        confirmText = "차단하기"
+    )
 }
