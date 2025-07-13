@@ -40,7 +40,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -79,17 +78,18 @@ import com.sooum.android.User
 import com.sooum.android.domain.model.DetailCardLikeCommentCountDataModel
 import com.sooum.android.domain.model.DetailCommentCardDataModel
 import com.sooum.android.domain.model.Tag
-import com.sooum.android.ui.common.MyProfile
 import com.sooum.android.ui.common.PostNav
 import com.sooum.android.ui.common.SooumNav
 import com.sooum.android.ui.common.TagNav
-import com.sooum.android.ui.theme.Gray1
+import com.sooum.android.ui.component.CommonBottomSheet
+import com.sooum.android.ui.theme.AppTextStyles
 import com.sooum.android.ui.theme.Gray100
 import com.sooum.android.ui.theme.Gray3
 import com.sooum.android.ui.theme.Gray300
 import com.sooum.android.ui.theme.Gray500
 import com.sooum.android.ui.theme.GrayWhite
 import com.sooum.android.ui.theme.Primary
+import com.sooum.android.ui.theme.SecondaryRed
 import com.sooum.android.ui.viewmodel.DetailViewModel
 import kotlinx.coroutines.launch
 
@@ -140,68 +140,62 @@ fun DetailScreen(
         endY = 60f // 그라데이션의 높이를 60dp로 설정
     )
 
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = {
+    CommonBottomSheet(
+        show = showBottomSheet,
+        sheetState = sheetState,
+        onDismiss = {
+            scope.launch {
+                sheetState.hide()
                 showBottomSheet = false
-            },
-            sheetState = sheetState
-        ) {
-            // Sheet content
-            Column(
+            }
+        },
+        content = {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 66.dp)//네비게이션 크기만큼
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(66.dp)
-                        .clickable {
-                            scope
-                                .launch { sheetState.hide() }
-                                .invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
-                                    }
-                                }
+                    .height(66.dp)
+                    .noRippleClickable {
+                        scope.launch {
+                            sheetState.hide()
+                            showBottomSheet = false
+                        }.invokeOnCompletion {
                             showBlockDialog = true
                         }
-                ) {
-                    Text(
-                        text = "차단하기",
-                        fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.Red
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(66.dp)
-                        .clickable {
-                            scope
-                                .launch { sheetState.hide() }
-                                .invokeOnCompletion {
-                                    if (!sheetState.isVisible) {
-                                        showBottomSheet = false
-                                    }
-                                }
+
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "차단하기",
+                    style = AppTextStyles.body1Bold,
+                    color = SecondaryRed
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(66.dp)
+                    .noRippleClickable {
+                        scope.launch {
+                            sheetState.hide()
+                            showBottomSheet = false
+                        }.invokeOnCompletion {
                             navController.navigate("${PostNav.Report.screenRoute}/${cardId}")
                         }
-                        .align(Alignment.CenterHorizontally)
-                ) {
-                    Text(
-                        text = "신고하기",
-                        fontSize = 16.sp,
-                        modifier = Modifier.align(Alignment.Center),
-                        color = Color.Red
-                    )
 
-                }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "신고하기",
+                    style = AppTextStyles.body1Bold,
+                    color = SecondaryRed
+                )
             }
         }
-    } //bottom sheet
+    )
+
     val data = viewModel.feedCardDataModel
     Log.d("DetailScreen", "${data?.storyExpirationTime}")
     val comment = viewModel.detailCommentCardDataModel
